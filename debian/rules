@@ -1,0 +1,11 @@
+#!/usr/bin/make -f
+
+override_dh_auto_clean:
+	dh_auto_clean
+	rm -f iso-template.tar.gz
+
+override_dh_auto_install:
+	tar -cvzf iso-template.tar.gz antiX/ boot/ cdrom.ico EFI/
+
+%:
+	dh $@ --parallel 
