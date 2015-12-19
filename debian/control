@@ -1,0 +1,13 @@
+Source: iso-template
+Section: admin
+Priority: optional
+Maintainer: Steven Pusser (Stevo) <maintainer@mepiscommunity.org>
+Build-Depends: debhelper (>=7.0.50~)
+Standards-Version: 3.9.5
+Vcs-Git: git://github.com/AdrianTM/iso-template
+
+Package: iso-template
+Architecture: all
+Depends: ${misc:Depends}, ${shlibs:Depends}
+Description: ISO template
+ ISO Template is used by MX Snapshot to create live-CDs from the running system.
