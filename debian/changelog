@@ -1,3 +1,10 @@
+iso-template (15.12.1mx15) mx; urgency=medium
+
+  * initrd.gz RC1 bugfixes
+
+ -- anticapitalista <antiX@operamail.com>  Mon, 21 Dec 2015 16:10:32 +0200
+
+
 iso-template (15.12mx15) mx; urgency=medium
 
   * initial package
