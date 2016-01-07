@@ -1,3 +1,18 @@
+iso-template (15.12.3mx15) mx; urgency=medium
+
+  * Add comments to the text persist menu 
+  * minor cleanup to label_to_dev() and uuid_to_dev() 
+
+ -- anticapitalista <antiX@operamail.com>  Sat, 02 Jan 2016 15:13:32 +0200
+
+
+iso-template (15.12.2mx15) mx; urgency=medium
+
+  * initrd.gz RC2 bugfixes - F4 menu
+
+ -- anticapitalista <antiX@operamail.com>  Wed, 23 Dec 2015 11:28:32 +0200
+
+
 iso-template (15.12.1mx15) mx; urgency=medium
 
   * initrd.gz RC1 bugfixes
