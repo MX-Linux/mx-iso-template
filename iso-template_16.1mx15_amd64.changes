@@ -18,26 +18,26 @@ Changes:
  .
    * new template-initrd.gz
 Checksums-Sha1:
- dfefa00f43a7b8440f9d338f8e22d116b456a8fe 1147 iso-template_16.1mx15.dsc
- ebdda3c0255f710097c790322699f36e9548c2bf 3636584 iso-template_16.1mx15.tar.xz
- 742c4145005de6b36858517c196adae195f12434 5726778 iso-template_16.1mx15_all.deb
+ bf186f122a9269cd2b61208116f13a810c8431eb 1147 iso-template_16.1mx15.dsc
+ 4ccd7f57b46d5dd022100d37eec86b08f73dc81a 5811876 iso-template_16.1mx15.tar.xz
+ f44edb53c66e3398d7aca0fd0757b616b20ed942 5721738 iso-template_16.1mx15_all.deb
 Checksums-Sha256:
- f697e9babe3e4f9dca4206abda0f33ff44bdafeee638a22a5c73c9548ab703da 1147 iso-template_16.1mx15.dsc
- 8fa1311e98b290265eb2b90c6ae39adc38f4808cb7d2c01756d40c7f3dc9f2f7 3636584 iso-template_16.1mx15.tar.xz
- f8918615b3f72637cacbaefb4390c5148f0c11e681535a3fc43fb0bc4bba0fa2 5726778 iso-template_16.1mx15_all.deb
+ 4ce4b40a9531ee2933483e330e7aec3f0c01faa0c34f59ab9c4f9d15cc064661 1147 iso-template_16.1mx15.dsc
+ 94ade108f111043cfc42aad5be83725ac1ae3e547e707c17425c870ef9570ca3 5811876 iso-template_16.1mx15.tar.xz
+ d41aa9be455733ac99fc3b9440fff9968cc6cadfb151290bb5118ca824674699 5721738 iso-template_16.1mx15_all.deb
 Files:
- fced43abe5e5f1026b7a07c87576088e 1147 admin optional iso-template_16.1mx15.dsc
- 66895a51b856bdf6479679854a6662c5 3636584 admin optional iso-template_16.1mx15.tar.xz
- e38777b5515e3168a6af1882c9750b23 5726778 admin optional iso-template_16.1mx15_all.deb
+ aa629ee175e94b38f8bb2e32d6adcf8a 1147 admin optional iso-template_16.1mx15.dsc
+ 01822fcff110acd906c0f0d526d2f198 5811876 admin optional iso-template_16.1mx15.tar.xz
+ 22f3d10f46255629479decdb1053c723 5721738 admin optional iso-template_16.1mx15_all.deb
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQEcBAEBAgAGBQJWjpvQAAoJEHCTjHgGee6Y8zEIAJ7p9ZxBtDAZ2BQ3gKYDvXK3
-qkACzPJWa9Gep69t1s62IeulxUSZsIXAGraWmyo7+TJ9oCSwsL8jLgz7rG8UpWKO
-6K5jhu3IVWHov0bRp0/U75Y1bqXupbQBv7//T8BbvN8e8Lbhi/L1iBdPfjSHcFAN
-BSlTx5TI4/8B2W/jrB8hhP++/JZvoIGPUUzJzb/2+3AG51RIF5Jx/WJirkxYuKic
-kyFzG5avD/UENXYuW8Bul7oQjTi+SoMcxXBrNdGuKGQxBlOVoAvrWbhd816MNDIE
-rJa/bXcdQnxqbxrcbEVUdUTU6xDuTaN5jEXv5TNmnwNc6yWq9YHp6L472TLbJkU=
-=Lshg
+iQEcBAEBAgAGBQJWjrXDAAoJEHCTjHgGee6Y/UcIAIE64re97bfS7XnjZf1QICYz
+/EL4QsGcGm9pzZJMKh0McQraiJjeXHp1eCkWDRHwPv0Tj7piCIyJsquKybtJywMc
+AClZuFAnz06Mbol5BJaYynQQEX7rFrLJVTa7dYwV+THScXC3KsorukIHDYsl1NTN
+UBvczGN/xcHwC/oS5EYtSbJDnqRCtvJXWc4fx12vRl+71T0doScmbaleQWFglO7i
+WUNMWHW6dM4yVn1qK4qslHSUx5NXK82Tn4CoTjVSzBtxuLdNJncBJDAMiOXtL6Cq
+KsnelXTFDTYMK10I/CQfBZaQ/3nw0HkihdDE3/hqmayNf9DzZv4miExIUuKQ/Rg=
+=aX/9
 -----END PGP SIGNATURE-----
