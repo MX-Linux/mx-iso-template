@@ -1,3 +1,9 @@
+iso-template (16.6mx15+1) mx; urgency=medium
+
+  * bug fix
+
+ -- Adrian <adrian@mxlinux.org>  Wed, 15 Jun 2016 15:29:21 -0400
+
 iso-template (16.6mx15) mx; urgency=medium
 
   * new template-initrd.gz and iso-template
