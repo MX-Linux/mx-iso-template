@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Format: 1.8
+Date: Wed, 15 Jun 2016 15:29:21 -0400
+Source: iso-template
+Binary: iso-template
+Architecture: source all
+Version: 16.6mx15+1
+Distribution: mx
+Urgency: medium
+Maintainer: Steven Pusser (Stevo) <maintainer@mepiscommunity.org>
+Changed-By: Adrian <adrian@mxlinux.org>
+Description:
+ iso-template - ISO template
+Changes:
+ iso-template (16.6mx15+1) mx; urgency=medium
+ .
+   * bug fix
+Checksums-Sha1:
+ 0a22abd88f1ee4c096437a93ecde10829f14d1ef 1155 iso-template_16.6mx15+1.dsc
+ 74946132b4ea519cf93945d5155a101cc95f48a8 3633592 iso-template_16.6mx15+1.tar.xz
+ c5d17a37c902d6e8ab9d11dfff68ee72a83e72bb 5736866 iso-template_16.6mx15+1_all.deb
+Checksums-Sha256:
+ 30a5ed8ea58caa48910c975c6a0d2cc4fbec3711704f25c4bf39bbd5d2b1d012 1155 iso-template_16.6mx15+1.dsc
+ 3242e8f0d311c4c8a240591612c23229d75100b089824e3578bf9c24d5fb59c3 3633592 iso-template_16.6mx15+1.tar.xz
+ 0712f182f55faa1beb62c28bb08b309412a7eb06affb80959295ab803a231ee7 5736866 iso-template_16.6mx15+1_all.deb
+Files:
+ 38f679fb7e988868d0425cd735c9179e 1155 admin optional iso-template_16.6mx15+1.dsc
+ 23e973898876a3b030f6e88da13bd502 3633592 admin optional iso-template_16.6mx15+1.tar.xz
+ fe79ead4f02848b65acaca1e304a96c9 5736866 admin optional iso-template_16.6mx15+1_all.deb
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQEcBAEBAgAGBQJXYayvAAoJEHCTjHgGee6Y0MEH/jDabYHf7/vXG3NOukQO6v03
+1D1wIhOwUdEd+GbxCsVq6QnIkLBieJX9sr+i8DIQC/6xNmtKXxgJANT0/I+cOsT4
+wVTt8PB3zn7FiwwqC+m8jADtEINUHRZN77YnJlvCVDnQZpP0EF/qAEyqfseCG/lt
+pZ8qo3JExKobKk4T2QCMw2YZWdruyuiENDkK5greYbCeUqPibvD179IEB1tHFlde
+iyMRDjT8/dSYGZW16xViAJB09hXWf3FnjQGk4UY8oGZC9ccDDazTAI9LFl8mNQmV
+FDLmupWC3IGxL1qCmsVKX0zEHf3DwPqmeQCOHH2Is2tUHiB3JKRfhjZmcC1vMm8=
+=WFtH
+-----END PGP SIGNATURE-----
