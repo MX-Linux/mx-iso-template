@@ -1,0 +1,641 @@
+#!/live/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          live-init
+# Required-Start:    checkroot checkroot-bootclean
+# Required-Stop:
+# Should-Start:
+# Should-Stop:
+# Default-Start:     S
+# Default-Stop:
+# Short-Description: live-init
+# Description: localize /etc/skel, create /home/demo, customize X, mirrors, set default desktop
+### END INIT INFO
+
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
+
+  XSESSION_DIR=/usr/share/xsessions
+      MENU_WMs="fluxbox icewm jwm"
+      FF_PREFS="/etc/skel/.mozilla/firefox/*/prefs.js"
+     AUTOMOUNT=
+     EARLY_VID=
+ FOUND_VDRIVER=
+ VERSION_FILES="/etc/antix-version /live/boot-dev/version"
+
+ALL_VIDEO_MODULES="ast|bochs[_-]drm|cirrus|emgd|gma500[_-]gfx|i810|i915|mga|mgag200|nouveau|nvidia|qxl|r128|radeon|savage|sis|sis[_-]agp|tdfx|vboxvideo|via|via[_-]agp|vmwgfx"
+KMS_VIDEO_MODULES="ast|bochs[_-]drm|cirrus|emgd|gma500[_-]gfx|i915|mgag200|nouveau|qxl|radeon|udl|vboxvideo|vmwgfx"
+SISIMEDIA_K_DRIVERS="sis|sis[_-]agp"
+XORG_DRIVER_DIR="/usr/lib/xorg/modules/drivers"
+
+#-jbb For debugging
+: ${CMDLINE:=$(cat /proc/cmdline /live/config/cmdline)}
+for param in $CMDLINE; do
+    value=${param#*=}
+    case "$param" in
+                   db+)      DB_PLUS=true                           ;;
+             desktop=*)  CMD_DESKTOP=$value                         ;;
+                 dpi=*)      CMD_DPI=$value                         ;;
+                 kbd=*)      CMD_KBD=$value ;          DO_XKBD=true ;;
+               kbopt=*)   XKBOPTIONS=$value ;          DO_XKBD=true ;;
+               kbvar=*)   XKBVARIANT=$value ;          DO_XKBD=true ;;
+                lang=*)     CMD_LANG=$value ;          DO_XKBD=true ;;
+                  tz=*)       CMD_TZ=$value                         ;;
+              mirror=*)   CMD_MIRROR=$value                         ;;
+
+# Disable these because we do it in live-hwclock now
+#         hwclock=local)    CMD_CLOCK=$value                         ;;
+#           hwclock=utc)    CMD_CLOCK=$value                         ;;
+
+              failsafe)   XORG_ARGS=safe${XORG_ARGS:+,}$XORG_ARGS   ;;
+             xorg=safe)   XORG_ARGS=safe${XORG_ARGS:+,}$XORG_ARGS   ;;
+                xorg=*)   XORG_ARGS=$XORG_ARGS${XORG_ARGS:+,}$value ;;
+                noxorg)   NO_XORG=true                              ;;
+              earlyvid)   EARLY_VID=true                            ;;
+            noearlyvid)   EARLY_VID=                                ;;
+
+automount=off|amnt=off)                          AUTOMOUNT_OFF=true ;;
+        automount|amnt)                              AUTOMOUNT=true ;;
+    automount=*|amnt=*)    CMD_MOUNT=$value ;        AUTOMOUNT=true ;;
+               mount=*)    CMD_MOUNT=$value ;        AUTOMOUNT=true ;;
+               fstab=*)    CMD_FSTAB=$value                         ;;
+                splash) SPLASH_PARAM=v                              ;;
+              splash=*) SPLASH_PARAM=$value                         ;;
+           desktheme=*) DESK_THEME=$value                           ;;
+    esac
+done
+
+umask 022
+
+. /live/lib/live-init-utils.sh
+
+start_init_logging
+load_translation
+
+main() {
+    case "$1" in
+        start) do_start ;;
+         stop) exit 0   ;;
+            *) echo "Usage: $0 {start|stop}"
+               exit 1   ;;
+    esac
+}
+
+#----- Main code starts here --------------------------------------------------
+
+do_start() {
+    echo_script "$_Localizing_configuring_X_Windows_" $0
+
+    get_init_param DISTRO ""
+
+    # Try really hard to get the distro name
+    if [ ${#DISTRO} = 0 ]; then
+        local vfile
+        for vfile in $VERSION_FILES; do
+            test -r $vfile || continue
+            DISTRO=$(sed 's/[-_ ].*//' $vfile | head -n1)
+            [ ${#DISTRO} - gt 0 ] && break
+        done
+    fi
+
+    if [ ${#DISTRO} = 0 -a -r /etc/initrd-release ]; then
+        DISTRO="$(sed -n 's/^NAME="//' /etc/initrd-release)"
+        DISTRO=${DISTRO%\"}
+    fi
+
+    create_fstab $DISTRO
+
+    #-jbb: for debugging
+    unset COUNTRY WM_LANG KEYBOARDS KEYTABLE LANG MIRROR TZ XKBLAYOUT CONSOLE_FONT
+
+    get_init_lang "$CMD_LANG" error
+    localize_repo "$CMD_MIRROR" "$CMD_TZ" "$MIRROR" "$TZ"
+    localize_skel $WM_LANG
+
+    # Always create keyboard file in non-perisistent system even with no X
+    set_keyboard
+    set_utc_local $CMD_CLOCK
+
+    # Only do X stuff on systems that seem to have X
+    if which X &>/dev/null; then
+
+        if [ "$EARLY_VID" ]; then
+            load_video_driver
+        else
+            detect_any_video_driver
+        fi
+
+        set_dpi $CMD_DPI
+
+        make_xorg_conf "$XORG_ARGS" "$FOUND_VDRIVER"
+        HAVE_X=true
+    fi
+
+    # Find the "default" user.  This is usually "demo" but can vary on snapshots
+    # and such.  First check the default user for SLiM and lightdm.  Then get
+    # more desparate.
+
+    DEF_USER=$(find_def_user)
+
+    eval "USER_HOME=~$DEF_USER"
+
+    if [ -z "$DEF_USER" -o -z "${USER_HOME##~*}" ]; then
+        echo_live "$_No_default_user_X_found_on_the_system_" "$(pquote $DEF_USER)"
+        return
+    fi
+
+    create_home "$DEF_USER" "$USER_HOME"
+
+    # Don't bother with desktop stuff on systems without X
+    #--------------------------------------------------------------------------
+    [ "$HAVE_X" ] || return
+    #--------------------------------------------------------------------------
+
+    set_default_desktop "$CMD_DESKTOP" $DEF_USER $USER_HOME
+    set_desktop_theme   "$DESK_THEME"  $DEF_USER $USER_HOME
+
+    #localize_firefox $LANG
+}
+
+
+#-------------------------------------------------------------------------------
+# FSTAB stuff
+#-------------------------------------------------------------------------------
+create_fstab() {
+    local distro=$1
+
+    case $distro in
+        antiX) automount_and_fstab;;
+      MX|MX-*) add_fstab_swap     ;;
+            *) error 'Unknown distro %s' "$(pquote $distro)"
+    esac
+}
+
+add_fstab_swap() {
+    echo_live 'Possibly adding swap partitions to fstab'
+    make-fstab --quiet --swap-only
+}
+
+automount_and_fstab() {
+
+   local        am_file=/etc/fstab.automount
+   local     mount_file=/etc/fstab.mount
+   local        hp_file=/etc/fstab.hotplug
+   local  hp_state_file=$hp_file.state
+
+    # Delay start of auto-stuff until after udev has started
+    rm -f /etc/udev/rules.d/90-fstab-automount.rules
+
+    # "off" means "off"
+    if [ "$CMD_MOUNT" = 'off' -o -n "$AUTOMOUNT_OFF" ]; then
+        echo_live "$_Turning_all_boot_mount_options_off_"
+        rm -f $mount_file
+        CMD_MOUNT=
+
+        if [ -n "$AUTOMOUNT_OFF" ]; then
+            echo_live "$_Turning_automount_off_"
+            AUTOMOUNT=
+            rm -f $am_file
+        fi
+    fi
+
+    # Read in previous value (persistent systems only)
+    if [ -z "$CMD_MOUNT" -a -e $mount_file ]; then
+        CMD_MOUNT=$(cat $mount_file)
+    else
+        [ "$CMD_MOUNT" ] && echo $CMD_MOUNT > $mount_file
+    fi
+
+    # Mount partitions while building fstab file
+    local fstab_opt=
+    case ",$CMD_MOUNT" in
+        ,all)
+            echo_live "$_Mounting_all_devices_"
+            fstab_opt="$fstab_opt --mount=$CMD_MOUNT" ;;
+        ,usb)
+
+            echo_live "$_Mounting_usb_devices_"
+            fstab_opt="$fstab_opt --mount=$CMD_MOUNT" ;;
+
+        ,)  ;;
+        *)  error "$_Invalid_X_option_Y_" 'mount/automount' $(pquote $CMD_MOUNT) ;;
+    esac
+
+    if [ -e /etc/fstab  ]; then
+        grep -q -e ^/dev -e ^UUID= -e ^LABEL=  /etc/fstab || rm /etc/fstab
+    fi
+
+    make-fstab --quiet $fstab_opt
+
+    [ "$AUTOMOUNT" ] && touch $am_file
+
+    if [ -e $am_file ]; then
+        echo_live "$_Automount_enabled_"
+    else
+        echo_live "$_Automount_disabled_"
+    fi
+
+    # The hp_file is removed by /init
+    # The hp_state_file carries over "off" setting on persistent systems
+    [ -z "$CMD_FSTAB" -a -e $hp_state_file ] && CMD_FSTAB=$(cat $hp_state_file)
+
+    case ",$CMD_FSTAB" in
+        ,off)
+            echo_live "$_Disabling_fstab_hotplugging_this_will_also_disable_automount_"
+            echo $CMD_FSTAB > $hp_state_file
+            rm -f $hp_file  ;;
+
+        ,on|,)
+            echo_live "$_Enabling_fstab_hotplugging_"
+            rm -f $hp_state_file
+            touch $hp_file;;
+
+        *)
+            error "$_Bad_fstab_option_X_" $(pquote $CMD_FSTAB)
+            echo_live "$_Enabling_fstab_hotplugging_"
+            touch $hp_file;;
+    esac
+}
+
+
+#-------------------------------------------------------------------------------
+# Misc. Customizations
+#-------------------------------------------------------------------------------
+localize_skel() {
+    local lang=$1
+    [ "$lang" ] || return
+    local L10n_dir=/usr/share/antiX/localisation
+    local from=$L10n_dir/$lang
+    local dest=/etc/skel
+
+    # Silently skip systems which have no localisation directory
+    [ -d "$L10n_dir" ] || return
+
+    if ! [ -d $from ]; then
+        error "$_Unknown_menu_localization_language_X_" $(pquote $lang)
+        error "$_Directory_not_found_X_" $from
+        return
+    fi
+
+    echo_live "$_Localizing_menus_to_X_in_Y_" $(pquote $0) $(pquote $dest)
+
+    # Basically a cp -a but make all top level files and directories hidden
+    for file in $(ls $from); do
+       if [ -d $from/$file ]; then
+           mkdir -p /$dest/.$file
+           cp -a $from/$file/* $dest/.$file
+       else
+           rm -rf $dest/.$file
+           cp -a $from/$file $dest/.$file
+       fi
+    done
+}
+
+set_keyboard() {
+    local kb_file=/etc/default/keyboard
+    local default_xkb_opts="grp:alt_shift_toggle,terminate:ctrl_alt_bksp,grp_led:scroll"
+
+    first_write $kb_file || [ "$DO_XKBD" ] || return
+
+    XKBLAYOUT=${CMD_KBD:-$XKBLAYOUT}
+    [ "$XKBLAYOUT"  ] && echo_live "$_Setting_X_to_Y_" $(pquote xkb-layout)  $(pquote $XKBLAYOUT)
+    [ "$XKBMODEL"   ] && echo_live "$_Setting_X_to_Y_" $(pquote xkb-model)   $(pquote $XKBMODEL)
+    [ "$XKBVARIANT" ] && echo_live "$_Setting_X_to_Y_" $(pquote xkb-variant) $(pquote $XKBVARIANT)
+    [ "$XKBOPTIONS" ] && echo_live "$_Setting_X_to_Y_" $(pquote xkb-options) $(pquote $XKBOPTIONS)
+
+    cat > $kb_file <<Keyboard_Out
+XKBMODEL="${XKBMODEL:=pc105}"
+XKBLAYOUT="${XKBLAYOUT:=us}"
+XKBVARIANT="${XKBVARIANT}"
+XKBOPTIONS="${XKBOPTIONS:=$default_xkb_opts}"
+Keyboard_Out
+}
+
+localize_repo() {
+    local mirror=$1  tz=$2  lang_mirror=$3  lang_tz=$4
+
+    if [ -n "$mirror" -a -n "${mirror##[a-zA-Z][a-zA-Z]}" ]; then
+        error "$_Bad_mirror_code_X_expected_two_letters_" $(pquote $mirror)
+        mirror=
+    fi
+
+    case $tz in
+        */UTC|UTC) tz=$lang_tz ;;
+    esac
+
+    local arg=$mirror         # cheat mirror=xx overides all else
+    : ${arg:=$tz}             # next come tz=xxx/yyy cheat (or via tz menu)
+    : ${arg:=$lang_tz}        # The lang based timezone
+    : ${arg:=$lang_mirror}    # The lang based mirror should never be needed
+
+    [ "$arg" ] || return
+
+    case $arg in
+        */UTC|UTC) return ;;
+    esac
+
+    sources_dir=/etc/apt/sources.list.d
+    first_write $sources_dir || [ "$mirror" -o "$tz" ] || return
+
+    local verbose
+    [ "$DB_PLUS" ] && verbose=--verbose
+
+    echo_live "$_Localizing_source_repos_using_X_" $(pquote $arg)
+    localize-repo $verbose $arg
+}
+
+set_utc_local() {
+    local new=$1 file=/etc/adjtime
+    [ "$new" ] || return
+
+    echo_live "$_Assuming_X_is_set_to_Y_time_" hwclock $(pquote $new)
+
+    #grep -i -q $new $file && return
+
+    case $new in
+        local) sed -i 's/^UTC\s*$/LOCAL/' $file
+               hwclock --hctosys --localtime      ;;
+          utc) sed -i 's/^LOCAL\s*$/UTC/' $file
+               hwclock --hctosys --utc            ;;
+    esac
+}
+
+
+#-------------------------------------------------------------------------------
+# XORG and VIDEO stuff
+#-------------------------------------------------------------------------------
+
+# Don't make a default xorg.conf if:
+#    1) a modified xorg.conf is found
+#    2) "noxorg" was specified
+#    3) a kms driver was found (regardless of "nomodeset")
+#    4) there is no frame buffer
+#    3) there is a frame buffer other than vesa
+
+make_xorg_conf() {
+    local args=$1 found_vdriver=$2 safe_mode= xorg_conf=/etc/X11/xorg.conf
+
+    case ,$args, in
+        *,safe,*) safe_mode=true;;
+    esac
+    #- # Disable fbdev unless it is specifically requested
+    #- # If it is requested then make sure it is enabled (by us at least)
+    #- local fbdev=/usr/lib/xorg/modules/drivers/fbdev_drv.so
+    #- local fbdev2=/usr/local/lib/xorg/fbdev_drv.so
+    #- case ,$args, in
+    #-     *,fbdev,*)  move_if $fbdev2 $fbdev ;;
+    #-             *)  move_if $fbdev $fbdev2 ;;
+    #- esac
+
+    # Always erase generated xorg.conf files
+    if test -f $xorg_conf && grep -q "*#\s*Generated by\s*make-xorg-conf" $xorg_conf; then
+        echo_live "$_Removing_previous_auto_generated_X_file_" $(pquote xorg.conf)
+        rm -f $xorg_conf
+    fi
+
+    local no_default
+    test -e $xorg_conf             && no_default=true
+    [ "$NO_XORG" ]                 && no_default=true
+    [ "$found_vdriver" ]           && no_default=true
+    [ -e /live/config/virtualbox ] && no_default=true
+
+    # FIXME: should I include this or does check for "EFI VGA" below suffice?
+    #[ -e /live/config/uefi ]       && no_default=true
+
+    # Check who is creating the framebuffer (if any)
+    local vga_fb fb_name=none
+    read fb_name 2>/dev/null < /sys/class/graphics/fb0/name
+
+    case $fb_name in
+                  none) ;;
+     "VESA VGA"|simple) vga_fb=true ;;
+           "EFI VGA"|*) echo_live "$_Disabling_safe_mode_because_of_X_" "$(pquote $fb_name framebuffer)"
+                        no_default=true
+                        safe_mode= ;;
+    esac
+
+    # safe mode from the user over-rides vbox
+    [ -z "$safe_mode" -a -e /live/config/virtualbox -a -z "$args" -a -z "$no_default" ] \
+        && args=vbox${args:+,}$args
+
+    # Force X video driver to be vesa if the vga framebuffer is enabled.
+    if  [ "$vga_fb" -a -z "$no_default" -a -z "$safe_mode" ]; then
+        echo_live "$_Forcing_X_windows_to_use_default_mode_"
+        args=default${args:+,}$args
+    fi
+
+    [ "$args" ] || return
+
+    echo_live "$_Configuring_X_file_with_Y_" $(pquote $xorg_conf) $(pquote $args)
+    backup_file $xorg_conf
+    /sbin/make-xorg-conf --output=$xorg_conf $args
+}
+
+find_video_modules() {
+    local modules=${1:-$ALL_VIDEO_MODULES}
+    find /sys/devices -name modalias -print0 | xargs -0 sort -u \
+        | xargs modprobe -a -D -q 2>> $INIT_LOG_FILE | sort -u \
+        | sed -n -r "s/^insmod [^ ]*($modules)\.ko.*/\1/p"
+
+    # FIXME: for testing
+    # echo sis-agp
+}
+
+set_fbcondecor() {
+    local boot_param=$1 orig_name=$2 param verbose theme=default new_name
+    #[ "$orig_name"  ] || return
+    [ "$boot_param" ] || return
+
+    # Don't set the decoration if the framebuffer has not changed
+    read new_name= 2>/dev/null < /sys/class/graphics/fb0/name
+    [ "$orig_name" = "$new_name" ] && return
+
+    for param in $(echo $boot_param | sed "s/,/ /g"); do
+        case $param in
+            v|verbose) verbose=true ;;
+          t=*|theme=*) theme=${param#*=} ;;
+        esac
+    done
+
+    # Only set bg if we are in verbose mode
+    [ "$verbose" ] || return
+    /sbin/splash-term $theme
+}
+
+load_video_driver() {
+    local orig_fb_name
+    read orig_fb_name 2</dev/null < /sys/class/graphics/fb0/name
+    echo_live "$_Scanning_for_hardware_specific_video_modules_"
+    local video_modules="$(find_video_modules)"
+    [ "$video_modules" ] || return
+
+    FOUND_VDRIVER=true
+    detect_sisimedia_driver "$video_modules"
+    local kms_modules="$(echo "$video_modules" | egrep "^($KMS_VIDEO_MODULES)$")"
+
+    if [ "$kms_modules" ]; then
+        echo_live "$_Found_X_video_module_s_Y_" KMS "$(pquote $(echo $kms_modules))"
+        echo_live "$_Load_module_s_X_" "$(pquote $(echo $kms_modules))"
+        modprobe -b -a -q "$kms_modules"
+        set_fbcondecor "$SPLASH_PARAM" "$orig_fb_name"
+    else
+        echo_live "$_Found_video_module_s_X_" "$(pquote $(echo $video_modules))"
+        detect_sisimedia_driver "$video_modules"
+    fi
+}
+
+# Note: we will report FOUND_VDRIVER even if "nomodeset" is used because unless
+# the user wants safe mode then they should be allowed to use the KMS driver and
+# "nomodeset" without us forcing vesa.  That's what safe mode is for.
+detect_any_video_driver() {
+    echo_live "$_Scanning_for_hardware_specific_video_modules_"
+    local video_modules=$(find_video_modules)
+    [ "$video_modules" ] || return
+
+    FOUND_VDRIVER=true
+
+    local kms_modules="$(echo "$video_modules" | egrep "^($KMS_VIDEO_MODULES)$")"
+
+    echo_live "$_Found_X_video_module_s_Y_" "" "$(pquote $(echo $video_modules))"
+    [ "$kms_modules" ] || detect_sisimedia_driver "$video_modules"
+}
+
+# Note: we will report FOUND_VDRIVER even if "nomodeset" is used because unless
+# the user wants safe mode then they should be allowed to use the KMS driver and
+# "nomodeset" without us forcing vesa.  That's what safe mode is for.
+detect_kms_driver() {
+    local kms_drivers=$(find_video_modules "$KMS_VIDEO_MODULES|drm_kms_helper")
+    [ "$kms_drivers" ] || return
+    echo_live "$_Found_X_video_module_s_Y_" KMS ""
+    FOUND_VDRIVER=true
+}
+
+detect_sisimedia_driver() {
+    local video_modules=$1  xorg_driver=sisimedia
+    echo "$video_modules" | egrep -q "^($SISIMEDIA_K_DRIVERS)$" || return
+    #. Found <type> kernel modules ...
+    echo_live "$_Found_X_kernel_modules_" sis
+    test -e $XORG_DRIVER_DIR/${xorg_driver}_drv.so || return
+    echo_live "$_Found_X_xorg_driver_" $xorg_driver
+
+    # Add "default" only if there is no previous XORG_ARGS
+    # Always add the "sisimedia" driver
+    # But both come *before* the orignal XORG_ARGS so they get over-ridden
+    # by the xorg= cheat.
+    XORG_ARGS="${XORG_ARGS:-default,$xorg_driver}"
+}
+
+set_dpi() {
+    local dpi=$1
+    [ "$dpi" ] || return
+
+    if ! echo $dpi | grep -q "^[[:digit:]]\+$"; then
+        error "$_Invalid_X_boot_parameter_Y_" $(pquote dpi) $(pquote $dpi)
+        return
+    fi
+
+    echo_live "$_Setting_X_to_Y_" $(pquote dpi) $(pquote $dpi)
+
+    local file
+    for file in /etc/slim.conf /usr/share/slim/themes/antiX/slim-install.conf; do
+        [ -e $file ] || continue
+        sed -i -e "s/^xserver_arguments.*/xserver_arguments -dpi $dpi -nolisten tcp/" $file
+    done
+
+    for file in /etc/lightdm/lightdm.conf; do
+        [ -e $file ] || continue
+        sed -i -r "s/^#?\s*(xserver-command=X).*/\1 -dpi $dpi/" $file
+    done
+}
+
+
+#-------------------------------------------------------------------------------
+# DEFAULT USER stuff
+#-------------------------------------------------------------------------------
+find_def_user() {
+    local user=$(sed -r -n 's/^\s*default_user\s+//p' /etc/slim.conf 2>/dev/null | tail -n1)
+    : ${user:=$(sed -r -n 's/^\s*autologin-user=//p' /etc/lightdm/lightdm.conf 2>/dev/null | tail -n1)}
+    : ${user:=$(getent passwd 1000 | cut -d: -f1)}
+    : ${user:=demo}
+    echo ${user%% *}
+}
+
+create_home() {
+    local user=$1 home=$2
+
+    if [ "$(ls -A $home 2>/dev/null)" ]; then
+        return
+        # These don't run but they don't leave the .pot file either
+        echo_live "$_Files_already_exist_under_X_" $(pquote $home)
+        echo_live "$_Not_creating_or_populating_X_" $(pquote $home)
+    fi
+
+    echo_live "$_Populating_X_directory_" $(pquote $home)
+    mkdir -p $home
+    cp -a /etc/skel/* /etc/skel/.[!.]* $home 2>/dev/null # Avoid error msgs for ".../* not found"
+
+    local group=users
+    grep -q "^$user:" /etc/group && group=$user
+    chown -R $user:$group $home
+}
+
+set_default_desktop() {
+    local desktop=$1  user=$2  home=$3
+    [ "$desktop" ] || return
+
+    local file=$home/.desktop-session/default-desktop
+    echo_live "$_Setting_X_to_Y_" desktop $(pquote $desktop)
+    su -c "mkdir -p $(dirname $file)" $user
+    echo $desktop | su -c "tee $file" $user >/dev/null
+}
+
+set_desktop_theme() {
+    local theme=$1  user=$2  home=$3
+    [ "$theme" ] || return
+
+    echo_live "$_Setting_desktop_theme_to_X_" $(pquote $theme)
+    set-desktop-theme --root $theme
+    su -c "set-desktop-theme --dir $home $theme" $user
+}
+
+#FIXME:
+localize_firefox() {
+    local pref_files file lang=$1
+    local string="user_pref(\"spellchecker.dictionary\","
+
+    pref_files=$(ls $FF_PREFS 2>/dev/null)
+    [ "$pref_files" ] || return
+    sed -i  "/$string/d" $pref_files
+    for file in $pref_files; do
+        echo "$string \"$lang\");" >> $file
+    done
+}
+
+
+#-------------------------------------------------------------------------------
+# UTILITIES
+#-------------------------------------------------------------------------------
+
+# Always copy to $file$ext2 so this has the most recent backup.
+# Only move to $file$ext1 if it does not already exist so this will
+# contain the earliest (oldest) backup.
+backup_file() {
+    local file=$1 ext1=${2:-.old} ext2=${3:-save}
+
+    test -e $file || return
+    cp -f $file $file$ext2
+    test -e $file$ext1 && return
+    mv -f $file $file$ext1
+}
+
+move_if() {
+    local f1=$1  f2=$2
+    test -e $f1 || return
+    mkdir -p $(dirname $f2)
+    mv -f $f1 $f2
+}
+
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+main "$@" 2>&1 | tee -a $INIT_LOG_FILE
+
+exit 0
