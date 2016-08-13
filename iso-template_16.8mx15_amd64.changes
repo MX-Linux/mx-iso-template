@@ -18,26 +18,26 @@ Changes:
  .
    * disable mtpd service by default
 Checksums-Sha1:
- e4337fc3542179cd6cde9a33cd49f214a546d191 1147 iso-template_16.8mx15.dsc
- f675b8251e3596e03c63205a36268997bd2ab3b0 8981620 iso-template_16.8mx15.tar.xz
- e767eb90711019aa9c00494c3d3283be7dddc4fd 5733020 iso-template_16.8mx15_all.deb
+ 36d1715d177261db3896b4984ecaaf5e1152a59e 1147 iso-template_16.8mx15.dsc
+ 53ebe44ff2b03a089cff0169d0d2920f1caf09df 2673068 iso-template_16.8mx15.tar.xz
+ 76cf205b97880af1f3530389b8f45c4e97f60d60 5732980 iso-template_16.8mx15_all.deb
 Checksums-Sha256:
- eb69cef0fc57c14f4356cc2f0d274c497229b9553cdf1be01388fdda19570875 1147 iso-template_16.8mx15.dsc
- 82634bbd441e5af1c087167b5dc78d1647aca723656bbc3089b060f7489a0f62 8981620 iso-template_16.8mx15.tar.xz
- 2c559e65341a7a472777836f97ee5e0d076c7ed0924473b891ef005f2384753b 5733020 iso-template_16.8mx15_all.deb
+ f7d3284b9294781e028d327a04dadfdfbdb7599b905b1241be41be98baafe29e 1147 iso-template_16.8mx15.dsc
+ a4ddb86c7ac005c658955678330db70669a7815c7da892fe66d6bca0f56108a5 2673068 iso-template_16.8mx15.tar.xz
+ 652cd1f8d8fd6fbbdbd02e38291282e13e1914a11224139190352dc49ea7b505 5732980 iso-template_16.8mx15_all.deb
 Files:
- fbca0d3ee32524db5a6bf573e25b0290 1147 admin optional iso-template_16.8mx15.dsc
- 77affedfa84b7fab59c1bcd70e01d88c 8981620 admin optional iso-template_16.8mx15.tar.xz
- 8a41aada39dac063200104ad82d523f7 5733020 admin optional iso-template_16.8mx15_all.deb
+ d08c58bc5d5ced465d28bb645b4621eb 1147 admin optional iso-template_16.8mx15.dsc
+ 836602a2121fcf6fc3ea7483e9a9b009 2673068 admin optional iso-template_16.8mx15.tar.xz
+ 54af3db42734fe5bc88660cc4ced0a12 5732980 admin optional iso-template_16.8mx15_all.deb
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQEcBAEBAgAGBQJXr0hOAAoJEHCTjHgGee6YbzoIAK7r+Fk3jX2SnOu+nVtiZN/P
-g1cuZngbvHSed7PRePa1Wrves5iEKD+dNnrIcpcxqcYcP8LO0RClpwEceCNfh+R+
-rf7lRnOr8ebQH8Ld8Nh1aNMb6Xo3CvCsNiY5KAbbqQ7jZ8bc8aVcozGaQvOttkbm
-Ioqgw7UhyvsUS4Q5O/cYS+l3+ooHo70W04QWm6O5ePtlJndXwPkAiNjHBSCCsWZm
-WFBYAz6GmPvxb8a9meav55eybMaeWm4WPQY/U21fL19xo+3/IsXtqw9TuFnwxyQd
-rcQFIgfl1ioVIw4pPY0yB82jiihZq2E7v168vf/iIl7yauf0cP8vwPuM74X32eM=
-=60IB
+iQEcBAEBAgAGBQJXr6tmAAoJEHCTjHgGee6Y6FkIAJuzW3eLtq0ej9iuVKHs80k2
+a6qXOsMjaaSzKhtCijfiJQx3AGbarxC9EUE1TchwwF3AEWJGhOu/Z3vFFlSD61XT
+gqH1S1/vu6GjT3ASeG1goW01PfTR009TNZ7C0ozw8vNWQNQ+kWRmE7IPr/H/MBMX
+Ag5GhCsNVfJP1ZaskOMxXWO6xBQcK8ADl0ITGNVdM817fiTiHwdYgSn4/tgqqK7j
+3QEMZCrmS75Y/30pT+FT7p0BHVY3cDdGImP1E4rYQlggwN98xpm329urVQJd28tH
+EfGm53mFn0pahpP1AvCMwEzd+pzSItJymr1ROE5QuNRmd8csg0W29s6VLOG9oBY=
+=J0N9
 -----END PGP SIGNATURE-----
