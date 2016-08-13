@@ -1,0 +1,64 @@
+#!/live/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          live-gfxsave
+# Required-Start:
+# Required-Stop:
+# Should-Start:
+# Default-Start:     
+# Default-Stop:      0 1 6
+# Short-Description:
+# Description:       save live menu selections
+### END INIT INFO
+
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
+
+
+main() {
+    case $1 in
+        start) do_start                      ;;
+         stop)                               ;;
+            *) echo "Usage: $0 {start|stop}" ;;
+    esac
+    exit 0
+}
+
+do_start() {
+
+    : ${CMDLINE:=$(cat /proc/cmdline /live/config/cmdline)}
+    local gfx_cmd
+    for param in $CMDLINE; do
+        case $param in
+            gfxsave=*) gfx_cmd=${param#*=};;
+        esac
+    done
+
+    [ -z "$gfx_cmd" ] && return
+
+    . /live/lib/live-init-utils.sh
+
+    export CMDLINE
+    export GFX_LOG_FILE=/var/log/live/gfxsave.log
+
+    local dir=/live/boot-dev/boot
+    local script=/live/bin/gfxsave
+
+    if ! [ -e /live/config/remasterable ]; then
+        if [ -e /live/config/db+ ]; then
+            local tdir=/live/test
+            mkdir -p $tdir
+            echo_live "Use $tdir to test %s" $(pquote $script)
+            cp -r $dir/syslinux $tdir
+            dir=$tdir
+        else
+            echo_live "Can't update %s on read-only boot media" "$(pquote gfxboot)"
+            return
+        fi
+    fi
+
+    $script $dir $gfx_cmd
+}
+
+
+
+main "$@"
