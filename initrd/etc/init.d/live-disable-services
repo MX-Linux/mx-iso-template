@@ -131,7 +131,8 @@ prep_main() {
         [ "${antiX_param##*[xX]*}" ] ||     XTRA_LEAN=true
         [ "${antiX_param##*[dD]*}" ] ||       NO_DBUS=true
         [ "${antiX_param##*[vV]*}" ] ||  DISABLE_VBOX=true
-        [ "${antiX_param##*[nN]*}" ] ||   DISABLE_NFS=true
+        [ "${antiX_param##*[n]*}"  ] ||   DISABLE_NFS=true
+        [ "${antiX_param##*[N]*}"  ] ||   ENABLE_NTPD=true
     fi
 
     . /live/lib/live-init-utils.sh
@@ -156,6 +157,8 @@ main() {
             update-rc.d virtualbox-guest-x11   remove
         fi
     fi
+
+    [ "$ENABLE_NTPD" ] || disable_services ntp >/dev/null
 
     [ -z "$must_run" -o -n "$DISABLE_NFS" ] || exit 0
 
