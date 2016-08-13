@@ -1,0 +1,486 @@
+#!/live/bin/sh
+
+PATH=/live/bin
+MY_LOG=select-device.log
+LIVE_BIN=/live/bin
+mkdir -p /tmp/mnt
+SCREEN_WIDTH=$(stty size 2>/dev/null | cut -d" " -f2)
+
+select_device_3() {
+    local title_type=$1  var=$2  min_size=${3:-0} not_mounted=$4
+    local title=$(printf "Please select %s device:" "$title_type")
+
+    local cnt=1 cnt_lab rtype mp=/tmp/mnt
+    local size_lab free free_lab
+    local line pretty skip data display
+    local free_rev type_rev name_rev size_rev
+    #local format="$green%3s $lt_cyan%-5s $magenta%8s $yellow%8s $lt_blue%10s $lt_gray%9s $white%-16s $lt_gray%s\n"
+    local format="$green%3s $lt_cyan%s%-9s$nc_co $magenta%s%5s$nc_co $yellow%s%5s$nc_co $lt_blue%s%10s$nc_co $lt_gray%6s $lt_gray%-16s $white%s\n"
+    local head_fmt="${hi_co}%3s %-9s %5s %5s %10s %6s %-16s %s\n"
+    local header=$(printf "$head_fmt" "" Name Size Free FS-type Remove Model Label)
+    local title="$title\n$header"
+
+    mkdir -p $mp
+    local rev=$(printf "\e[0;4;7;31m")
+    #local rev=$(printf "\e[5;7;31m")
+    #local rev=$(printf "\e[1;7m")
+
+    (bogo_meter)&
+    local pid=$!
+
+    local name
+    while read -r name line ; do
+
+        [ ${#name} -eq 0 -o ${#name} -gt 10 ] && continue
+        #case $name in sd?[0-9]*) ;; *) continue ;; esac
+
+        local type=$(echo "$line" | sed -n -r 's/.* TYPE="([^"]*)"$/\1/p' | tail -n 1)
+        #uuid=$(echo "$line" | sed -n -r -e 's/" (UUID=|TYPE=)".*//' -e 's/[^:]*: LABEL="//p')
+        case $type in
+            ""|udf|iso9660|swap|squashfs) continue
+        esac
+
+        local disk_name  dev=/dev/$name
+        case $(stat -c %t $dev) in
+            [38]|22)  disk_name=${name%[0-9]};  disk_name=${disk_name%[0-9]} ;;
+             179|b3)  disk_name=${name%p[0-9]}                               ;;
+                  *)  continue                                               ;;
+        esac
+
+        local sys_dir=/sys/block/$disk_name
+        local model=$(head -c 16  $sys_dir/device/model 2>/dev/null)
+        local remove=$(cat        $sys_dir/removable    2>/dev/null)
+        local reado=$(cat         $sys_dir/$name/ro     2>/dev/null)
+        local size=$(cat          $sys_dir/$name/size   2>/dev/null)
+        [ "$reado" = 1 ] && continue
+        [ -z "$size" ] && continue
+        size=$((size / 2 / 1024))
+
+
+        local label=$(echo "$line" | sed -n -r -e 's/" (UUID=|TYPE=)".*//' -e 's/^LABEL="//p')
+        size_rev=
+        name_rev=
+        free_rev=
+        type_rev=
+        free=
+
+        cnt_lab="$cnt)"
+        size_lab=$(size_label_m $size)
+
+        if [ $min_size -gt 0 -a $min_size -gt $size ]; then
+            size_rev=$rev
+            cnt_lab=
+            skip=true
+        fi
+
+        local exist_mp=$(get_mountpoint $dev)
+        if [ "$exist_mp" ]; then
+            free=$(free_space $exist_mp)
+            if [ "$not_mounted" ]; then
+                name_rev=$rev
+                cnt_lab=
+                skip=true
+            fi
+
+        # The busybox mount error messages are worthless at best
+        elif mount -t $type $dev $mp &>/dev/null; then
+            free=$(free_space $mp)
+            free_lab=$(size_label_m $free)
+            umount $mp
+        fi
+
+        if [ "$free" ]; then
+            free_lab=$(size_label_m $free)
+            if [ $min_size -gt 0 -a $min_size -gt $free ]; then
+                free_rev=$rev
+                cnt_lab=
+                skip=true
+            fi
+        else
+            free_lab="?"
+            type_rev=$rev
+            cnt_lab=
+            skip=true
+        fi
+
+        rtype="no"
+        [ "$remove" = 1 ] && rtype="yes"
+
+        pretty=$(printf "$format" "$cnt_lab" "$name_rev" "$name" "$size_rev" "$size_lab" \
+            "$free_rev" "$free_lab" "$type_rev" "$type" "$rtype" "$model" "$label")
+
+
+        local display="${display}$pretty\n"
+
+        [ -z "$cnt_lab" ] && continue
+
+        data="${data}$cnt:$dev\n"
+        cnt=$((cnt + 1))
+
+    done <<Blkid
+$(sorted_blkid)
+Blkid
+    kill -9 $pid
+    echo
+
+    if [ $cnt -le 1 ]; then
+        display="$header\n$display"
+        msg_nc "$display"
+        warn "No suitable devices were found."
+        return 1
+    fi
+
+    pretty=$(printf "$format" "0)" "${bold_co}quit " "$m_co($(cq default))")
+
+    display="${display}$pretty\n"
+    data="${data}0:quit\n"
+    if [ "$skip" ]; then
+        local rev_video=$(printf "$rev%s$nc_co" "reverse video")
+        display="${display}$(printf "Partitions that can't be used are listed but not selectable.")\n"
+        display="${display}$(printf "The limiting factors are highlighted in %s" "$rev_video")\n"
+        display="${display}$(printf "A hightlighted name means the device is already mounted")\n"
+    fi
+
+    my_select_2 "$title" $var "0" "$data" "$display"
+    echo -e "$display" >> $MY_LOG
+    return 0
+}
+
+
+
+
+
+select_device2() {
+    local title_type=$1  var=$2  min_size=${3:-0} not_mounted=$4
+    local title=$(printf "Please select %s device:" "$title_type")
+
+    local cnt=1 cnt_lab rtype mp=/tmp/mnt
+    local size_lab free free_lab
+    local line pretty skip data display
+    local free_rev type_rev name_rev
+    #local format="$green%3s $lt_cyan%-5s $magenta%8s $yellow%8s $lt_blue%10s $lt_gray%9s $white%-16s $lt_gray%s\n"
+    local format="$green%3s $lt_cyan%s%-5s$nc_co $magenta%s%8s$nc_co $yellow%s%8s$nc_co $lt_blue%s%10s$nc_co $lt_gray%10s  $white%-16s $lt_gray%s\n"
+    local head_fmt="${hi_co}%3s %-5s %8s %8s %10s %10s  %-16s %s\n"
+    local header=$(printf "$head_fmt" "" Name Size Free FS-type Removable Label Model)
+    local title="$title\n$header"
+
+    mkdir -p $mp
+    local rev=$(printf "\e[0;4;7;31m")
+    #local rev=$(printf "\e[5;7;31m")
+    #local rev=$(printf "\e[1;7m")
+
+    ###(bogo_meter)&
+    local pid=$!
+
+    while read -r line ; do
+
+        local name=${line%%:*}
+        name=${name##*/}
+        [ ${#name} -eq 0 -o ${#name} -gt 6 ] && continue
+        case $name in sd?[0-9]*) ;; *) continue ;; esac
+
+        local type=$(echo "$line" | sed -n -r 's/.* TYPE="([^"]*)"$/\1/p' | tail -n 1)
+        #uuid=$(echo "$line" | sed -n -r -e 's/" (UUID=|TYPE=)".*//' -e 's/[^:]*: LABEL="//p')
+        local label=$(echo "$line" | sed -n -r -e 's/" (UUID=|TYPE=)".*//' -e 's/[^:]*: LABEL="//p')
+
+        local drive_name=${name%%[0-9]*}/
+        local model=$(cat  /sys/block/$drive_name/device/model 2>/dev/null)
+        local remove=$(cat /sys/block/$drive_name/removable    2>/dev/null)
+        local reado=$(cat  /sys/block/$drive_name/$name/ro     2>/dev/null)
+        local size=$(cat   /sys/block/$drive_name/$name/size   2>/dev/null)
+        size=$((size / 2 / 1024))
+
+        local dev=/dev/$name
+
+        [ "$reado" = 1 ] && continue
+
+        case $type in
+            ""|udf|iso9660|swap|squashfs) continue
+        esac
+
+        case $(stat -c %t $dev) in
+            [38]) ;;
+               *) continue ;;
+        esac
+
+        skip=
+        local size_rev=
+
+        cnt_lab="$cnt)"
+        size_lab=$(size_label_m $size)
+
+        if [ $min_size -gt 0 -a $min_size -gt $size ]; then
+            size_rev=$rev
+            cnt_lab=
+            skip=true
+        fi
+
+        name_rev=
+        free_rev=
+        type_rev=
+        free=
+        
+        local exist_mp=$(get_mountpoint $dev)
+        if [ "$exist_mp" ]; then
+            free=$(free_space $exist_mp)
+            if [ "$not_mounted" ]; then
+                name_rev=$rev
+                cnt_lab=
+                skip=true
+            fi
+
+        # The busybox mount error messages are worthless at best
+        elif /usr/bin/sudo mount -t $type $dev $mp &>/dev/null; then
+            free=$(free_space $mp)
+            free_lab=$(size_label_m $free)
+            /usr/bin/sudo umount $mp
+        fi
+
+        if [ "$free" ]; then
+            free_lab=$(size_label_m $free)
+            if [ $min_size -gt 0 -a $min_size -gt $free ]; then
+                free_rev=$rev
+                cnt_lab=
+                skip=true
+            fi
+        else
+            free_lab="?"
+            type_rev=$rev
+            cnt_lab=
+            skip=true
+        fi
+
+        rtype="no"
+        [ "$remove" = 1 ] && rtype="yes"
+
+        pretty=$(printf "$format" "$cnt_lab" "$name_rev" "$name" "$size_rev" "$size_lab" \
+            "$free_rev" "$free_lab" "$type_rev" "$type" "$rtype" "$label" "$model")
+
+        local display="${display}$pretty\n"
+
+        [ -z "$cnt_lab" ] && continue
+
+        data="${data}$cnt:$dev\n"
+        cnt=$((cnt + 1))
+
+    done <<Blkid
+$(/usr/bin/sudo /live/bin/blkid | sed -r -e 's=^(/dev/sd.[0-9][0-9]):=\1+\1:=' -e 's=^(/dev/sd.)([0-9]):=\10\2+\1\2:=' | sort)
+Blkid
+    ### kill -9 $pid
+    echo
+
+    if [ $cnt -le 1 ]; then
+        display="$header\n$display"
+        msg_nc "$display"
+        warn "No suitable devices were found."
+        return 1
+    fi
+
+    pretty=$(printf "$format" "0)" "${bold_co}quit " "$m_co($(cq default))")
+
+    display="${display}$pretty\n"
+    data="${data}0:quit\n"
+    if [ "$skip" ]; then
+        local rev_video=$(printf "$rev%s$nc_co" "reverse video")
+        display="${display}$(printf "Partitions that can't be used are listed but not selectable.")\n"
+        display="${display}$(printf "The limiting factors are highlighted in %s" "$rev_video")\n"
+        display="${display}$(printf "A hightlighted name means the device is already mounted")\n"
+    fi
+
+    my_select_2 "$title" $var "0" "$data" "$display"
+    echo -e "$display" >> $MY_LOG
+    return 0
+}
+
+my_select() {
+    local title=$1  var=$2  width=${3:-0}  default=$4
+    shift 4
+
+    local data display lab cnt=0 dcnt
+    for lab; do
+        cnt=$((cnt+1))
+        dcnt=$cnt
+
+        [ "$lab" = "quit" ] && dcnt=0
+        data="${data}$dcnt:$lab\n"
+
+        [ "$lab" = "quit" ] && lab=$bold_co$lab$nc_co
+        [ $cnt = "$default" ] && lab=$(printf "%${width}s (%s)" "$lab" "$(cq "default")")
+        display="${display}$(printf "%2d) %${width}s" $dcnt "$lab")\n"
+    done
+
+    my_select_2 "$title" $var "$default" "$data" "$display"
+}
+
+my_select_2() {
+    local title=$1  var=$2  default=$3  data=$4  display=$5
+    local def_prompt=$(printf "Press <%s> for the default selection" "$(cq "enter")")
+
+    local val input err_msg
+    while [ -z "$val" ]; do
+
+        echo -e "$hi_co$title$nc_co"
+        printf "$display" | sed -r -e "s/(^|\t)( ?[0-9]+)(\))/\t$green\2$white\3$cyan/g" -e "s/$/$nc_co/"
+        [ "$err_msg" ] && printf "$err_co%s$nc_co\n" "$err_msg"
+        [ "$default" ] && printf "$m_co%s$nc_co\n" "$def_prompt"
+        echo -n "$green>$nc_co "
+
+        return
+
+        read input
+        err_msg=
+        [ -z "$input" -a -n "$default" ] && input=$default
+
+        if ! echo "$input" | grep -q "^[0-9]\+$"; then
+            err_msg="You must enter a number"
+            [ "$default" ] && err_msg="You must enter a number or press <enter>"
+            continue
+        fi
+
+        val=$(echo -e "$data" | sed -n "s/^$input://p")
+
+        if [ -z "$val" ]; then
+            err_msg=$(printf "The number <%s> is out of range" "$(pqe $input)")
+            continue
+        fi
+
+        eval $var=\$val
+        break
+    done
+}
+
+
+size_label_m() { _size_label $1   "M G T" ;}
+size_label_k() { _size_label $1 "K M G T" ;}
+
+_size_label() {
+    local unit frac  size=$1  units=$2
+    for unit in $units; do
+        if [ $size -lt 1000 ]; then
+            if [ "$frac" -a $size -lt 10 ]; then
+                echo "$size.$frac$unit"
+            else
+                echo "$size$unit"
+            fi
+            return
+        fi
+        frac=$(( 10 * ($size % 1024) / 1024 ))
+        size=$(( size / 1024))
+    done
+    echo "$size$unit"
+}
+
+all_space()      { $LIVE_BIN/df -m "$1" | awk '{size=$2}END{print size}' ;}
+used_space()     { $LIVE_BIN/df -m "$1" | awk '{size=$3}END{print size}' ;}
+free_space()     { $LIVE_BIN/df -m "$1" | awk '{size=$4}END{print size}' ;}
+get_mountpoint() { grep "^$1 " /proc/mounts | cut -d" " -f2              ;}
+
+
+db_msg() { vmsg 5 "${green}db+:$hi_co $@" ;}
+err()    { vmsg 1 "$err_co$@"             ;}
+msg()    { vmsg 5 "$@"                    ;}
+msgN()   { vmsgN 5 "$@"                   ;}
+msg_nc() { vmsg 5 "$nc_co$@"              ;}
+warn()   { vmsg 3 "$warn_co$@"            ;}
+
+bq()     { echo "$yellow$*$m_co"          ;}
+cq()     { echo "$cheat_co$*$m_co"        ;}
+cqw()    { echo "$cheat_co$*$warn_co"     ;}
+cqe()    { echo "$cheat_co$*$err_co"      ;}
+dq()     { echo "$dev_co$*$m_co"          ;}
+dqe()    { echo "$dev_co$*$err_co"        ;}
+fq()     { echo "$from_co$*$m_co"         ;}
+fqe()    { echo "$from_co$*$err_co"       ;}
+mpq()    { echo "$mp_co$*$m_co"           ;}
+nq()     { echo "$num_co$*$m_co"          ;}
+nqw()    { echo "$num_co$*$warn_co"       ;}
+pq()     { echo "$hi_co$*$m_co"           ;}
+pqe()    { echo "$bold_co$*$err_co"       ;}
+pqw()    { echo "$hi_co$*$warn_co"        ;}
+pqh()    { echo "$m_co$*$hi_co"           ;}
+hq()     { echo "$hi_co$*$m_co"           ;}
+
+vmsg() {
+    local level=$1  fmt=$2
+    shift 2
+
+    msg=$(printf "$m_co$fmt$nc_co" "$@")
+
+    [ "$level" -le "$VERBOSE" ] && printf "$msg\n"
+    echo -e "$msg" >> $MY_LOG
+    return 0
+}
+
+
+vmsgN() {
+    local level=$1  fmt=$2
+    shift 2
+
+    msg=$(printf "$m_co$fmt$nc_co" "$@")
+
+    [ "$level" -le "$VERBOSE" ] && printf "$msg"
+    echo -ne "$msg" >> $MY_LOG
+    return 0
+}
+
+vmsg_if() {
+    local level=$1; shift
+    [ "$VERBOSE" -ge "$level" ] || return
+    vmsg $level "$@"
+}
+
+vmsg_nc() {
+    local level=$1; shift
+    vmsg $level "$nc_co$@"
+}
+
+
+set_colors() {
+    local noco=$1  loco=$2
+
+    [ "$noco" ] && return
+
+    local e=$(printf "\e")
+     black="$e[0;30m";    blue="$e[0;34m";    green="$e[0;32m";    cyan="$e[0;36m";
+       red="$e[0;31m";  purple="$e[0;35m";    brown="$e[0;33m"; lt_gray="$e[0;37m";
+   dk_gray="$e[1;30m"; lt_blue="$e[1;34m"; lt_green="$e[1;32m"; lt_cyan="$e[1;36m";
+    lt_red="$e[1;31m"; magenta="$e[1;35m";   yellow="$e[1;33m";   white="$e[1;37m";
+     nc_co="$e[0m";
+
+    cheat_co=$white;      err_co=$red;       hi_co=$white;
+      cmd_co=$white;     from_co=$lt_green;  mp_co=$magenta;   num_co=$magenta;
+      dev_co=$magenta;   head_co=$yellow;     m_co=$lt_cyan;    ok_co=$lt_green;
+       to_co=$lt_green;  warn_co=$yellow;  bold_co=$yellow;
+
+    [ "$loco" ] || return
+
+    from_co=$brown
+      hi_co=$white
+       m_co=$nc_co
+     num_co=$white
+}
+
+bogo_meter() {
+    local width=${1:-$SCREEN_WIDTH} delay=60  dot=.
+    local cnt=$(( width * 80 / 100 ))
+    local sleep=$(( 1000000 * delay / cnt ))
+    while true; do
+        for s in $(seq 1 $cnt); do
+            usleep $sleep
+            echo -n "$dot"
+        done
+        echo
+    done
+}
+
+sorted_blkid() {
+    blkid \
+    | sed -r -e 's=^/dev/==' \
+        -e 's=^(sd.[0-9][0-9]):=\1+\1:=' \
+        -e 's=^(sd.)([0-9]):=\10\2+\1\2:=' \
+    | sort \
+    | sed -e 's/^sd.[0-9][0-9]+//' -e 's/://'
+}
+
+set_colors
+select_device_3 boot device 100

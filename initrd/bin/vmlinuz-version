@@ -1,0 +1,32 @@
+#!/bin/sh
+
+# See Documentation/x86/boot.txt in Linux source
+
+ME=${0##*/}
+
+main() {
+    vmlinuz=$1
+
+    test -e $vmlinuz || error "Could not find file $vmlinuz"
+    test -r $vmlinuz || error "Could not read file $vmlinuz"
+
+    hex_offset=$(dd if=$vmlinuz count=2 skip=526 bs=1 2>/dev/null | hexdump \
+        | head -n1 | cut -d" " -f2)
+
+    #echo $hex_offset
+
+    dec_offset=$(awk "BEGIN{ print 0x$hex_offset + 0x200 }")
+
+    #echo $dec_offset
+
+    dd if=$vmlinuz count=40 skip=$dec_offset bs=1 2>/dev/null | cut -d" " -f1
+    exit 0
+}
+
+error() {
+    echo "$ME: $*" >&2
+    exit 2
+}
+
+main "$@"
+

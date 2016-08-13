@@ -1,0 +1,15 @@
+  1) none
+  2) checkmd5
+  3) checkfs
+  4) toram
+  5) from=usb
+  6) hwclock=ask
+  7) hwclock=utc
+  8) hwclock=local
+  9) automount
+ 10) mount=usb
+ 11) mount=all
+ 12) private
+ 13) savestate
+ 14) nosavestate
+ 15) nousb2
