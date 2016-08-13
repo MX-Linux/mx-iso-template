@@ -1,0 +1,462 @@
+#!/live/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          live-hwclock
+# Required-Start:    live-L10n
+# Required-Stop:
+# Should-Start:
+# Should-Stop:
+# Default-Start:     S
+# Default-Stop:
+# Short-Description: Set hwclock to utc or local
+# Description: Set the hwclock to utc or local or ask the user by showing 2 times
+### END INIT INFO
+
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
+
+TZ_FILE=/etc/timezone
+
+MARGIN=$((15 * 60))   # 15 Minutes
+
+. /live/lib/live-init-utils.sh
+start_init_logging
+load_translation
+
+#-jbb For debugging
+: ${CMDLINE:=$(cat /proc/cmdline /live/config/cmdline)}
+for param in $CMDLINE; do
+    value=${param#*=}
+    case "$param" in
+                   tz=*) export TZ=$value  ;;
+        hwclock=*|hwc=*) CMD_CLOCK=$value  ;;
+                 lang=*) CMD_LANG=$value   ;;
+                pretend) PRETEND_MODE=true ;;
+    esac
+done
+
+umask 022
+
+main() {
+    case "$1" in
+                start) do_start ;;
+        ask|utc|local) CMD_CLOCK=$1 ;  do_start ;;
+                    *) echo "Usage: $0 {start|ask|utc|local}"
+                       exit 1 ;;
+    esac
+}
+
+#----- Main code starts here --------------------------------------------------
+
+do_start() {
+    [ ${#CMD_CLOCK} -gt 0 ] || return
+
+   echo_script "$_Configuring_Hardware_Clock_" $0
+
+   check_rtc || exit 2
+
+   mountpoint -q /live/aufs || PRETEND_MODE=true
+   [ "$PRETEND_MODE" ] && echo_live "${YELLOW}Pretend mode enabled"
+
+    case $CMD_CLOCK in
+        local|utc) set_hwclock $CMD_CLOCK ;;
+              ask) ask_hwclock            ;;
+                *)  error "$_Unknown_X_option_Y_" hwclock $(wq $CMD_CLOCK) ;;
+    esac
+}
+
+set_hwclock() {
+    local new=$1 file=/etc/adjtime
+    [ "$new" ] || return
+
+    echo_live "$_Assuming_X_is_set_to_Y_time_" hwclock $(pquote $new)
+
+    #grep -i -q $new $file && return
+
+    case $new in
+        local) set_adjtime LOCAL
+               pretend hwclock --hctosys     ;;
+          utc) set_adjtime UTC
+               pretend hwclock --hctosys     ;;
+    esac
+}
+
+set_adjtime() {
+    local file=/etc/adjtime type=$1
+    if test -e $file; then
+        pretend sed -i "3 s/.*/$type/" $file
+    else
+        if [ "$PRETEND_MODE" ]; then
+       cat<<Adjtime
+0.0 0 0.0
+0
+$type
+Adjtime
+        else
+       cat<<Adjtime > $file
+0.0 0 0.0
+0
+$type
+Adjtime
+        fi
+    fi
+}
+
+ask_hwclock() {
+    local green=$GREEN white=$WHITE cyan=$CYAN nc_co=$NO_COLOR hi_co=$WHITE
+    local bold_co=$YELLOW  cheat_co=$WHITE
+
+    echo
+    check_timezone || return
+    check_hwclock
+}
+
+check_timezone() {
+    test -r $TZ_FILE || fatal "Could not find file %s" $(pquote $TZ_FILE)
+    local orig_tz
+    read orig_tz 2>/dev/null <$TZ_FILE
+    : ${TZ:=$orig_tz}
+    [ ${#TZ} -eq 0 ] && fatal "No timezone found in file %s" $(pquote $TZ_FILE)
+    export TZ
+
+    while true ; do
+        yes_no_quit "$LIVE_COLOR$(printf "Is %s your current timezone" "$(pquote $TZ)")"
+        local ret=$?
+        case $ret in
+             0) if [ "$orig_tz" != "$TZ" ]; then
+                    export TZ
+                    set_timezone $TZ
+                fi
+                return 0        ;;
+             1) select_timezone ;;
+             2) return 1        ;;
+        esac
+    done
+}
+
+set_timezone() {
+    local tz=$1
+    local zone_file=$(readlink -f /usr/share/zoneinfo/$tz)
+    if test -f $zone_file; then
+        echo_live "$_Setting_timezone_and_localtime_to_X_" "$(pquote $tz)"
+        pretend write_to_file $TZ_FILE $tz
+        pretend cp -f $(readlink -f $zone_file) /etc/localtime
+        # For localizing repos in live-init
+        pretend append_file /live/config/cmdline "tz=$tz"
+    else
+        error "$_Unknown_time_zone_X_" "$(wq $tz)"
+    fi
+}
+
+select_timezone() {
+    local DISTRO distro_file=/live/config/distro
+    test -r distro_file && read DISTRO 2>/dev/null $distro_file
+    : ${DISTRO:=MX}
+
+    local BOOT_MENU_DIR=/live/custom/$DISTRO/menus DO_MENUS=t
+    my_select_menu "Select Timezone" "Timezones are listed geographically" t timezone
+    local tz=${timezone#tz=}
+    [ "$tz" = "default" ] && tz=$TZ
+    TZ=$tz
+}
+
+check_hwclock() {
+    # Get current default locale
+    echo_live
+    echo_live "$_Please_wait_while_we_examine_the_hardware_clock_"
+    local locale_file=/etc/default/locale
+    test -r $locale_file && . $locale_file
+
+    local utc_en=$(get_hwclock --utc)
+    local loc_en=$(get_hwclock --localtime)
+    local utc_str=$(LANG=$LANG date --date="$utc_en")
+    local loc_str=$(LANG=$LANG date --date="$loc_en")
+    local utc_unix=$(date --date="$utc_en" +%s)
+    local loc_unix=$(date --date="$loc_en" +%s)
+    local sys_unix=$(date +%s)
+
+    local diff_sys_utc=$(abs_diff $sys_unix $utc_unix)
+    local diff_sys_loc=$(abs_diff $sys_unix $loc_unix)
+    local diff_utc_loc=$(abs_diff $utc_unix $loc_unix)
+
+    local tz_offset=$(date +%z)
+    local tz_offset2=$(date +%:z)
+
+    local found_utc found_loc
+    [ $diff_sys_utc -le $MARGIN ] && found_utc=true
+    [ $diff_sys_loc -le $MARGIN ] && found_loc=true
+
+    [ ${#db_hwc} -gt 0 ] && show_all
+
+    if [ ${tz_offset#[+-]} = "0000" ]; then
+        echo_live "$_Your_local_time_and_UTC_time_are_currently_the_same_"
+        echo_live "$_They_both_say_the_current_time_is_X_" "$(pquote $loc_str)"
+        yes_no_quit "Would you like to set the hardware clock manually to UTC or localtime" \
+            && manual_set_hwclock
+
+        exit 0
+
+    elif [ $diff_utc_loc -lt $MARGIN ]; then
+        echo_live "$_Your_local_timezone_and_the_UTC_timezone_are_currently_close_but_not_the_same_"
+        echo_live "$_They_both_say_the_current_time_is_within_15_minutes_of_X_" "$(pquote $loc_str)"
+        yes_no_quit "Would you like to set the hardware clock manually to UTC or localtime" \
+            && manual_set_hwclock
+
+        exit 0
+    else
+        guess_hwclock "$utc_str" "$loc_str"
+    fi
+}
+
+guess_hwclock() {
+    local utc_str=$1  loc_str=$2
+    echo_live "$_Your_local_time_is_UTC_time_X_" $tz_offset2
+    echo_live "$_Help_us_figure_out_what_time_is_used_by_your_hardware_clock_"
+    echo_live "$_by_telling_us_if_either_setting_produces_the_correct_time_"
+    local select_data=$(cat <<Select_Data
+1:utc
+2:local
+3:neither
+4:both
+Select_Data
+)
+
+    local select_menu=$(cat <<Select_Menu | sed -r -e "s/( [0-9]+)(\))/$green\1$white\2$nc_co/"
+   1)   UTC: $(bold $utc_str) is within 10 minutes of the correct time.
+   2) Local: $(bold $loc_str) is within 10 minutes of the correct time.
+   3) Neither are within 10 minutes of the correct time.
+   4) Both are within 10 minutes of the correct time.
+Select_Menu
+)
+
+    local answer
+    my_select_2 "Which statement is correct?" "answer" "" "$select_data" "$select_menu"
+
+    debug "answer=$answer"
+
+    case $answer in
+        local|utc) set_hwclock $answer ;;
+          neither) do_neither          ;;
+             both) do_both             ;;
+                *) error "$_Got_a_strange_answer_from_guess_hwclock_menu_X_" "$answer" ;;
+    esac
+}
+
+do_both() {
+    echo_live "$_This_is_an_unusual_situation_"
+    yes_no_quit "Would you like to manually set the hardware clock to UTC or local time" \
+        && manual_set_hwclock
+}
+
+do_neither() {
+    echo_live "$_Either_your_timezone_is_incorrect_or_your_hardware_clock_is_incorrect_or_both_"
+    echo_live "$_It_seems_your_hardware_clock_is_not_set_to_local_time_or_to_UTC_time_"
+    echo_live "$_You_need_to_set_your_system_time_and_then_set_your_hardware_clock_"
+    echo_live
+    echo_live "$_Press_enter_to_continue_"
+    local ans
+    read ans
+}
+
+manual_set_hwclock() {
+    local title="Is your hardware clock set to UTC time or local time?"
+    local manual_menu=$(cat <<Manual_Menu
+ 1) UTC
+ 2) local time
+ 3) Get me out of here!
+Manual_Menu
+)
+    local manual_data=$(cat <<Manual_Data
+1:utc
+2:local
+3:quit
+Manual_Data
+)
+
+    local answer
+    my_select_2 "$title" "answer" "" "$manual_data" "$manual_menu"
+    case $answer in
+        utc|local) set_hwclock $answer ;;
+                *) exit 0              ;;
+    esac
+}
+
+yes_no_quit() {
+    local ans title=$1
+    local fmt="  $GREEN%2s$WHITE) $CYAN%s$NO_COLOR\n"
+
+    while true; do
+        echo -e "$title?"
+        printf "$fmt" 1 "yes"
+        printf "$fmt" 2 "no"
+        printf "$fmt" 3 "quit"
+        printf "$GREEN%s \"%s\" >$NO_COLOR " "Please enter a number.  Default is" "yes"
+
+        read ans
+        case $ans in
+                 ""|1) return 0           ;;
+                    2) return 1           ;;
+                    3) ask_really_quit    ;;
+        esac
+        if [ "$ans" != 3 ]; then
+            error '%s %s%s' "You must enter 0, 1, or 2." "$ERROR_PARAM_COLOR" "Press <enter>"
+            read ans
+        fi
+    done
+}
+
+ask_really_quit() {
+    local ans fmt="  $GREEN%2s$WHITE) $CYAN%s$NO_COLOR\n"
+    printf "\n$GREEN%s\n"  "Really quit?"
+    printf "$fmt" 1 "yes"
+    printf "$fmt" 2 "no"
+    printf "$GREEN%s \"%s\" >$NO_COLOR " "Please enter a number.  Default is" "no"
+    read ans
+    case $ans in
+        1) exit 0 ;;
+        *) return ;;
+    esac
+}
+
+my_select_menu() {
+    local dir=$BOOT_MENU_DIR menu=$DO_MENUS
+    [ "$menu" ] || return
+
+    local title=$1 blurb=$2 cheat=$3  name=$4 dfile=$dir/$4.data mfile=$dir/$4.menu default=${5:-0}
+
+    [ -z "${menu##*$cheat*}" ] || return
+
+    if [ ! -e $dfile -o  ! -e $mfile ]; then
+        error "$_Missing_X_or_Y_" $dfile $mfile
+        exit 2
+    fi
+
+    local menu_value
+    local data=$(cat $dfile)
+    local menu=$(cat $mfile | sed -r -e "s/( [0-9]+)(\))/$green\1$white\2$cyan/g")
+    [ "$blurb" ] && title="$title\n$blurb"
+    my_select_2 "$title" menu_value $default "$data" "$menu"
+    case $menu_value in
+        default|none) ;;
+                   *) cmdline="$cmdline $menu_value";;
+    esac
+    eval $name=\$menu_value
+}
+
+my_select_2() {
+    local title=$1  var=$2  default=$3  data=$4  display=$5
+    local def_prompt=$(printf "Press <%s> for the default selection" "$(cq "enter")")
+
+    local val input err_msg
+    while [ -z "$val" ]; do
+
+        echo -e "$hi_co$title$nc_co"
+        printf "$display\n" | sed -r -e "s/(^|\t)( ?[0-9]+)(\))/\t$green\2$white\3$cyan/g" -e "s/$/$nc_co/"
+        #printf "$display" | sed -r -e "s/(^|\t| )( ?[0-9]+)(\))/\t$green\2$white\3$cyan/g" -e "s/$/$nc_co/"
+        [ "$err_msg" ] && printf "$err_co%s$nc_co\n" "$err_msg"
+        [ "$default" ] && printf "$m_co%s$nc_co\n" "$def_prompt"
+        echo -n "$green>$nc_co "
+
+        read input
+        err_msg=
+        [ -z "$input" -a -n "$default" ] && input=$default
+
+        if ! echo "$input" | grep -q "^[0-9]\+$"; then
+            err_msg="You must enter a number"
+            [ "$default" ] && err_msg="You must enter a number or press <enter>"
+            continue
+        fi
+
+        val=$(echo -e "$data" | sed -n "s/^$input://p")
+
+        if [ -z "$val" ]; then
+            err_msg=$(printf "The number <%s> is out of range" "$(pqe $input)")
+            continue
+        fi
+
+        eval $var=\$val
+        break
+    done
+}
+
+abs_diff() {
+    local diff=$(($1 - $2))
+    echo ${diff#-}
+}
+
+show_all() {
+    echo_live
+    show_time utc_en          "$utc_en"
+    show_time local_en        "$loc_en"
+    show_time utc             "$utc_str"
+    show_time local           "$loc_str"
+    show_time "tz offset"     "$tz_offset"
+    echo_live
+    show_unix system          "$sys_unix"
+    show_unix utc             "$utc_unix"
+    show_unix "|sys - utc|"   "$diff_sys_utc"
+    show_unix "local"         "$loc_unix"
+    show_unix "|sys - local|" "$diff_sys_loc"
+    show_unix "|utc - local|" "$diff_utc_loc"
+}
+
+bold()   { echo "$bold_co$*$nc_co"        ;}
+pqe()    { echo "$bold_co$*$err_co"       ;}
+cq()     { echo "$cheat_co$*$m_co"        ;}
+pqe()    { echo "$bold_co$*$err_co"       ;}
+
+get_hwclock() { LANG=en_US.UTF-8 hwclock --show $* | sed 's/  .*//'; }
+
+show_time() { echo_live '%12s:%s %s" "$1' $START_PARAM "$2"; }
+show_unix() { echo_live '%15s Unix:%s %10s' "$1" $START_PARAM "$2" ; }
+
+debug() { [ ${#db_hwc} -gt 0 ] && echo "$*"; }
+
+
+check_rtc() {
+    find_rtc && return 0
+    modprobe rtc-cmos
+    find_rtc && return 0
+    error "$_The_realtime_clock_is_not_enabled_Cant_check_hardware_clock_"
+    return 2
+}
+
+find_rtc() {
+    for x in "" 0 1 2 3; do
+        test -e $(readlink -f /dev/rtc$x) && return 0
+    done
+    return 1
+}
+write_to_file() {
+    local file=$1
+    shift
+    local dir=$(dirname $file)
+    mkdir -p $dir
+    echo -e "$*" > $file
+}
+
+append_file() {
+    local file=$1
+    shift
+    local dir=$(dirname $file)
+    mkdir -p $dir
+    echo -e "$*" >> $file
+}
+
+pretend() {
+    if [ "$PRETEND_MODE" ]; then
+        echo "${bold_co}pretend:$nc_co $*"
+    else
+        "$@"
+    fi
+}
+
+fatal() {
+    error "$@"
+    exit 2
+}
+
+#-------------------------------------------------------------------------------
+#-------------------------------------------------------------------------------
+main "$@" 2>&1 | tee -a $INIT_LOG_FILE
+
+exit 0
