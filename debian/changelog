@@ -1,3 +1,9 @@
+iso-template (16.8mx15) mx; urgency=medium
+
+  * disable mtpd service by default
+
+ -- Adrian <adrian@mxlinux.org>  Sat, 13 Aug 2016 10:05:32 -0400
+
 iso-template (16.6mx15+1) mx; urgency=medium
 
   * bug fix

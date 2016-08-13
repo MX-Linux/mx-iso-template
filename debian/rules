@@ -1,11 +1,8 @@
 #!/usr/bin/make -f
 
-override_dh_auto_clean:
-	dh_auto_clean
-	rm -f iso-template.tar.gz
-
 override_dh_auto_install:
 	tar -cvzf iso-template.tar.gz iso-template
+	(cd initrd && find . | cpio -o -H newc --owner root:root | gzip -9) > template-initrd.gz
 
 %:
 	dh $@ --parallel 

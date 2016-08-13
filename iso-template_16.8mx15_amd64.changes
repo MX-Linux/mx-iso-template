@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Format: 1.8
+Date: Sat, 13 Aug 2016 10:05:32 -0400
+Source: iso-template
+Binary: iso-template
+Architecture: source all
+Version: 16.8mx15
+Distribution: mx
+Urgency: medium
+Maintainer: Steven Pusser (Stevo) <maintainer@mepiscommunity.org>
+Changed-By: Adrian <adrian@mxlinux.org>
+Description:
+ iso-template - ISO template
+Changes:
+ iso-template (16.8mx15) mx; urgency=medium
+ .
+   * disable mtpd service by default
+Checksums-Sha1:
+ e4337fc3542179cd6cde9a33cd49f214a546d191 1147 iso-template_16.8mx15.dsc
+ f675b8251e3596e03c63205a36268997bd2ab3b0 8981620 iso-template_16.8mx15.tar.xz
+ e767eb90711019aa9c00494c3d3283be7dddc4fd 5733020 iso-template_16.8mx15_all.deb
+Checksums-Sha256:
+ eb69cef0fc57c14f4356cc2f0d274c497229b9553cdf1be01388fdda19570875 1147 iso-template_16.8mx15.dsc
+ 82634bbd441e5af1c087167b5dc78d1647aca723656bbc3089b060f7489a0f62 8981620 iso-template_16.8mx15.tar.xz
+ 2c559e65341a7a472777836f97ee5e0d076c7ed0924473b891ef005f2384753b 5733020 iso-template_16.8mx15_all.deb
+Files:
+ fbca0d3ee32524db5a6bf573e25b0290 1147 admin optional iso-template_16.8mx15.dsc
+ 77affedfa84b7fab59c1bcd70e01d88c 8981620 admin optional iso-template_16.8mx15.tar.xz
+ 8a41aada39dac063200104ad82d523f7 5733020 admin optional iso-template_16.8mx15_all.deb
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQEcBAEBAgAGBQJXr0hOAAoJEHCTjHgGee6YbzoIAK7r+Fk3jX2SnOu+nVtiZN/P
+g1cuZngbvHSed7PRePa1Wrves5iEKD+dNnrIcpcxqcYcP8LO0RClpwEceCNfh+R+
+rf7lRnOr8ebQH8Ld8Nh1aNMb6Xo3CvCsNiY5KAbbqQ7jZ8bc8aVcozGaQvOttkbm
+Ioqgw7UhyvsUS4Q5O/cYS+l3+ooHo70W04QWm6O5ePtlJndXwPkAiNjHBSCCsWZm
+WFBYAz6GmPvxb8a9meav55eybMaeWm4WPQY/U21fL19xo+3/IsXtqw9TuFnwxyQd
+rcQFIgfl1ioVIw4pPY0yB82jiihZq2E7v168vf/iIl7yauf0cP8vwPuM74X32eM=
+=60IB
+-----END PGP SIGNATURE-----
