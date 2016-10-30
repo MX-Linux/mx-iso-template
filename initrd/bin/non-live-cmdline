@@ -104,12 +104,25 @@ for param in $(cat /proc/cmdline); do
                         noplink)  ;;
                           plink)  ;;
 
-        disable_srv=*|disable_service=*)  ;;
-        aX=*|antiX=*)                     ;;
-        lean)                             ;;
-        mean)                             ;;
-        Xtralean)                         ;;
-        nodbus)                           ;;
+                  disable=*|nosysv=*)  ;;
+     disable_srv=*|disable_service=*)  ;;
+           lean|mean|Xtralean|nodbus)  ;;
+        initcall_debug|printk.time=y)  ;;
+
+        # Convenience short cuts from our menus
+                    persist_all)  ;;
+                   persist_root)  ;;
+                 persist_static)  ;;
+                   persist_home)  ;;
+                 frugal_persist)  ;;
+                    frugal_root)  ;;
+                  frugal_static)  ;;
+                    frugal_home)  ;;
+                    frugal_only)  ;;
+                        nostore)  ;;
+                        dostore)  ;;
+                   disablestore)  ;;
+              fatuid=*|fatgid=*)  ;;
 
         # Our Live params
         hwclock=utc|hwclock=local|xorg|xorg=*|noearlyvid|earlyvid) ;;
@@ -120,6 +133,10 @@ for param in $(cat /proc/cmdline); do
         uverb=*|xres=*|noxorg);;
         desktheme=*) ;;
         nosavestate|savestate|dbsavestate) ;;
+        deskdelay=*) ;;
+        udpi=*|sdpi=*) ;;
+        fontsize=*) ;;
+        norepo|norepo=*) ;;
 
         *) printf "$param "
     esac

@@ -1,0 +1,5 @@
+   1)  Default
+   2)  automount       Mount automatico dei dispositivi con l'inserimento
+   3)  mount=usb       .. e monta tutti i dispositivi usb nella fase di boot
+   4)  mount=all       .. e monta TUTTI i dispositivi nella fase del boot
+   5)  mount=off       Disabilitare tutti i montaggi extra e il montaggio automatico
