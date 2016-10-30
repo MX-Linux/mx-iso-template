@@ -1,0 +1,5 @@
+   1)  Per omissió
+   2)  automount       Munta els dispositius automàticament en connectar-los
+   3)  mount=usb       ... i munta tots els dispositius USB en arrencar
+   4)  mount=all       ... i munta TOTS els dispositius en arrencar
+   5)  mount=off       Desactiva tot el muntatge i desmuntatge addicional

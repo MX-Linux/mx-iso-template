@@ -6,7 +6,6 @@ _Bad_mirror_code_X_expected_two_letters_="Feil på mirror kode %s (forventet to 
 _Configuring_X_file_with_Y_="Konfigurerer %s fil med %s"
 _Directory_not_found_X_="Filkatalog ikke funnet %s"
 _Disabling_fstab_hotplugging_this_will_also_disable_automount_="Skrur av fstab hotplugging (dette vil også skru av automatist tilkobling av enheter)"
-_Disabling_safe_mode_because_of_X_="Skrur av sikkerhetsmodus på grunn av %s"
 _Enabling_fstab_hotplugging_="Skrur på fstab hotplugging"
 _Files_already_exist_under_X_="Filer finnes allerede under %s"
 _Forcing_X_windows_to_use_default_mode_="Tvinger X-windows til standardmodus"

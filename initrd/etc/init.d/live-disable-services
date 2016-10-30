@@ -13,6 +13,9 @@
 
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
 
+OUT_FILE=/live/config/disabled
+PAM_FILE=/etc/pam.d/login
+
 VBOX_SERVICES="
 virtualbox-guest-utils
 virtualbox-guest-x11
@@ -21,6 +24,10 @@ virtualbox-guest-x11
 NFS_SERVICES="
 nfs-kernel-server
 "
+GPM_SERVICES="
+gpm
+"
+
 
 LEAN_SERVICES="
     acpi-fakekey
@@ -31,7 +38,6 @@ LEAN_SERVICES="
     cpufrequtils
     cron
     cups
-    gpm
     ifplugd
     irqbalance
     loadcpufreq
@@ -52,6 +58,14 @@ LAPTOP_SERVICES="
     wicd
 "
 
+ACPID_SERVICES="
+    acpid
+"
+
+WICD_SERVICES="
+    wicd
+"
+
 XTRA_LEAN_SERVICES="
     bootlogd
     cryptdisks
@@ -63,7 +77,7 @@ XTRA_LEAN_SERVICES="
     hwclockfirst.sh
     ifupdown-clean
     lm-sensors
-    #lvm2
+    lvm2
     mountnfs-bootclean.sh
     mountoverflowtmp
     nfs-common
@@ -82,6 +96,8 @@ MEAN_SERVICES="
     resolvconf
     smbd
     nfs-kernel-server
+    wicd
+    avahi-daemon
 "
 
 NO_DBUS_SERVICES="
@@ -89,59 +105,69 @@ NO_DBUS_SERVICES="
 "
 
 PATH=/live/bin:$PATH
+. /live/lib/live-init-utils.sh
 
-prep_main() {
+start_init_logging
+load_translation
+
+main() {
 
     case $1 in
-        start)          ;;
-         stop) exit 0   ;;
+        start) do_start  ;;
+         stop) do_stop   ;;
             *) echo "Usage: $0 {start|stop}"
-               exit 1   ;;
+               exit 1    ;;
     esac
+}
 
-    local must_run
-    : ${CMDLINE:=$(cat /proc/cmdline)}
+do_start() {
+    local must_run param val
+    : ${CMDLINE:=$(cat /live/config/proc-cmdline)}
     for param in $CMDLINE; do
+        val=${param#*=}
         case "$param" in
-            antiX=*|aX=*) antiX_param=${param#*=}; must_run=true ;;
-           disable_srv=*) antiX_param=${param#*=}; must_run=true ;;
-                nosysv=*) antiX_param=${param#*=}; must_run=true ;;
-       disable_service=*) antiX_param=${param#*=}; must_run=true ;;
-                    lean)        LEAN=true;        must_run=true ;;
-                    mean)        MEAN=true;        must_run=true ;;
-                Xtralean)   XTRA_LEAN=true;        must_run=true ;;
-                  nodbus)     NO_DBUS=true;        must_run=true ;;
-                    db++)   DEBUGGING=true                       ;;
+            antiX=*|aX=*) disable_param=$val   ; must_run=true ;;
+           disable_srv=*) disable_param=$val   ; must_run=true ;;
+                nosysv=*) disable_param=$val   ; must_run=true ;;
+       disable_service=*) disable_param=$val   ; must_run=true ;;
+               disable=*) disable_param=$val   ; must_run=true ;;
+                    lean)        LEAN=true;      must_run=true ;;
+                    mean)        MEAN=true;      must_run=true ;;
+                Xtralean)   XTRA_LEAN=true;      must_run=true ;;
+                  nodbus)     NO_DBUS=true;      must_run=true ;;
+                    db++)   DEBUGGING=true                     ;;
         esac
     done
 
-    DISABLE_NFS=true
-    local file export_files="/etc/exports"
-    for file in /etc/exports.d/*.exports ; do
-		[ -f "$file" ] && export_files="$export_files $file"
-	done
+    if test -x /etc/init.d/nfs-kernel-server; then
+        DISABLE_NFS=true
+        NFS_REASON="no exports"
 
-    [ -f /etc/exports ] && grep -q '^[[:space:]]*[^#]*/' $export_files && DISABLE_NFS=
+        local file export_files="/etc/exports"
+        for file in /etc/exports.d/*.exports ; do
+            [ -f "$file" ] && export_files="$export_files $file"
+        done
 
-    if [ "$antiX_param" ]; then
-
-        # If the ## expression matches then the resulting string length is zero
-        [ "${antiX_param##*[lL]*}" ] ||          LEAN=true
-        [ "${antiX_param##*[mM]*}" ] ||          MEAN=true
-        [ "${antiX_param##*[xX]*}" ] ||     XTRA_LEAN=true
-        [ "${antiX_param##*[dD]*}" ] ||       NO_DBUS=true
-        [ "${antiX_param##*[vV]*}" ] ||  DISABLE_VBOX=true
-        [ "${antiX_param##*[n]*}"  ] ||   DISABLE_NFS=true
-        [ "${antiX_param##*[N]*}"  ] ||   ENABLE_NTPD=true
+        [ -f /etc/exports ] && grep -q '^[[:space:]]*[^#]*/' $export_files && DISABLE_NFS=
     fi
 
-    . /live/lib/live-init-utils.sh
+    if [ "$disable_param" ]; then
 
-    start_init_logging
-    load_translation
-}
+        # If the ## expression matches then the resulting string length is zero
+        [ "${disable_param##*[lL]*}" ] ||          LEAN=true
+        [ "${disable_param##*[mM]*}" ] ||          MEAN=true
+        [ "${disable_param##*[xX]*}" ] ||     XTRA_LEAN=true
+        [ "${disable_param##*[dD]*}" ] ||       NO_DBUS=true
+        [ "${disable_param##*[v]*}"  ] ||  DISABLE_VBOX=true
+        [ "${disable_param##*[g]*}"  ] ||   DISABLE_GPM=true
+        [ "${disable_param##*[P]*}"  ] ||    ENABLE_PAM=true
+        [ "${disable_param##*[a]*}"  ] || DISABLE_ACPID=true
+        [ "${disable_param##*[w]*}"  ] ||  DISABLE_WICD=true
+        [ "${disable_param##*[n]*}"  ] ||   DISABLE_NFS=true
+        [ "${disable_param##*[n]*}"  ] ||    NFS_REASON=n
+        [ "${disable_param##*[N]*}"  ] ||   ENABLE_NTPD=true
+    fi
 
-main() {
     # Prevent other messages stepping on ours
     # sleep 2
     echo_script "$_Customizing_services_" $0
@@ -150,17 +176,18 @@ main() {
         if test -e /live/config/virtualbox; then
             echo_live "$_Enabling_X_services_" "$(pquote Virtual Box)"
             update-rc.d virtualbox-guest-utils defaults
-            update-rc.d virtualbox-guest-x11   defaults
+            test -e /etc/init.d/virtualbox-guest-x11 && update-rc.d virtualbox-guest-x11 defaults
         else
             echo_live "$_Disabling_X_services_" "$(pquote Virtual Box)"
             update-rc.d virtualbox-guest-utils remove
-            update-rc.d virtualbox-guest-x11   remove
+            test -e /etc/init.d/virtualbox-guest-x11 && update-rc.d virtualbox-guest-x11 remove
         fi
     fi
 
-    [ "$ENABLE_NTPD" ] || disable_services ntp >/dev/null
+    [ "$ENABLE_NTPD" ] || disable_services "ntpd disable by default" ntp
+    [ "$ENABLE_PAM" ]  || disable_pam_login
 
-    [ -z "$must_run" -o -n "$DISABLE_NFS" ] || exit 0
+    [ -n "$must_run" -o -n "$DISABLE_NFS" ] || exit 0
 
     if [ "$LEAN" ]; then
 
@@ -171,38 +198,56 @@ main() {
         fi
 
         echo_live "$_Disabling_some_services_X_" "$(paren L, lean)"
-        disable_services "$LEAN_SERVICES"
+        disable_services "lean (l)" "$LEAN_SERVICES"
     fi
 
-    if [ "$DISABLE_VBOX" ]; then
-        echo_live "$_Disabling_X_services_Y_" "Virtual Box" "$(paren v)"
-        disable_services "$VBOX_SERVICES"
+    if [ "$DISABLE_ACPID" ]; then
+        echo_live "$_Disabling_X_services_Y_" "$(pquote acpid)" $(paren a)
+        disable_services "acpid (a)" "$ACPID_SERVICES"
     fi
 
-    if [ "$DISABLE_NFS" ]; then
-        echo_live "$_Disabling_X_services_" "NFS kernel server"
-        disable_services "$NFS_SERVICES"
+    if [ "$DISABLE_WICD" ]; then
+        echo_live "$_Disabling_X_services_Y_" "$(pquote wicd)" $(paren w)
+        disable_services "wicd (w)" "$WICD_SERVICES"
     fi
 
     if [ "$MEAN" ]; then
         echo_live "$_Disabling_network_services_X_" "$(paren M, mean)"
-        disable_services "$MEAN_SERVICES"
+        disable_services "mean (m)" "$MEAN_SERVICES"
     fi
 
     if [ "$XTRA_LEAN" ]; then
         echo_live "$_Disabling_more_services_X_" "$(paren X, Xtralean)"
-        disable_services "$XTRA_LEAN_SERVICES"
+        disable_services "Xtralean (x)" "$XTRA_LEAN_SERVICES"
     fi
 
     if [ "$NO_DBUS" ]; then
         echo_live "$_Disabling_X_services_Y_" "debus" "$(paren D, nodbus)"
-        disable_services "$NO_DBUS_SERVICES"
+        disable_services "nodbus (d)" "$NO_DBUS_SERVICES"
     fi
+
+    if [ "$DISABLE_VBOX" ]; then
+        echo_live "$_Disabling_X_services_Y_" "Virtual Box" "$(paren v)"
+        disable_services "vbox (v)" "$VBOX_SERVICES"
+    fi
+
+    if [ "$DISABLE_NFS" ]; then
+        echo_live "$_Disabling_NFS_server_X_" "$(paren $NFS_REASON)"
+        disable_services "nfs (n)" "$NFS_SERVICES"
+    fi
+
+    if [ "$DISABLE_GPM" ]; then
+        echo_live "$_Disabling_X_services_Y_" $(pquote gpm) $(paren g)
+        disable_services "gpm (g)" "$GPM_SERVICES"
+    fi
+
+
+    [ "$OUT" ] && echo "$OUT" | tr "," "\n" > $OUT_FILE
 }
 
 
 #----------------------------------------------------------------------------
-# function disable_services "$names" [ "$rc_dirs" ]
+# function disable_services "$name" "$services" [ "$rc_dirs" ]
 #
 # Temporarily disable services at boot-time by moving their /etc/rc?.d/
 # symlinks.  See also live-restore-services which is the script
@@ -216,65 +261,79 @@ main() {
 
 disable_services() {
 
-    local names="$1" rc_dirs="${2:-rc?.d}"
+    local name=$1 services="$2" rc_dirs="${3:-rc?.d}"
 
-    local rc_dir dest name slink moved length
+    local rc_dir dest service slink moved length
 
     for rc_dir in /etc/$rc_dirs; do
 
         dest=/live/config/disabled-rc.d/${rc_dir#/etc/}
         mkdir -p $dest
 
-        for name in $names; do
-            [ -z "${name###*}" ]  && continue
-            for slink in /$rc_dir/S*$name; do
+        for service in $services; do
+            [ -z "${service###*}" ]  && continue
+            for slink in /$rc_dir/S*$service; do
                 [ -e "$slink" ] || continue
                 mv -f $slink $dest
 
-                #[ "$DEBUGGING" ] || continue
-
-                [ "$moved" ] || echo -n "    "
-
-                # Only print out each name once
+                # Only print out each service once
                 case ",$moved," in
-                    *,$name,*)
-                        continue;
-                        ;;
+                    *,$service,*) continue ;;
                 esac
 
-                # Wrap long lines
-                if [ "${#length}" -ge "60" ]; then
-                    unset length
-                    echo
-                    echo -n "    "
-                fi
-                length="$length $name"
-                moved="$moved,$name"
-                echo -n "${PARAM_COLOR}$name$NO_COLOR "
-
+                moved="$moved,$service"
             done
         done
     done
 
-    [ "$moved" ] && echo
+    OUT="$OUT${OUT:+,,}#----- $name -----$moved"
 
     [ "$DEBUGGING" ] || return
 
     local unused
-    for name in $names; do
+    for service in $services; do
         case ",$moved," in
-            *,$name,*)
-                continue
-                ;;
+            *,$service,*) continue ;;
         esac
-        unused="$unused $name"
+        unused="$unused $service"
     done
     [ "$unused" ] && echo_live '  Unused: %s' "$AMBER$unused"
-
 }
 
-prep_main "$@"
-main  2>&1 | tee -a $INIT_LOG_FILE
+disable_pam_login() {
+    # Turn on (off) lastlog info in console login if root persistence is (not) enabled
+    # Lastlog info is not useful on non-persistent system
+
+    #egrep -q '^[[[:space:]]*session[[:space:]]+[^[:space:]]+[[:space:]]+pam_lastlog.so[[:space:]]+silent' $PAM_FILE
+    #local silent_pam=$?
+
+    if grep -q "^PERSISTENCE=.*root" /live/config/initrd.out; then
+        # On persistent systems enable lastlog but disable MOTD
+        sed -r -i \
+            -e 's/^\s*(session\s+[^\s]+\s+pam_lastlog.so).*/\1/'         \
+            -e 's/^\s*(session\s+[^\s]+\s+pam_(exec|motd).so.*)/#-- \1/' \
+            $PAM_FILE
+    else
+        # On non-persistent systems disable both lastlog and MOTD
+        sed -i -r \
+            -e 's/^\s*(session\s+[^\s]+\s+pam_lastlog.so).*/\1 silent/'  \
+            -e 's/^\s*(session\s+[^\s]+\s+pam_(exec|motd).so.*)/#-- \1/' \
+            $PAM_FILE
+    fi
+}
+
+do_stop() {
+
+    # Restore /etc/pam.d/login to its orignal state
+    # Allows caller to adjust $ROOT directory for making change under
+    # /mnt/antiX (or anywhere else)
+    sed -r -i \
+        -e 's/^\s*(session\s+[^\s]+\s+pam_lastlog.so).*/\1/'     \
+        -e '/session\s+[^\s]+\s+pam_(exec|motd).so/ s/^#-*\s*//' \
+        $ROOT$PAM_FILE
+}
+
+main "$@" 2>&1 | tee -a $INIT_LOG_FILE
 
 exit 0
 

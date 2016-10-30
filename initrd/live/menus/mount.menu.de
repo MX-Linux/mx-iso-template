@@ -1,0 +1,5 @@
+   1)  Voreinstellung
+   2)  automount       Datenträger beim Einlegen automatisch einhängen
+   3)  mount=usb       ... sowie alle USB-Geräte während des Bootvorgangs einhängen
+   4)  mount=all       ... sowie ALLE anderen Geräte beim Bootvorgang einhängen
+   5)  mount=off       Alle zusätzlichen und Auto-mount Operationen abschalten
