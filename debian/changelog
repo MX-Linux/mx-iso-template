@@ -1,3 +1,9 @@
+iso-template (16.8mx15+nmu1) mx; urgency=medium
+
+  * Build for MX-16 
+
+ -- anticapitalista <antix@operamail.com>  Sun, 30 Oct 2016 22:57:58 +0200
+
 iso-template (16.8mx15) mx; urgency=medium
 
   * disable mtpd service by default

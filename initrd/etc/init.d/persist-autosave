@@ -26,6 +26,8 @@ start_init_logging
 load_translation
 PATH=/bin:/sbin:/usr/bin:/usr/sbin:/usr/local/bin:/live/bin
 
+[ "$LIB_CMD_LANG" ] && export LANG=$LIB_CMD_LANG.UTF-8
+
 main() {
     case $1 in
         start) do_start                      ;;

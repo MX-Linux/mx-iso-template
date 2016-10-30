@@ -1,0 +1,192 @@
+#!/live/bin/sh
+
+# See Documentation/x86/boot.txt in Linux source
+
+ME=${0##*/}
+
+INITRD_FILE=/live/boot-dev/antiX/initrd.gz
+INITRD_DIR=./initrd
+CPIO_OPTS="-o -H newc --owner root:root"
+
+
+usage() {
+    local ret=${1:-0}
+
+    cat <<Usage
+Usage:  $ME [options]
+
+Options:
+  -c  --clear          Delete directory before unpacking
+  -d  --dir=<dir>      Unpack in <dir> instead of $INITRD_DIR
+  -i  --initrd=<file>  Unpack <file> instead of $INITRD_FILE
+  -h, --help           Show this usage
+  -p, --pretend        Show commands without running them
+  -r  --repack         Repack the init
+  -v  --verbose        Show commands in addition to running them
+Usage
+
+    exit $ret
+}
+
+eval_argument() {
+    local arg=$1 val=$2
+        case $arg in
+             -clear|c) CLEAR=true                      ;;
+               -dir|d) INITRD_DIR=$val                 ;;
+               -dir=*) INITRD_DIR=$val                 ;;
+              -help|h) usage                           ;;
+            -initrd|i) INITRD_FILE=$val                ;;
+            -initrd=*) INITRD_FILE=$val                ;;
+           -pretend|p) PRETEND=true                    ;;
+            -repack|r) REPACK=true                     ;;
+           -verbose|v) VERBOSE=true                    ;;
+                    *) fatal "Unknown parameter -$arg" ;;
+    esac
+}
+
+takes_param() {
+    case $1 in
+        -dir|[d]) return 0 ;;
+     -initrd|[i]) return 0 ;;
+    esac
+    return 1
+}
+
+main() {
+    local SHIFT SHORT_STACK="cdhir"
+
+    #[ $# -eq 0 ] && usage
+
+    # This loop allows complete intermingling of filenames and options
+    read_params "$@"
+    shift $SHIFT
+    [ $# -gt 0 ] && fatal "Unexpected arguments: %s" "$*"
+
+    if [ "$REPACK" ]; then
+        repack_initrd "$INITRD_FILE" "$INITRD_DIR"
+    else
+        unpack_initrd "$INITRD_FILE" "$INITRD_DIR"
+    fi
+
+    exit 0
+}
+
+unpack_initrd() {
+    local file=$1  dir=$2
+
+    test -e "$file" || fatal "File %s not found" "$file"
+    test -r "$file" || fatal "Cannot read file %s" "$file"
+
+    if test -d "$dir"; then
+        if ! empty_dir "$dir"; then
+            if [ "$CLEAR" ]; then
+                cmd rm -r "$dir"
+            else
+                fatal "The target directory %s is not empty" "$dir"
+            fi
+        fi
+    else
+        test -e "$dir"  && fatal "%s is not a directory" "$dir"
+    fi
+
+    cmd mkdir -p "$dir" || fatal "Could not make directory %s" "$dir"
+
+    cmd gunzip -c "$file" | (cd "$dir" && cmd cpio -idum) || fatal "Unpack failed"
+}
+
+repack_initrd() {
+    local file=$1  dir=$2
+    test -e "$dir" || fatal "The directory %s does not exist" "$dir"
+    test -d "$dir" || fatal "%s is not a directory" "$dir"
+
+    local targ_dir=$(dirname "$file")
+    cmd mkdir -p "$targ_dir"
+
+    (cd "$dir" && cmd find . | grep -v "^\./\." | cmd cpio $CPIO_OPTS) \
+        | gzip -9 | cmd write_file "$file" 
+
+    (cd "$targ_dir" && cmd md5sum "$(basename "$file")" | cmd write_file "$file.md5")
+}
+
+empty_dir() {
+    local dir=$1
+    local cnt=$(ls "$dir" | grep -v "^lost+found$" | wc -l)
+    [ $cnt -eq 0 ]
+    return $?
+}
+
+cmd() {
+    if [ "$PRETEND" ]; then
+        echo "$@" >&2
+        return 0
+    fi
+    [ "$VERBOSE" ] && echo "$@" >&2
+    "$@"
+}
+
+write_file() {
+    local file=$1
+    cat > "$file"
+}
+
+#-------------------------------------------------------------------------------
+# Send "$@".  Expects
+#
+#   SHORT_STACK               variable, list of single chars that stack
+#   fatal(msg)                routine,  fatal("error message")
+#   takes_param(arg)          routine,  true if arg takes a value
+#   eval_argument(arg, [val]) routine,  do whatever you want with $arg and $val
+#
+# Sets "global" variable SHIFT to the number of arguments that have been read.
+#-------------------------------------------------------------------------------
+read_params() {
+    # Most of this code is boiler-plate for parsing cmdline args
+    SHIFT=0
+    # These are the single-char options that can stack
+
+    local arg val
+
+    # Loop through the cmdline args
+    while [ $# -gt 0 -a ${#1} -gt 0 -a -z "${1##-*}" ]; do
+        arg=${1#-}
+        shift
+        SHIFT=$((SHIFT + 1))
+
+        # Expand stacked single-char arguments
+        case $arg in
+            [$SHORT_STACK][$SHORT_STACK]*)
+                if echo "$arg" | grep -q "^[$SHORT_STACK]\+$"; then
+                    local old_cnt=$#
+                    set -- $(echo $arg | sed -r 's/([a-zA-Z])/ -\1 /g') "$@"
+                    SHIFT=$((SHIFT - $# + old_cnt))
+                    continue
+                fi;;
+        esac
+
+        # Deal with all options that take a parameter
+        if takes_param "$arg"; then
+            [ $# -lt 1 ] && fatal "Expected a parameter after: -$arg"
+            val=$1
+            [ -n "$val" -a -z "${val##-*}" ] \
+                && fatal "Suspicious argument after -$arg: $val"
+            SHIFT=$((SHIFT + 1))
+            shift
+        else
+            case $arg in
+                *=*)  val=${arg#*=} ;;
+                  *)  val="???"     ;;
+            esac
+        fi
+
+        eval_argument "$arg" "$val"
+    done
+}
+
+fatal() {
+    local fmt=$1; shift
+    printf "$ME fatal error: $fmt\n" "$@" >&2
+    exit 2
+}
+
+main "$@"
+

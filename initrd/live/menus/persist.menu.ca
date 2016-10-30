@@ -1,0 +1,10 @@
+   1)  Per omissió
+   2)  persist_all     Ràpid. Desa root i home (usa la RAM, desa a l'aturada)
+   3)  persist_root    Ràpid. Només desa root (usa la RAM, desa a l'aturada)
+   4)  persist_static  Lent. Desa root i home (no usa la RAM, desa continuament)
+   5)  persist_home    Persistència només d'usuari
+   6)  frugal_persist  Frugal, amb persistència d'arrel i usuari
+   7)  frugal_root     Frugal, amb persistència només d'arrel
+   8)  frugal_static   Frugal, amb persistència d'usuari i arrel estàtica
+   9)  frugal_home     Frugal, només amb persistència d'usuari
+  10)  frugal_only     Només Frugal, sense persistència

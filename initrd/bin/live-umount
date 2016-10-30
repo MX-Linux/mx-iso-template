@@ -189,7 +189,7 @@ do_sendsigs() {
 
     vmsg 7 "$ME: remaining pids:$white $list"
 
-    vmsgN 4  "$_X_Waiting_for_termination_" "$ME:"
+    vmsgN 4  "$_X_Waiting_for_termination_Y_" "$ME:" ""
 
     # You have no chance to survive make your time
     local all_dead
@@ -262,6 +262,7 @@ do_umountfs() {
     vmsg 8 "runlevel:$white $runlevel"
 
     breakpoint 4 "Before pivot"
+    sync
 
     # undo previous bind mount
     umount ./aufs
