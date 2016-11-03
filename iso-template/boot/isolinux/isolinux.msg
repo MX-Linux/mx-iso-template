@@ -9,7 +9,7 @@ Memory_test_(memtest86+)
 
 Have a lot of fun...
 
-           live   MX-15
-    live-no-pae   MX-15 (non pae)
+           live   MX-16
+    live-no-pae   MX-16 (non pae)
        harddisk   Boot from Hard Disk
         memtest   Memory Test
