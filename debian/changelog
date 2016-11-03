@@ -1,3 +1,9 @@
+iso-template (16.13mx16) mx; urgency=medium
+
+  * isolinux.cfg and syslinux.cfg files - added non-pae and custopn in menu" 
+
+ -- anticapitalista <antix@operamail.com>  Thu, 03 Nov 2016 20:22:14 +0200
+
 iso-template (16.12mx16) mx; urgency=medium
 
   * added initrd changes need for MX-16
