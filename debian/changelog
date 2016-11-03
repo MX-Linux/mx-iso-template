@@ -1,10 +1,22 @@
-iso-template (16.11mx16) mx; urgency=medium
+iso-template (16.13mx16) mx; urgency=medium
+
+  * isolinux.cfg and syslinux.cfg files - added non-pae and custopn in menu" 
+
+ -- anticapitalista <antix@operamail.com>  Thu, 03 Nov 2016 20:22:14 +0200
+
+iso-template (16.12mx16) mx; urgency=medium
 
   * added initrd changes need for MX-16
   * added iso-template changes needed for MX-16
   * kept old MX-15 folder in boot/grub/themes 
 
- -- Adrian <adrian@mxlinux.org>  Thu, 03 Nov 2016 14:28:54 -0400
+ -- anticapitalista <antix@operamail.com>  Thu, 03 Nov 2016 19:07:42 +0200
+
+iso-template (16.11mx16) mx; urgency=medium
+
+  * rebuilt with mx15 files
+
+ -- Adrian <adrian@mxlinux.org>  Thu, 03 Nov 2016 10:47:46 -0400
 
 iso-template (16.8mx15) mx; urgency=medium
 
