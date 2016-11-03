@@ -1,3 +1,9 @@
+iso-template (16.7mx15) mx; urgency=high
+
+  * Fix missing files 
+
+ -- anticapitalista <antix@operamail.com>  Thu, 03 Nov 2016 09:45:11 +0200
+
 iso-template (16.8mx15+nmu1) mx; urgency=medium
 
   * Build for MX-16 
