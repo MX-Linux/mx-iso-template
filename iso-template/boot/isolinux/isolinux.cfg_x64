@@ -14,9 +14,9 @@ default
 MENU TITLE Welcome to MX-16 (Metamorphosis)
 
 LABEL live
-    MENU LABEL  MX-16
+    MENU LABEL custom-name
     KERNEL /antiX/vmlinuz
-    APPEND quiet
+    APPEND quiet 
     INITRD /antiX/initrd.gz
 
 LABEL harddisk
