@@ -1,3 +1,9 @@
+iso-template (16.11mx16) mx; urgency=medium
+
+  * rebuilt with mx15 files
+
+ -- Adrian <adrian@mxlinux.org>  Thu, 03 Nov 2016 10:47:46 -0400
+
 iso-template (16.8mx15) mx; urgency=medium
 
   * disable mtpd service by default
