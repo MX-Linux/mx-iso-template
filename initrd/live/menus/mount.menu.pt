@@ -1,0 +1,5 @@
+   1)  Pré-definição
+   2)  automount       Quando fisicamente ligados, montar os dispositivos automaticamente
+   3)  mount=usb       ... e montar todos os dispositivos usb ao iniciar
+   4)  mount=all       ... e montar TODOS os dispositivos ao iniciar
+   5)  mount=off       Desactivar todas as montagens extra e auto-montagens

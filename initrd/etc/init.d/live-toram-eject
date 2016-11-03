@@ -29,7 +29,7 @@ do_start() {
     test -e /live/config/toram-eject || return
 
     local param runlevel=5
-    : ${CMDLINE:=$(cat /proc/cmdline /live/config/cmdline)}
+    : ${CMDLINE:=$(cat /live/config/proc-cmdline /live/config/cmdline)}
     for param in $CMDLINE; do
         case $param in
             [0-9]) runlevel=$param;;

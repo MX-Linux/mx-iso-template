@@ -31,12 +31,13 @@ export TEXTDOMAINDIR=/usr/share/locale
 
 #COLOR_LOW=true
 
-VERBOSE=5
+IVERBOSE=5
 
-: ${CMDLINE:=$(cat /proc/cmdline /live/config/cmdline 2>/dev/null)}
+: ${CMDLINE:=$(cat /live/config/proc-cmdline /live/config/cmdline /live/config/cmdline2 >/dev/null)}
 for param in $CMDLINE; do
     case "$param" in
-    #    verbose=*|verb=*|v=*) VERBOSE=${param#*=}      ;;
+    verbose=[0-9]|verb=[0-9]) IVERBOSE=${param#*=}     ;;
+            iv=[0-9]|v=[0-9]) IVERBOSE=${param#*=}     ;;
                 noco|nocolor) COLOR_OFF=true           ;;
                loco|lowcolor) COLOR_LOW=true           ;;
               hico|highcolor) unset COLOR_LOW          ;;
@@ -110,6 +111,7 @@ start_init_logging() {
 }
 
 echo_live() {
+    [ $IVERBOSE -lt 5 ] && return
     local fmt="$1" && shift
     printf "$LIVE_COLOR  $fmt$NO_COLOR\n" "$@"
 }
@@ -169,6 +171,7 @@ get_init_lang() {
 
     # echo_live 'Setting language via: %s' $(pquote lang=$lang)
     . $lang_file
+    cp $lang_file /live/config/lang
     return 0
 }
 

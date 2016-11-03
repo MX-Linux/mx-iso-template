@@ -4,7 +4,7 @@
 LIST_MODULES=true
 CHECK_BOOTCODES=true
 
-MENUS_LIST=ltop
+MENUS_LIST=ltopfs
 
 DO_DEB=true
 DO_FSCK=true
@@ -21,8 +21,7 @@ live_param_filter() {
         val=${param#*=}
 
         case $param in
-        disable_srv=*|disable_service=*) disable=$val ;;
-        nosysv=*|aX=*|antiX=*)           disable=$val ;;
+        disable=*)                       disable=$val ;;
         lean)                           CMD_LEAN=true ;;
         mean)                           CMD_MEAN=true ;;
         Xtralean)                  CMD_XTRA_LEAN=true ;;
@@ -36,6 +35,9 @@ live_param_filter() {
         nosplash|password|password=*|prompt|pw|pw=*|tz=*|ubp=*|ushow=*);;
         uverb=*|xres=*|noxorg);;
         nosavestate|savestate|dbsavestate) ;;
+        norepo|norepo=*|nostore) ;;
+        udpi=*|sdpi=*) ;;
+        fontsize=*) ;;
 
         *) printf "$param " ;;
         esac

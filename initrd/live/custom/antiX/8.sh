@@ -3,6 +3,9 @@ antix_specific_code() {
     local dir=$1
 
     # -jbb
+    mv -f $dir/var/log/bootchart.tgz $dir/var/log/bootchart.tgz.old 2>/dev/null
+
+    # -jbb
     mkdir -p $dir/var/log/samba $dir/var/log/fsck
 
     # Create the /etc/resolv.conf symlink if it does not already exist

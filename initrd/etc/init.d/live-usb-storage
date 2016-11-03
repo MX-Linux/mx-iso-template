@@ -1,0 +1,170 @@
+#!/live/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          live-usb-storage
+# Required-Start:
+# Required-Stop:
+# Should-Start:
+# Default-Start:     3 4 5
+# Default-Stop:      0 1 6
+# Short-Description:
+# Description:       Create symlink to storage space directly on LiveUSB
+### END INIT INFO
+
+STORAGE_BIND=LiveUSB-Storage
+ STORAGE_DIR=LiveUSB-Storage
+
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
+
+. /live/lib/live-init-utils.sh
+start_init_logging
+load_translation
+
+main() {
+    case $1 in
+        start) do_start   ;;
+         stop) do_stop    ;;
+            *) echo "Usage: $0 {start|stop}" ;;
+    esac
+    exit 0
+}
+
+do_start() {
+
+    test -e /live/config/remasterable || exit 0
+
+    . $INITRD_OUT
+
+    local bdir root_dir
+    for bdir in $SQFILE_DIR $TORAM_MP; do
+        [ -d $bdir ] || continue
+        root_dir=$bdir
+        break
+    done
+    [ "$root_dir" ] || exit 0
+
+    read_cmdline
+
+    [ -e $root_dir/state/nostore -a -z "$DISABLE" ] && return
+
+    echo_script "$_Configure_LiveUSB_Storage_" $0
+
+    DEF_USER=$(find_def_user)
+
+    eval "USER_HOME=~$DEF_USER"
+
+    if [ -z "$DEF_USER" -o -z "${USER_HOME##~*}" ]; then
+        echo_live "$_No_default_user_X_found_on_the_system_" "$(pquote $DEF_USER)"
+        USER_HOME=
+    fi
+
+    if [ "$DISABLE" ]; then
+        echo_live "$_Disabling_LiveUSB_storage_"
+        rmdir /root/$STORAGE_BIND $USER_HOME/$STORAGE_BIND 2>/dev/null
+        return
+    fi
+
+    local store_dir=$BOOT_MP/$STORAGE_DIR
+    create_storage "$DEF_USER" "$USER_HOME"  $store_dir
+    create_storage root        /root         $store_dir
+}
+
+do_stop() {
+
+    test -e /live/config/remasterable || exit 0
+
+    echo_script "$_Disable_LiveUSB_Storage_" $0
+
+    read_cmdline
+
+    DEF_USER=$(find_def_user)
+
+    eval "USER_HOME=~$DEF_USER"
+
+    if [ -z "$DEF_USER" -o -z "${USER_HOME##~*}" ]; then
+        echo_live "$_No_default_user_X_found_on_the_system_" "$(pquote $DEF_USER)"
+        USER_HOME=
+    fi
+
+    local dir bind_dir
+    for dir in /root $USER_HOME; do
+        bind_dir=$dir/$STORAGE_BIND
+        test -d "$bind_dir" || continue
+        mountpoint -q $bind_dir && umount $bind_dir
+        rmdir $bind_dir
+    done
+}
+
+create_storage() {
+    local user=$1  home=$2  store_dir=$3/$1  from_dir=$2/$STORAGE_BIND
+
+    if ! test -d "$home"; then
+        echo_live "$_Home_directory_for_user_X_not_found_" "$(pquote $user)"
+        return
+    fi
+
+    local uid=$(getent passwd $user | cut -d: -f3)
+    local gid=$(getent passwd $user | cut -d: -f4)
+
+    if [ ${#uid} -le 0 -o ${#gid} -le 0 ]; then
+        echo_live "$_Could_not_find_UID_or_GUID_for_user_X_" "$(pquote $user)"
+        return
+    fi
+
+    if ! echo $uid$gid | egrep -q "^[0-9]+$"; then
+        echo_live "$_Found_non_numeric_UID_or_GUID_for_user_X_Y_" "$(pquote $user)"  $uid:$gid
+        return
+    fi
+
+    if [ "$BOOT_FSTYPE" = vfat -a $uid -ne 0 -a $uid -ne $USER_UID ]; then
+        echo_live "$_Can_only_use_X_storage_with_UID_of_Y_" "$(pquote vfat LiveUSB)" "$(pquote $USER_UID)"
+        return
+    fi
+
+    mountpoint -q "$BOOT_MP" || DISABLE=true
+
+    test -e $from_dir || mkdir -p $from_dir
+
+    if ! test -d $from_dir; then
+        echo_live "$_The_file_X_is_not_a_directory_" "$(pquote $from_dir)"
+        return
+    fi
+
+    chown $uid:$gid $from_dir
+
+    mkdir -p $store_dir
+    [ "$BOOT_FSTYPE" != vfat ] && chown $uid:$gid $store_dir
+
+    if mountpoint -q $from_dir; then
+        echo_live "$_Directory_X_is_already_a_mountpoint_" "$(pquote $from_dir)"
+        return
+    fi
+    echo_live "$_Enable_LiveUSB_storage_at_X_" "$(pquote $from_dir)"
+    mount --bind $store_dir $from_dir
+}
+
+find_def_user() {
+    local user=$(sed -r -n 's/^\s*default_user\s+//p' /etc/slim.conf 2>/dev/null | tail -n1)
+    : ${user:=$(sed -r -n 's/^\s*autologin-user=//p' /etc/lightdm/lightdm.conf 2>/dev/null | tail -n1)}
+    : ${user:=$(getent passwd 1000 | cut -d: -f1)}
+    : ${user:=demo}
+    echo ${user%% *}
+}
+
+read_cmdline() {
+    : ${CMDLINE:=$(cat /live/config/proc-cmdline /live/config/cmdline2)}
+    local param
+    for param in $CMDLINE; do
+        value=${param#*=}
+        case $param in
+              nostore)  DISABLE=true       ;;
+        esac
+    done
+}
+
+
+main "$@" 2>&1 | tee -a $INIT_LOG_FILE
+
+sync
+
+exit 0

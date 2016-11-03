@@ -1,0 +1,15 @@
+   1)  Voreinstellung
+   2)  checkmd5        Prüfe die Integrität der Live-Medien
+   3)  checkfs         prüfen LiveUSB und Persistenz ext2/3/4 Dateisysteme
+   4)  toram           Kopiere das komprimierte Dateisystem nach RAM
+   5)  from=usb        Schließe den Boot vom LiveUSB ab
+   6)  from=hd         Urladen von Festplatte abgeschlossen
+   7)  nousb2          Deaktiviere alle USB2-Anschlüsse während des Bootvorgangs
+   8)  hwclock=ask     Lasse das System die Uhr stellen
+   9)  hwclock=utc     Hardware-Uhr nutzt UTC (Nur-Linux-Systeme)
+  10)  hwclock=local   Hardware-Uhr nutzt lokale Zeit (Windows-Systeme)
+  11)  password        Ändere Passwörter vor dem Bootvorgang
+  12)  nostore         Abschalten des Live-USB-Speicher features (nur im Live-USB möglich, nicht von DVD)
+  13)  dostore         Einschalten des LiveUSB-Speicher features (nur im LiveUSB möglich)
+  14)  savestate       Speicherung von Dateien zwischen den Sitzungen ermöglichen (nur bei LiveUSB)
+  15)  nosavestate     Keine Speicherung von Dateien zwischen den Sitzungen (nur bei LiveUSB)
