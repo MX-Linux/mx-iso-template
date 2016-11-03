@@ -1,14 +1,8 @@
-iso-template (16.7mx15) mx; urgency=high
+iso-template (16.11mx16) mx; urgency=medium
 
-  * Fix missing files 
+  * rebuilt with mx15 files
 
- -- anticapitalista <antix@operamail.com>  Thu, 03 Nov 2016 09:45:11 +0200
-
-iso-template (16.8mx15+nmu1) mx; urgency=medium
-
-  * Build for MX-16 
-
- -- anticapitalista <antix@operamail.com>  Sun, 30 Oct 2016 22:57:58 +0200
+ -- Adrian <adrian@mxlinux.org>  Thu, 03 Nov 2016 10:47:46 -0400
 
 iso-template (16.8mx15) mx; urgency=medium
 
