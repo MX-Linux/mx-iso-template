@@ -1,0 +1,97 @@
+#!/live/bin/sh
+
+### BEGIN INIT INFO
+# Provides:          live-bootsave
+# Required-Start:
+# Required-Stop:
+# Should-Start:
+# Default-Start:
+# Default-Stop:      0 1 6
+# Short-Description:
+# Description:       save live boot options
+### END INIT INFO
+
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin:/live/bin
+
+. /live/lib/live-init-utils.sh
+start_init_logging
+
+
+main() {
+    case $1 in
+        start) do_start                      ;;
+         stop)                               ;;
+            *) echo "Usage: $0 {start|stop}" ;;
+    esac
+    exit 0
+}
+
+do_start() {
+
+    : ${CMDLINE:=$(cat /live/config/proc-cmdline /live/config/cmdline)}
+    local gfx_cmd boot_save
+    for param in $CMDLINE; do
+        case $param in
+            gfxsave=*) gfx_cmd=${param#*=} ;;
+              gfxsave) gfx_cmd=both        ;;
+             bootsave) boot_save=true     ;;
+        esac
+    done
+    echo_script "Possibly saving boot parameters" $0
+
+    [ -n "$gfx_cmd"   ] && do_gfxsave
+    [ -n "$boot_save" ] && do_boot_save
+}
+
+do_gfxsave() {
+
+    export CMDLINE
+    export GFX_LOG_FILE=/var/log/live/gfxsave.log
+
+    local dir=/live/boot-dev/boot
+    local script=/live/bin/gfxsave
+
+    if ! [ -e /live/config/remasterable ]; then
+        if [ -e /live/config/db+ ]; then
+            local tdir=/live/test
+            mkdir -p $tdir
+            echo_live "Use $tdir to test %s" $(pquote $script)
+            cp -r $dir/syslinux $tdir
+            dir=$tdir
+        else
+            echo_live "Can't update %s on read-only boot media" "$(pquote gfxboot)"
+            return
+        fi
+    fi
+
+    $script $dir $gfx_cmd
+}
+
+do_boot_save() {
+    . /live/config/initrd.out
+
+    if [ "$BOOT_FSTYPE" = vfat ]; then
+        grub2-save $BOOT_MP
+    fi
+
+    local uuid dir uuid_file file=esp-uuid
+    for dir in $SQFILE_DIR $BOOT_MP; do
+        test -r $dir/$file || continue
+        uuid_file=$dir/$file
+    done
+    test -r $uuid_file || return
+    read uuid 2>/dev/null <$uuid_file
+    [ ${#uuid} -gt 0 ] || return
+
+    local esp_mp=/live/esp
+    mkdir -p $esp_mp
+    mount --uuid $uuid $esp_mp
+    mountpoint -q $esp_mp || return
+    grub2-save $esp_mp
+    sync
+    umount $esp_mp
+}
+
+main "$@" 2>&1 | tee -a $INIT_LOG_FILE
+
+exit 0

@@ -1,0 +1,15 @@
+   1)  Par défaut
+   2)  checkmd5        Vérifier l'integrité du média live
+   3)  checkfs         Vérifier les systèmes de fichiers LiveUSB et persistants de type ext2/3/4
+   4)  toram           Copier à RAM le système comprimé de fichiers
+   5)  from=usb        Termination du démarrage d'un LiveUSB
+   6)  from=hd         Termination du démarrage d'un disque dur
+   7)  nousb2          Désactiver tous les périphériques usb-2 pendant le démarrage
+   8)  hwclock=ask     Faire le système aider à déterminer le réglage de l'horloge
+   9)  hwclock=utc     L'horloge interne se sert de UTC (systèmes n'ayant que de Linux )
+  10)  hwclock=local   L'horloge interne se sert de l'heure locale (systèmes Windows)
+  11)  password        Changer de mots de passe avant de démarrer
+  12)  nostore         Désactiver la fonctionnalité du stockage LiveUSB (LiveUSB seulement)
+  13)  dostore         Activer la fonctionnalité du stockage LiveUSB (LiveUSB seulement)
+  14)  savestate       Conservez quelques fichiers à travers les redémarrages (LiveUSB uniquement)
+  15)  nosavestate     Ne conservez pas les fichiers à travers les redémarrages (LiveUSB uniquement)

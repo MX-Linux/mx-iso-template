@@ -1,0 +1,10 @@
+   1)  Default
+   2)  persist_all     Veloce. Salva root e la home (usa la RAM, salva allo spegnimento)
+   3)  persist_root    Veloce. Salva solo root (usa la RAM, salva allo spegnimento)
+   4)  persist_static  Lento. Salva root e la home (non usa la RAM, salva costantemente)
+   5)  persist_home    Solo persistenza della home
+   6)  frugal_persist  Frugale con persistenza sia di root che della home
+   7)  frugal_root     Frugale con persistenza solo di root
+   8)  frugal_static   Frugale con persistenza della home e di root in modalità statica
+   9)  frugal_home     Frugale con persistenza solo della home
+  10)  frugal_only     Esclusivamente Frugale, senza persistenza.
