@@ -1,0 +1,30 @@
+Format: 1.8
+Date: Thu, 03 Nov 2016 19:07:42 +0200
+Source: iso-template
+Binary: iso-template
+Architecture: source all
+Version: 16.12mx16
+Distribution: mx
+Urgency: medium
+Maintainer: Steven Pusser (Stevo) <maintainer@mepiscommunity.org>
+Changed-By: anticapitalista <antix@operamail.com>
+Description:
+ iso-template - ISO template
+Changes:
+ iso-template (16.12mx16) mx; urgency=medium
+ .
+   * added initrd changes need for MX-16
+   * added iso-template changes needed for MX-16
+   * kept old MX-15 folder in boot/grub/themes
+Checksums-Sha1:
+ fd6393c4d997c797d47c2c716c5c621151232f69 633 iso-template_16.12mx16.dsc
+ 9eaf23151ea3881caed3f3adf684cd7039adeb21 15468036 iso-template_16.12mx16.tar.xz
+ a5528c0e7c70050e1e976d4da6ba890c9d8cf4c4 7945832 iso-template_16.12mx16_all.deb
+Checksums-Sha256:
+ 364be4b46a9e606e6d63760e2e303010cef34733c5b33bfafdc09187b90b1c32 633 iso-template_16.12mx16.dsc
+ 53ff139660ae60046e42d6219b0f18ad8d48b190298bc9bd5e886e2d6381fccd 15468036 iso-template_16.12mx16.tar.xz
+ dbba599a243b01b6a69f2a41b35d44b665b31610a01aaae8f1012483f91e9cad 7945832 iso-template_16.12mx16_all.deb
+Files:
+ 5a3c69d7e5f3eead3214280d87ffa24c 633 admin optional iso-template_16.12mx16.dsc
+ 64e4e7b027274b562e6720db4dc21623 15468036 admin optional iso-template_16.12mx16.tar.xz
+ c04ae12b7fc8b90322e5aebe1d6533d1 7945832 admin optional iso-template_16.12mx16_all.deb
