@@ -135,7 +135,7 @@ repack_cpio() {
 
 write_boot_param_hash() {
     for param in $CMDLINE; do
-        param=$(echo $param | sed -r -e 's/^(nouveau|video)\./\1_/')
+        param=$(echo $param | sed -r -e 's/^(nouveau|video)\./\1_/' -e 's/^(persist|frugal)-/\1_/')
         # only let through parameter names made of word chars
         # so we can turn them into variables names.  This is
         # a poor man's ash hash.
@@ -546,8 +546,16 @@ extra_cmdline_params() {
     local param menu_params=$1
     for param in $CMDLINE; do
         case $param in
+            gfxsave|gfxsave=*) continue ;;
+          bootsave|bootsave=*) continue ;;
+                 BOOT_IMAGE=*) continue ;;
+        savestate|nosavestate) continue ;;
+              nostore|dostore) continue ;;
+             checkmd5|checkfs) continue ;;
+            automount|mount=*) continue ;;
+                    hwclock=*) continue ;;
+                    desktop=*) continue ;;
             nouveau.modeset=0) continue ;;
-                     gfxsave*) continue ;;
         esac
         case " $ALL_MENU_PARAMS " in
             *" ${param%%=*} "*) ;;

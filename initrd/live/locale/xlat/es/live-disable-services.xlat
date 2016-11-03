@@ -1,5 +1,6 @@
 _Customizing_services_="Personalizando los servicios"
 _Detected_laptop_mobile_device_="Se detectó una laptop o un dispositivo móvil"
+_Disabling_NFS_server_X_="Deshabilitando el servidor NFS %s"
 _Disabling_X_services_="Inhabilitando %s servicios"
 _Disabling_X_services_Y_="Inhabilitando %s servicios %s"
 _Disabling_more_services_X_="Inhabilitando más servicios %s"

@@ -15,22 +15,18 @@
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
 
 case "$1" in
-    start) 
-         ;;
-    stop)
-        exit 0
-         ;;
-    *)
-         echo "Usage: $0 {start|stop}"
-         exit 1
-         ;;
+   start)         ;;
+    stop) exit 0  ;;
+       *) echo "Usage: $0 {start|stop}" >&2
+          exit 1  ;;
 esac
 
 # For debugging
-: ${CMDLINE:=$(cat /proc/cmdline /live/config/cmdline)}
+: ${CMDLINE:=$(cat /live/config/proc-cmdline /live/config/cmdline /live/config/cmdline2)}
 
 for param in $CMDLINE; do
     case $param in
+        noloadkeys)    NO_LOAD_KEYS=true                   ;;
             lang=*)    CMD_LANG=${param#*=}; MUST_RUN=true ;;
         hostname=*)    CMD_HOST=${param#*=}; MUST_RUN=true ;;
               tz=*)      CMD_TZ=${param#*=}; MUST_RUN=true ;;
@@ -100,9 +96,8 @@ load_translation
         update-menus
     fi
 
-
     KEYTABLE=${CMD_KEYS:-$KEYTABLE}
-    if [ -n "$KEYTABLE" ]; then
+    if [ -n "$KEYTABLE" -a -z "$NO_LOAD_KEYS" ]; then
         echo_live "$_Configuring_console_for_a_X_keymap_" "$(pquote $KEYTABLE)"
         # install keymap and set console font
         rm -f /etc/console/*
