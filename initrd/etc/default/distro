@@ -5,12 +5,12 @@
 # This is a POSIX shell fragment
 
 # specify distribution name
-DISTRO="antiX"
-DISTRO_VERSION="15-b1-RV"
-DISTRO_CODENAME="Killah_P"
+DISTRO="MX"
+DISTRO_VERSION="16"
+DISTRO_CODENAME="Fusion"
 
 # For fromiso install: 
-# ISO_FILE="$DISTRO_NAME/$DISTRO_NAME.iso"
+# ISO_FILE="$DISTRO_NAME/$DISTRONAME.iso"
 
 # The directory and fname of the squashfs *file*
 # SQFILE_PATH="$DISTRO_NAME"     # also holds /deb and /etc subdirs
