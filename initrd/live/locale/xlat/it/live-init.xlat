@@ -12,7 +12,6 @@ _Enabling_fstab_hotplugging_="Abilitare in fstab l'autoriconoscimento, hotplug, 
 _Files_already_exist_under_X_="Files già esistenti sotto %s"
 _Forcing_X_acceleration_on_Y_="Si forza %s accelerazione su %s"
 _Forcing_X_driver_on_Y_="Si forza il driver %s su %s"
-_Forcing_X_windows_to_use_default_mode_="Forzare X-windows per usare la modalità default"
 _Found_X_kernel_modules_="Trovati %s moduli del kernel"
 _Found_X_video_driver_="Trovato il video driver %s"
 _Found_X_video_module_s_Y_="Trovati %s video modulo(i) %s"
