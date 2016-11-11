@@ -7,7 +7,7 @@
 # specify distribution name
 DISTRO="MX"
 DISTRO_VERSION="16"
-DISTRO_CODENAME="Fusion"
+DISTRO_CODENAME="Metamorphosis"
 
 # For fromiso install: 
 # ISO_FILE="$DISTRO_NAME/$DISTRONAME.iso"
