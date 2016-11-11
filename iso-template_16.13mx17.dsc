@@ -10,8 +10,8 @@ Build-Depends: debhelper (>= 7.0.50~)
 Package-List:
  iso-template deb admin optional arch=all
 Checksums-Sha1:
- f5b4761c89672090a003d0fb2f5a23fc8a0fbf4c 3320604 iso-template_16.13mx17.tar.xz
+ 322237abb43ab9ae26747e8fd68a651f240077d5 3320388 iso-template_16.13mx17.tar.xz
 Checksums-Sha256:
- 57e8b2a9b8fe01cfe5bb171fd242444ed5f71d88670957df44c6f9f97f5abfb1 3320604 iso-template_16.13mx17.tar.xz
+ 8da7b247a298f6637a48b4244fbcc38ba969045ba094d4d4cac054c2e82f2c43 3320388 iso-template_16.13mx17.tar.xz
 Files:
- 9ef848c6e7da7493450e1ae8e7130e70 3320604 iso-template_16.13mx17.tar.xz
+ 5ba6d51af94e9b54a72cca0a1c129b80 3320388 iso-template_16.13mx17.tar.xz
