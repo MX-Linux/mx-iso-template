@@ -1,3 +1,9 @@
+iso-template (16.13mx17) mx; urgency=medium
+
+  * Using latest changes to initrd.gz and iso-template 
+
+ -- anticapitalista <antix@operamail.com>  Fri, 11 Nov 2016 14:12:09 +0200
+
 iso-template (16.13mx16) mx; urgency=medium
 
   * isolinux.cfg and syslinux.cfg files - added non-pae and custopn in menu" 

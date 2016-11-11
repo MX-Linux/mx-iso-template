@@ -1,0 +1,31 @@
+Format: 1.8
+Date: Fri, 11 Nov 2016 14:12:09 +0200
+Source: iso-template
+Binary: iso-template
+Architecture: source all
+Version: 16.13mx17
+Distribution: mx
+Urgency: medium
+Maintainer: Steven Pusser (Stevo) <maintainer@mepiscommunity.org>
+Changed-By: anticapitalista <antix@operamail.com>
+Description:
+ iso-template - ISO template
+Changes:
+ iso-template (16.13mx17) mx; urgency=medium
+ .
+   * Using latest changes to initrd.gz and iso-template
+Checksums-Sha1:
+ 5d3858fe2968b7dcd4355b04a09d3c0a8fe4304c 630 iso-template_16.13mx17.dsc
+ f5b4761c89672090a003d0fb2f5a23fc8a0fbf4c 3320604 iso-template_16.13mx17.tar.xz
+ 865428a2ce73ccc45c660bc7a3658eef82dbda0d 4655 iso-template_16.13mx17_20161111T121310z-42554075.buildinfo
+ e89b5ef39ad2a65431086e66a5e91a7831886b25 7125894 iso-template_16.13mx17_all.deb
+Checksums-Sha256:
+ 579f5721d12922fe20a5318917631f9ddf3456f0dd092270b848ba0b35e9dd43 630 iso-template_16.13mx17.dsc
+ 57e8b2a9b8fe01cfe5bb171fd242444ed5f71d88670957df44c6f9f97f5abfb1 3320604 iso-template_16.13mx17.tar.xz
+ 12b0491c34e557e4a8b44f02ce522373a5d60d475b060792e06aeee0ebb745f1 4655 iso-template_16.13mx17_20161111T121310z-42554075.buildinfo
+ 9364af99933286efe28409f1d9a9b6ce52936851856ac43f97b3a1477c1bac8a 7125894 iso-template_16.13mx17_all.deb
+Files:
+ b1a98c6ffcd592f7852cd9237735929d 630 admin optional iso-template_16.13mx17.dsc
+ 9ef848c6e7da7493450e1ae8e7130e70 3320604 admin optional iso-template_16.13mx17.tar.xz
+ 42554075fac8403521e3e5230f630a12 4655 admin optional iso-template_16.13mx17_20161111T121310z-42554075.buildinfo
+ cfab1ccd7a82d36406d21c4e629bd412 7125894 admin optional iso-template_16.13mx17_all.deb
