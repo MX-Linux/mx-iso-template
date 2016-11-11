@@ -101,7 +101,7 @@ main() {
 #----- Main code starts here --------------------------------------------------
 
 do_start() {
-    echo_script "Localizing/configuring X-Windows" $0
+    echo_script "$_Localizing_configuring_X_Windows_" $0
 
     get_init_param DISTRO ""
 
@@ -178,7 +178,7 @@ do_start() {
 
     if [ -z "$DEF_USER" -o -z "${USER_HOME##~*}" ]; then
         #. No default user <USER-NAME> found on the system.
-        echo_live "No default user %s found on the system." "$(pquote $DEF_USER)"
+        echo_live "$_No_default_user_X_found_on_the_system_" "$(pquote $DEF_USER)"
         return
     fi
 
@@ -239,15 +239,15 @@ automount_and_fstab() {
 
     # "off" means "off"
     if [ "$CMD_MOUNT" = 'off' ]; then
-        echo_live "Turning all boot mount options off"
-        echo_live "Turning automount off"
+        echo_live "$_Turning_all_boot_mount_options_off_"
+        echo_live "$_Turning_automount_off_"
         rm -f $mount_file
         rm -f $am_file
         CMD_MOUNT=
         AUTOMOUNT=
 
     elif [ -n "$AUTOMOUNT_OFF" ]; then
-        echo_live "Turning automount off"
+        echo_live "$_Turning_automount_off_"
         AUTOMOUNT=
         rm -f $am_file
     fi
@@ -263,16 +263,16 @@ automount_and_fstab() {
     local fstab_opt=
     case ",$CMD_MOUNT" in
         ,all)
-            echo_live "Mounting all devices"
+            echo_live "$_Mounting_all_devices_"
             fstab_opt="$fstab_opt --mount=$CMD_MOUNT" ;;
         ,usb)
 
-            echo_live "Mounting usb devices"
+            echo_live "$_Mounting_usb_devices_"
             fstab_opt="$fstab_opt --mount=$CMD_MOUNT" ;;
 
         ,)  ;;
             #. Invalid <mount/automount> option <invalid-option>
-        *)  error "Invalid %s option %s" 'mount/automount' $(pquote $CMD_MOUNT) ;;
+        *)  error "$_Invalid_X_option_Y_" 'mount/automount' $(pquote $CMD_MOUNT) ;;
     esac
 
     if [ -e /etc/fstab  ]; then
@@ -289,9 +289,9 @@ automount_and_fstab() {
     [ "$AUTOMOUNT" ] && touch $am_file
 
     if [ -e $am_file ]; then
-        echo_live "Automount enabled"
+        echo_live "$_Automount_enabled_"
     else
-        echo_live "Automount disabled"
+        echo_live "$_Automount_disabled_"
     fi
 
     # The hp_file is removed by /init
@@ -300,18 +300,18 @@ automount_and_fstab() {
 
     case ",$CMD_FSTAB" in
         ,off)
-            echo_live "Disabling fstab hotplugging (this will also disable automount)"
+            echo_live "$_Disabling_fstab_hotplugging_this_will_also_disable_automount_"
             echo $CMD_FSTAB > $hp_state_file
             rm -f $hp_file  ;;
 
         ,on|,)
-            echo_live "Enabling fstab hotplugging"
+            echo_live "$_Enabling_fstab_hotplugging_"
             rm -f $hp_state_file
             touch $hp_file;;
 
         *)
-            error "Bad fstab option %s" $(pquote $CMD_FSTAB)
-            echo_live "Enabling fstab hotplugging"
+            error "$_Bad_fstab_option_X_" $(pquote $CMD_FSTAB)
+            echo_live "$_Enabling_fstab_hotplugging_"
             touch $hp_file;;
     esac
 }
@@ -331,12 +331,12 @@ localize_skel() {
     [ -d "$L10n_dir" ] || return
 
     if ! [ -d $from ]; then
-        error "Unknown menu localization language %s" $(pquote $lang)
-        error "Directory not found %s" $from
+        error "$_Unknown_menu_localization_language_X_" $(pquote $lang)
+        error "$_Directory_not_found_X_" $from
         return
     fi
     #. Localizing menus to <language> in </etc/skel>
-    echo_live "Localizing menus to %s in %s" $(pquote $0) $(pquote $dest)
+    echo_live "$_Localizing_menus_to_X_in_Y_" $(pquote $0) $(pquote $dest)
 
     # Basically a cp -a but make all top level files and directories hidden
     for file in $(ls $from); do
@@ -357,10 +357,10 @@ set_keyboard() {
     first_write $kb_file || [ "$DO_XKBD" ] || return
 
     XKBLAYOUT=${CMD_KBD:-$XKBLAYOUT}
-    [ "$XKBLAYOUT"  ] && echo_live "Setting %s to %s" $(pquote xkb-layout)  $(pquote $XKBLAYOUT)
-    [ "$XKBMODEL"   ] && echo_live "Setting %s to %s" $(pquote xkb-model)   $(pquote $XKBMODEL)
-    [ "$XKBVARIANT" ] && echo_live "Setting %s to %s" $(pquote xkb-variant) $(pquote $XKBVARIANT)
-    [ "$XKBOPTIONS" ] && echo_live "Setting %s to %s" $(pquote xkb-options) $(pquote $XKBOPTIONS)
+    [ "$XKBLAYOUT"  ] && echo_live "$_Setting_X_to_Y_" $(pquote xkb-layout)  $(pquote $XKBLAYOUT)
+    [ "$XKBMODEL"   ] && echo_live "$_Setting_X_to_Y_" $(pquote xkb-model)   $(pquote $XKBMODEL)
+    [ "$XKBVARIANT" ] && echo_live "$_Setting_X_to_Y_" $(pquote xkb-variant) $(pquote $XKBVARIANT)
+    [ "$XKBOPTIONS" ] && echo_live "$_Setting_X_to_Y_" $(pquote xkb-options) $(pquote $XKBOPTIONS)
 
     cat > $kb_file <<Keyboard_Out
 XKBMODEL="${XKBMODEL:=pc105}"
@@ -374,7 +374,7 @@ localize_repo() {
     local mirror=$1  tz=$2  lang_mirror=$3  lang_tz=$4
 
     if [ -n "$mirror" -a -n "${mirror##[a-zA-Z][a-zA-Z]}" ]; then
-        error "Bad mirror code %s (expected two letters)" $(pquote $mirror)
+        error "$_Bad_mirror_code_X_expected_two_letters_" $(pquote $mirror)
         mirror=
     fi
 
@@ -404,7 +404,7 @@ localize_repo() {
     [ "$DB_PLUS" ] && args="--verbose${args:+ }$args"
 
     #. Localizing source repos using <timezone|country-code>
-    echo_live "Localizing source repos using %s" "$(wq $args)"
+    echo_live "$_Localizing_source_repos_using_X_" "$(wq $args)"
 
     localize-repo $args
 }
@@ -414,7 +414,7 @@ set_utc_local() {
     [ "$new" ] || return
 
     #. Assuming <hwclock> is set to <utc|local> time
-    echo_live "Assuming %s is set to %s time" hwclock $(pquote $new)
+    echo_live "$_Assuming_X_is_set_to_Y_time_" hwclock $(pquote $new)
 
     #grep -i -q $new $file && return
 
@@ -434,10 +434,10 @@ set_etc_desktop_delay() {
     local bad=$(echo $delay | sed -r 's/^([0-9]+(\.[0-9]*)?|.[0-9]+)//')
 
     if [ ${#bad} -gt 0 ]; then
-        error "Bad desktop delay parameter %s" $(pquote $delay)
+        error "$_Bad_desktop_delay_parameter_X_" $(pquote $delay)
         return
     fi
-    echo_live "Setting desktop delay to %s" $(pquote $delay)
+    echo_live "$_Setting_desktop_delay_to_X_" $(pquote $delay)
     sed -r -i "s/^\s*(STARTUP_DELAY=).*/\1$delay/" $ds_conf
 }
 
@@ -469,7 +469,7 @@ make_xorg_conf() {
 
     # Always erase generated xorg.conf files
     if test -f $xorg_conf && grep -q "*#\s*Generated by\s*make-xorg-conf" $xorg_conf; then
-        echo_live "Removing previous auto-generated %s file" $(pquote xorg.conf)
+        echo_live "$_Removing_previous_auto_generated_X_file_" $(pquote xorg.conf)
         rm -f $xorg_conf
     fi
 
@@ -482,7 +482,7 @@ make_xorg_conf() {
     if [ -z "$nomodeset" -a -n "$found_kms_driver" -a -n "$safe_mode" ]; then
         #. Note: KMS means "kernel mode switching"
         #. Disabling safe mode because of KMS <video-driver> video hardware
-        echo_live "Disabling safe mode because of KMS %s video hardware" "$(pquote $found_kms_driver)"
+        echo_live "$_Disabling_safe_mode_because_of_KMS_X_video_hardware_" "$(pquote $found_kms_driver)"
         args=$(echo $args | sed "s/\<safe\>//g")
         safe_mode=
     fi
@@ -492,7 +492,7 @@ make_xorg_conf() {
     #     && args=vbox${args:+,}$args
 
     if  [ -z "$no_default" -a -z "$safe_mode" ]; then
-        echo_live "Forcing X-Windows to use default mode"
+        echo_live "$_Forcing_X_Windows_to_use_default_mode_"
         args=default${args:+,}$args
     fi
 
@@ -501,19 +501,19 @@ make_xorg_conf() {
         if [ $arch = x86_64 ] && need_uxa; then
 
             #. Forcing <acceleration-type> acceleration on <cpu-type>
-            echo_live "Forcing %s acceleration on %s" $(pquote uxa) $(pquote pre-sandybridge)
+            echo_live "$_Forcing_X_acceleration_on_Y_" $(pquote uxa) $(pquote pre-sandybridge)
             args=uxa${args:+,}$args
 
         elif [ $arch = i686 -a -z "$nomodeset" ] && need_modesetting; then
             #. Forcing <driver-name> driver on <cpu-type>
-            echo_live "Forcing %s driver on %s" $(pquote modesetting) $(pquote skylake)
+            echo_live "$_Forcing_X_driver_on_Y_" $(pquote modesetting) $(pquote skylake)
             args=modesetting${args:+,}$args
         fi
     fi
 
     [ "$args" ] || return
     #. Configuring <xorg.conf> file with <arguments to xorg= cheat>
-    echo_live "Configuring %s file with %s" $(pquote $xorg_conf) $(pquote $args)
+    echo_live "$_Configuring_X_file_with_Y_" $(pquote $xorg_conf) $(pquote $args)
     backup_file $xorg_conf
     /sbin/make-xorg-conf --output=$xorg_conf $args
 }
@@ -572,7 +572,7 @@ set_fbcondecor() {
 load_video_driver() {
     local orig_fb_name
     read orig_fb_name 2</dev/null < /sys/class/graphics/fb0/name
-    echo_live "Scanning for hardware specific video modules ..."
+    echo_live "$_Scanning_for_hardware_specific_video_modules_"
     local video_modules="$(find_video_modules)"
     [ "$video_modules" ] || return
 
@@ -582,12 +582,12 @@ load_video_driver() {
     FOUND_i915=$(echo $FOUND_KMS_DRIVER | grep "^i915$")
 
     if [ "$FOUND_KMS_DRIVER" ]; then
-        echo_live "Found %s video module(s) %s" KMS "$(pquote $(echo $FOUND_KMS_DRIVER))"
-        echo_live "Load module(s) %s" "$(pquote $(echo $FOUND_KMS_DRIVER))"
+        echo_live "$_Found_X_video_module_s_Y_" KMS "$(pquote $(echo $FOUND_KMS_DRIVER))"
+        echo_live "$_Load_module_s_X_" "$(pquote $(echo $FOUND_KMS_DRIVER))"
         modprobe -b -a -q "$FOUND_KMS_DRIVER"
         set_fbcondecor "$SPLASH_PARAM" "$orig_fb_name"
     else
-        echo_live "Found video module(s) %s" "$(pquote $(echo $video_modules))"
+        echo_live "$_Found_video_module_s_X_" "$(pquote $(echo $video_modules))"
         detect_sisimedia_driver "$video_modules"
     fi
 }
@@ -596,7 +596,7 @@ load_video_driver() {
 # the user wants safe mode then they should be allowed to use the KMS driver and
 # "nomodeset" without us forcing vesa.  That's what safe mode is for.
 detect_any_video_driver() {
-    echo_live "Scanning for hardware specific video modules ..."
+    echo_live "$_Scanning_for_hardware_specific_video_modules_"
     local video_modules=$(find_video_modules)
     [ "$video_modules" ] || return
 
@@ -605,10 +605,10 @@ detect_any_video_driver() {
     FOUND_KMS_DRIVER="$(echo "$video_modules" | egrep "^($KMS_VIDEO_MODULES)$")"
     if [ "$FOUND_KMS_DRIVER" ]; then
         #. Found <KMS> video module(s) <module-name(s)>
-        echo_live "Found %s video module(s) %s" KMS "$(pquote $(echo $FOUND_KMS_DRIVER))"
+        echo_live "$_Found_X_video_module_s_Y_" KMS "$(pquote $(echo $FOUND_KMS_DRIVER))"
         FOUND_i915=$(echo $FOUND_KMS_DRIVER | grep "^i915$")
     else
-        echo_live "Found %s video module(s) %s" "" "$(pquote $(echo $video_modules))"
+        echo_live "$_Found_X_video_module_s_Y_" "" "$(pquote $(echo $video_modules))"
         detect_sisimedia_driver "$video_modules"
     fi
 }
@@ -619,7 +619,7 @@ detect_any_video_driver() {
 detect_kms_driver() {
     local kms_drivers=$(find_video_modules "$KMS_VIDEO_MODULES|drm_kms_helper")
     [ "$kms_drivers" ] || return
-    echo_live "Found %s video module(s) %s" KMS ""
+    echo_live "$_Found_X_video_module_s_Y_" KMS ""
     FOUND_VDRIVER=true
 }
 
@@ -627,10 +627,10 @@ detect_sisimedia_driver() {
     local video_modules=$1  xorg_driver=sisimedia
     echo "$video_modules" | egrep -q "^($SISIMEDIA_K_DRIVERS)$" || return
     #. Found <type> kernel modules ...
-    echo_live "Found %s kernel modules ..." sis
+    echo_live "$_Found_X_kernel_modules_" sis
     test -e $XORG_DRIVER_DIR/${xorg_driver}_drv.so || return
     #. Found <driver-name> video driver
-    echo_live "Found %s video driver" $xorg_driver
+    echo_live "$_Found_X_video_driver_" $xorg_driver
 
     # Add "default" only if there is no previous XORG_ARGS
     # Always add the "sisimedia" driver
@@ -652,7 +652,7 @@ scale_conky() {
         dpi=96
         width=$def_width
     fi
-    echo_live "Setting Conky width to %s" $(pquote $width)
+    echo_live "$_Setting_Conky_width_to_X_" $(pquote $width)
     local gwidth=$((width - 10))
     local gheight=$((2 * dpi * $def_gheight / 96 - $def_gheight))
 
@@ -665,7 +665,7 @@ font_size_to_dpi() {
     local bad=$(echo $size | sed -r 's/^([0-9]+(\.[0-9]*)?|\.[0-9]+)//')
     if [ ${#bad} -gt 0 ]; then
         #. Invalid <option-name> boot parameter <bad-parameter>
-        error "Invalid %s boot parameter %s" "$(pquote fontsize)" $(pquote $size)
+        error "$_Invalid_X_boot_parameter_Y_" "$(pquote fontsize)" $(pquote $size)
         return 1
     fi
     local begin=BEGIN
@@ -677,7 +677,7 @@ check_dpi() {
     [ "$dpi" ] || return 1
     local bad=$(echo $dpi | sed -r 's/^([0-9]+(\.[0-9]*)?|\.[0-9]+)//')
     if [ ${#bad} -gt 0 ]; then
-        error "Invalid %s boot parameter %s" "$(pquote dpi)" $(pquote $dpi)
+        error "$_Invalid_X_boot_parameter_Y_" "$(pquote dpi)" $(pquote $dpi)
         return 1
     fi
 
@@ -689,7 +689,7 @@ set_server_dpi() {
     local dpi=$1
     [ ${#dpi} -gt 0 ] || return
 
-    echo_live "Setting %s to %s" "$(pquote server dpi)" $(pquote $dpi)
+    echo_live "$_Setting_X_to_Y_" "$(pquote server dpi)" $(pquote $dpi)
 
     local file
     for file in /etc/slim.conf /usr/share/slim/themes/antiX/slim-install.conf; do
@@ -705,7 +705,7 @@ set_user_dpi() {
     local dpi=$1  user=$2  home=$3
 
     [ ${#dpi} -gt 0 ] || return
-    echo_live "Setting %s to %s" "$(pquote user dpi)" $(pquote $dpi)
+    echo_live "$_Setting_X_to_Y_" "$(pquote user dpi)" $(pquote $dpi)
 
     add_or_edit "^[ !]*Xft.dpi:" "Xft.dpi: $dpi" $home/.Xresources $user create
 
@@ -721,10 +721,10 @@ set_user_desktop_delay() {
     local bad=$(echo $delay | sed -r 's/^([0-9]+(\.[0-9]*)?|.[0-9]+)//')
 
     if [ ${#bad} -gt 0 ]; then
-        error "Bad desktop delay parameter %s" $(pquote $delay)
+        error "$_Bad_desktop_delay_parameter_X_" $(pquote $delay)
         return
     fi
-    echo_live "Setting desktop delay to %s" $(pquote $delay)
+    echo_live "$_Setting_desktop_delay_to_X_" $(pquote $delay)
     su -c "sed -r -i 's/^\s*(STARTUP_DELAY=).*/\1$delay/' $ds_conf" $user
 }
 
@@ -732,11 +732,11 @@ set_user_automount() {
     local  user=$1  home=$2  on=$3  off=$4
     local file=$home/.desktop-session/automount.conf
     if [ "$on" ]; then
-        echo_live "Automount enabled"
+        echo_live "$_Automount_enabled_"
         add_or_edit "^automount=" "automount=TRUE" $file $user create
 
     elif [ "$off" ]; then
-        echo_live "Automount disabled"
+        echo_live "$_Automount_disabled_"
         add_or_edit "^automount=" "automount=FALSE" $file $user create
     fi
 }
@@ -745,7 +745,7 @@ set_console_blanking() {
     local blank=$1  conf_file=/etc/kbd/config
     [ ${#blank} -gt 0 ] || return
 
-    echo_live "Setting console blanking timeout to %s minute(s)" "$(pquote $blank)"
+    echo_live "$_Setting_console_blanking_timeout_to_X_minute_s_" "$(pquote $blank)"
     setterm --blank $blank
     test -w $conf_file || return
     sed -ri "s/^(BLANK_TIME=).*/\1$blank/" $conf_file
@@ -768,11 +768,11 @@ create_home() {
     if [ "$(ls -A $home 2>/dev/null)" ]; then
         return
         # These don't run but they don't leave the .pot file either
-        echo_live "Files already exist under %s" $(pquote $home)
-        echo_live "Not creating or populating %s" $(pquote $home)
+        echo_live "$_Files_already_exist_under_X_" $(pquote $home)
+        echo_live "$_Not_creating_or_populating_X_" $(pquote $home)
     fi
 
-    echo_live "Populating %s directory" $(pquote $home)
+    echo_live "$_Populating_X_directory_" $(pquote $home)
     mkdir -p $home
     cp -a /etc/skel/* /etc/skel/.[!.]* $home 2>/dev/null # Avoid error msgs for ".../* not found"
 
@@ -785,7 +785,7 @@ set_default_desktop() {
     [ "$desktop" ] || return
 
     local file=$home/.desktop-session/default-desktop
-    echo_live "Setting %s to %s" desktop $(pquote $desktop)
+    echo_live "$_Setting_X_to_Y_" desktop $(pquote $desktop)
     su -c "mkdir -p $(dirname $file)" $user
     echo $desktop | su -c "tee $file" $user >/dev/null
 }
@@ -794,7 +794,7 @@ set_desktop_theme() {
     local theme=$1  user=$2  home=$3
     [ "$theme" ] || return
 
-    echo_live "Setting desktop theme to %s" $(pquote $theme)
+    echo_live "$_Setting_desktop_theme_to_X_" $(pquote $theme)
     set-desktop-theme --root $theme
     su -c "set-desktop-theme --dir $home $theme" $user
 }

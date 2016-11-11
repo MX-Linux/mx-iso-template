@@ -15,17 +15,17 @@ Changes:
  .
    * Using latest changes to initrd.gz and iso-template
 Checksums-Sha1:
- 5d3858fe2968b7dcd4355b04a09d3c0a8fe4304c 630 iso-template_16.13mx17.dsc
- f5b4761c89672090a003d0fb2f5a23fc8a0fbf4c 3320604 iso-template_16.13mx17.tar.xz
- 865428a2ce73ccc45c660bc7a3658eef82dbda0d 4655 iso-template_16.13mx17_20161111T121310z-42554075.buildinfo
- e89b5ef39ad2a65431086e66a5e91a7831886b25 7125894 iso-template_16.13mx17_all.deb
+ 3724f2cce06f553a745a1a68c1c2fad1354a9eaa 630 iso-template_16.13mx17.dsc
+ 322237abb43ab9ae26747e8fd68a651f240077d5 3320388 iso-template_16.13mx17.tar.xz
+ 73fa0601141625510adb7985d6e270778a8a1af3 4655 iso-template_16.13mx17_20161111T123033z-0f54279f.buildinfo
+ d6af030d0e64ec0c4989154f71d2787ac4d24ebc 7125084 iso-template_16.13mx17_all.deb
 Checksums-Sha256:
- 579f5721d12922fe20a5318917631f9ddf3456f0dd092270b848ba0b35e9dd43 630 iso-template_16.13mx17.dsc
- 57e8b2a9b8fe01cfe5bb171fd242444ed5f71d88670957df44c6f9f97f5abfb1 3320604 iso-template_16.13mx17.tar.xz
- 12b0491c34e557e4a8b44f02ce522373a5d60d475b060792e06aeee0ebb745f1 4655 iso-template_16.13mx17_20161111T121310z-42554075.buildinfo
- 9364af99933286efe28409f1d9a9b6ce52936851856ac43f97b3a1477c1bac8a 7125894 iso-template_16.13mx17_all.deb
+ bba3b63fa75f555c61e4616f17f7c120f438ff79c06db2c594884742bb40559e 630 iso-template_16.13mx17.dsc
+ 8da7b247a298f6637a48b4244fbcc38ba969045ba094d4d4cac054c2e82f2c43 3320388 iso-template_16.13mx17.tar.xz
+ 61d0d059fa6a526b2786f030efbe67af2d4fadd881599780e5231fc04844da8c 4655 iso-template_16.13mx17_20161111T123033z-0f54279f.buildinfo
+ 982a51289cbc0f803a219259a4906db5a9e07c0e16e9d3bcbb3271f6cdc46e7f 7125084 iso-template_16.13mx17_all.deb
 Files:
- b1a98c6ffcd592f7852cd9237735929d 630 admin optional iso-template_16.13mx17.dsc
- 9ef848c6e7da7493450e1ae8e7130e70 3320604 admin optional iso-template_16.13mx17.tar.xz
- 42554075fac8403521e3e5230f630a12 4655 admin optional iso-template_16.13mx17_20161111T121310z-42554075.buildinfo
- cfab1ccd7a82d36406d21c4e629bd412 7125894 admin optional iso-template_16.13mx17_all.deb
+ 34dcb87b687b4ded346faaec9d224602 630 admin optional iso-template_16.13mx17.dsc
+ 5ba6d51af94e9b54a72cca0a1c129b80 3320388 admin optional iso-template_16.13mx17.tar.xz
+ 0f54279fe02d7ad514e6fdbf6ec0c64f 4655 admin optional iso-template_16.13mx17_20161111T123033z-0f54279f.buildinfo
+ a957691110bad4026b2271299dc3db18 7125084 admin optional iso-template_16.13mx17_all.deb
