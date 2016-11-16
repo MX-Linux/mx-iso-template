@@ -1,6 +1,6 @@
    1)  デフォルト
-   2)  persist_all     速い・root・home を保存 (RAM 使用・シャットダウン時に保存)
-   3)  persist_root    速い・root のみ保存 (RAM 使用・シャットダウン時に保存)
+   2)  persist_all     速い - root・home を保存 (RAM 使用・シャットダウン時に保存)
+   3)  persist_root    速い - root のみ保存 (RAM 使用・シャットダウン時に保存)
    4)  persist_static  遅い - root・home 保存 (RAM を使用せず常に保存)
    5)  persist_home    home persistence のみ使用
    6)  frugal_persist  Fruhal - root・home persistence 使用
