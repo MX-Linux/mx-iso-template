@@ -1,5 +1,5 @@
 #------------------------------------------------------------------
-# file: /boot/grub/grub.cfg for the Live version of %DISTRO_NAME%
+# file: /boot/grub/grub.cfg for the Live version of MX
 #
 # This file can get updated automatically on a LiveUSB via the save
 # feature in the text menus.  It is possible to break these updates
