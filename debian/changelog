@@ -1,4 +1,4 @@
-iso-template (16.13mx17) mx; urgency=medium
+iso-template (16.14mx16) mx; urgency=medium
 
   * Using latest changes to initrd.gz and iso-template 
 
