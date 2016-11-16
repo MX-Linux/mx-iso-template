@@ -2,6 +2,12 @@
 
 ME=${0##*/}
 
+ ARCH_UNKNOWN="???"
+  ARCH_64_BIT="x64"
+  ARCH_32_BIT="386"
+     ARCH_PAE="pae"
+  ARCH_NO_PAE="non-pae"
+
 PATH=$PATH:bin:/live/bin
 
 CUSTOM_COMMENT="#--custom"
@@ -104,6 +110,8 @@ update_grub2() {
             is_blank=
         fi
 
+        local arch=$(get_arch)
+
         # Remove all lines that set the default
         [ -z "${line##set default=*}" ] && continue
 
@@ -120,7 +128,7 @@ update_grub2() {
             if [ "$is_custom" ]; then
                 custom_cnt=$((custom_cnt + 1))
                 if [ $custom_cnt -eq 1 ]; then
-                    line="menuentry \"Custom ($(date '+%e %B %Y'))\" {"
+                    line="menuentry \"Custom $arch ($(date '+%e %B %Y'))\" {"
                     default_entry=$entry_cnt
                 fi
             fi
@@ -159,6 +167,7 @@ Read_File
 
     printf "    Updated file %s\n" $file
     printf "    With: %s\n" "$params"
+    printf "    Kernel: %s\n" $kernel
     sleep 1
 }
 
@@ -172,11 +181,11 @@ gather_params() {
                    BOOT_IMAGE=*)  ;;
           savestate|nosavestate)  ;;
                 nostore|dostore)  ;;
-               checkmd5|checkfs)  ;;
+           md5|checkmd5|checkfs)  ;;
               automount|mount=*)  ;;
                       hwclock=*)  ;;
                       desktop=*)  ;;
-                              *)out=$out${out:+ }$p
+                              *) out=$out${out:+ }$p ;;
         esac
     done
     echo $out
@@ -197,6 +206,22 @@ get_current_vmlinuz() {
 
 get_cmdline_vmlinuz() {
     sed -rn "s/.*\<BOOT_IMAGE=([^ ]+).*/\1/p" /proc/cmdline
+}
+
+get_arch() {
+    case $(uname -m) in
+        x86_64) arch="$ARCH_64_BIT"  ;;
+          i686) arch="$ARCH_32_BIT"  ;;
+             *) arch="$ARCH_UNKNOWN" ;;
+    esac
+
+    if [ "$arch" = "$ARCH_32_BIT" ]; then
+        case $(uname -r) in
+            *[pP][aA][eE]) arch="$arch $ARCH_PAE"     ;;
+                        *) arch="$arch $ARCH_NO_PAE"  ;;
+        esac
+    fi
+    echo "$arch"
 }
 
 get_fb_resolution() {
