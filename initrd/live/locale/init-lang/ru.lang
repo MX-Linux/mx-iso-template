@@ -1,6 +1,6 @@
 COUNTRY="Русская"
 WM_LANG="ru"
-KEYBOARDS="ru,us"
+KEYBOARDS="us,ru"
 KEYTABLE="ru"
 CONSOLE_FONT="CyrSlav-VGA16"
 LANG="ru_RU.UTF-8"
