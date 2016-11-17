@@ -1,3 +1,9 @@
+iso-template (16.15mx16) mx; urgency=medium
+
+  * Added Kazakh support"
+
+ -- anticapitalista <antix@operamail.com>  Thu, 17 Nov 2016 12:04:39 +0200
+
 iso-template (16.14mx16) mx; urgency=medium
 
   * Using latest changes to initrd.gz and iso-template 
