@@ -1,6 +1,7 @@
 iso-template (16.15mx16) mx; urgency=medium
 
-  * Added Kazakh support"
+  * Added Kazakh support
+  * Fix introduced bug in grub.cfg wrong path to theme
 
  -- anticapitalista <antix@operamail.com>  Thu, 17 Nov 2016 12:04:39 +0200
 
