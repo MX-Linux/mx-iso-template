@@ -1,16 +1,14 @@
-  1) Default                  17) Estonian             33) Latvian
-  2) Albanian                 18) Euskal               34) Lithuanian
-  3) Arabic                   19) Farsi                35) Macedonian
-  4) Bulgarian                20) Finnish              36) Norwegian
-  5) Catalan                  21) French               37) Polish
-  6) Chinese (simplified)     22) French (Belgium)     38) Portuguese
-  7) Chinese (traditional)    23) French (Canadian)    39) Portuguese (Brazilian)
-  8) Croatian                 24) German               40) Romanian
-  9) Czech                    25) Greek                41) Russian
- 10) Danish                   26) Hebrew               42) Serbian
- 11) Dutch                    27) Hungarian            43) Slovak
- 12) Dutch (Belgium)          28) Icelandic            44) Slovenian
- 13) English (AU)             29) Italian              45) Spanish
- 14) English (GB)             30) Japanese             46) Swedish
- 15) English (NZ)             31) Kartuli              47) Turkish
- 16) English (US)             32) Korean               48) Ukrainian
+  1) default       15) Spanish (BO)  29) Italian      43) Portuguese (BR)
+  2) Arabic        16) Spanish (MX)  30) Hebrew       44) Romanian
+  3) Bulgarian     17) Spanish (NI)  31) Japanese     45) Russian
+  4) Catalan       18) Spanish (PE)  32) Kazakh       46) Albanian
+  5) Czech         19) Spanish (US)  33) Korean       47) Simplified Chinese
+  6) Danish        20) Spanish (VE)  34) Latvian      48) Slovak
+  7) German        21) Euskal        35) Lithuanian   49) Slovenian
+  8) Estonian      22) Farsi         36) Hungarian    50) Serbian
+  9) English (AU)  23) French        37) Macedonian   51) Finnish
+ 10) English (UK)  24) French (BE)   38) Dutch        52) Swedish
+ 11) English (NZ)  25) French (CA)   39) Dutch (BE)   53) Traditional Chinese
+ 12) English (US)  26) Greek         40) Norwegian    54) Turkish
+ 13) Spanish       27) Croatian      41) Polish       55) Ukrainian
+ 14) Spanish (AR)  28) Icelandic     42) Portuguese
