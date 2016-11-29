@@ -2,7 +2,7 @@
 
 #==============================================================================
 # LiveCD/USB/HD init script
-# (C) 2009-2016 BitJam for antiX <antiX@operamail.com>
+# (C) 2009-2016 Paul Banham <antiX@operamail.com>
 # Inspired by the work of Klaus Knopper
 #
 # License: GPLv3 or later
@@ -25,8 +25,8 @@
 # that you don't want users to be able to adjust.
 
                      ME="initrd init"
-                VERSION="7.60.09"
-           VERSION_DATE="Wed Nov 16 16:22:29 MST 2016"
+                VERSION="7.60.14"
+           VERSION_DATE="Sun Nov 27 23:37:53 MST 2016"
               DEVELOPER="BitJam"
          BUG_REPORT_URL="liveboot@mxlinux.org"
 
@@ -1059,13 +1059,22 @@ read_xlat() {
     local prog=$1  lang=${2%%_*}
     local xdir=$LOCALE_DIR/xlat
     local fdir=$LOCALE_DIR/fonts
+    local def_font=$fdir/default
 
     local xlat=$xdir/en/$prog.xlat
     [ -r $xlat ] && . $xlat
 
-    # Always load a font
-    local font=$fdir/${lang:-default}
-    [ -e "$font" ] && log_cmd setfont $font -C $(tty)
+    local font=$fdir/${lang:-default}  # don't want an empty $lang
+    [ -e "$font" ] || font=$def_font
+
+    # Clear screen if we have previously set a font
+    #[ -n "$PREVIOUS_FONT" -a -z "$NO_CLEAR" ] && clear
+    #[ "$font" != "$def_font" ] && PREVIOUS_FONT=$font
+
+    [ "$NO_CLEAR" ] || clear   # Clear and reset screen
+
+    vmsg 7 'Setting font to %s' $(pq $(basename $font))
+    log_cmd setfont $font -C $(tty)
 
     local alt=$DISTRO_ASCII_PRETTY_NAME
     [ -n "$lang" -a -e $fdir/$lang -a -n "$alt" ] && DISTRO_PRETTY_NAME=$alt
@@ -1075,7 +1084,7 @@ read_xlat() {
     xlat=$xdir/$lang/$prog.xlat
     [ -r "$xlat" ] || return
     . $xlat
-    vmsg 7 'Translate to %s' $lang
+    vmsg 7 'Translate to %s' $(pq $lang)
 }
 
 do_welcome() {
@@ -4976,7 +4985,11 @@ prepare_switch_root() {
 
     ln -s . $new_live/live
 
-    test -e /live/README && cp /live/README $new_live/
+    local f
+    for f in README LICENSE; do
+        test -e /live/$f && cp /live/$f $new_live/
+    done
+
     # cp -a /bin/shutdown $new_live/
 
     mkdir -p $new_live/oldroot
