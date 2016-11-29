@@ -1,3 +1,10 @@
+iso-template (16.17mx16) mx; urgency=medium
+
+  * Add getch-64 to get space-evaders working on 64-bit again
+  * Bump init version
+
+ -- anticapitalista <antix@operamail.com>  Mon, 28 Nov 2016 18:23:09 +0200
+
 iso-template (16.16mx16) mx; urgency=medium
 
   * added the console font for Kazakh
