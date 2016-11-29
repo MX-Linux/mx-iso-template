@@ -2,7 +2,7 @@
 
 #==============================================================================
 # LiveCD/USB/HD init script
-# (C) 2009-2016 BitJam for antiX <antiX@operamail.com>
+# (C) 2009-2016 Paul Banham <antiX@operamail.com>
 # Inspired by the work of Klaus Knopper
 #
 # License: GPLv3 or later
@@ -25,8 +25,8 @@
 # that you don't want users to be able to adjust.
 
                      ME="initrd init"
-                VERSION="7.60.12"
-           VERSION_DATE="Wed Nov 23 20:22:00 MST 2016"
+                VERSION="7.60.14"
+           VERSION_DATE="Sun Nov 27 23:37:53 MST 2016"
               DEVELOPER="BitJam"
          BUG_REPORT_URL="liveboot@mxlinux.org"
 
