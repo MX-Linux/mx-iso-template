@@ -2,8 +2,10 @@ iso-template (16.17mx16) mx; urgency=medium
 
   * Add getch-64 to get space-evaders working on 64-bit again
   * Bump init version
+  * Updated all translations
+  * Include attempted Intel fixes
 
- -- anticapitalista <antix@operamail.com>  Mon, 28 Nov 2016 18:23:09 +0200
+ -- anticapitalista <antix@operamail.com>  Fri, 02 Dec 2016 12:03:09 +0200
 
 iso-template (16.16mx16) mx; urgency=medium
 
