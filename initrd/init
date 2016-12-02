@@ -25,8 +25,8 @@
 # that you don't want users to be able to adjust.
 
                      ME="initrd init"
-                VERSION="7.60.14"
-           VERSION_DATE="Sun Nov 27 23:37:53 MST 2016"
+                VERSION="7.62.03"
+           VERSION_DATE="Thu Dec  1 06:45:42 MST 2016"
               DEVELOPER="BitJam"
          BUG_REPORT_URL="liveboot@mxlinux.org"
 
@@ -110,6 +110,8 @@ MKFS_FREE_MARGIN=10
    OPTIONS_ENTRIES="toram|from=usb|password|nousb2"
 
           LAZYTIME=""
+      MADE_BY_FILE="made-by-live-usb-maker"
+    PROG_BAR_WIDTH=85
 
 set_live_dirs() {
     local dir=$1
@@ -331,12 +333,11 @@ main_core() {
     show_bootcodes "$(live_param_filter $UNKNOWN_BOOTCODES)"
     show_integer_errors "$INTEGER_ERRORS"
     show_disable_errors "$DISABLE_SERVICES" "$DS_PARAM"
+
     breakpoint 2 "before coldplug"
 
     check_unionfs
-
     coldplug_delay
-
     coldplug_modules
 
     # local orig_fb_name
@@ -388,6 +389,7 @@ main_core() {
 
     BOOT_UUID=$(device_uuid $SQFILE_DEV)
     [ "$BOOT_UUID" ] && vmsg 6 "boot device uuid: $BOOT_UUID"
+
     breakpoint 4 "after mounting boot device"
 
     mount -o remount,rw $SQFILE_DEV 2>/dev/null
@@ -734,6 +736,7 @@ read_cmdline_params()
 
                           issue) FORCE_ISSUE=true                                ;;
 
+                         noprog) NO_PROGRESS=true                                ;;
         #----- These get interpreted late but we don't want them to be unknown
                 hwclock=*|hwc=*)  ;;
                          frugal)  ;;
@@ -1917,7 +1920,8 @@ find_frugal_file() {
 
         msg  "$_copy_X_to_Y_" $(pq $(size_label_m $actual)) $(pq $sqfile_dir/)
 
-        if ! time_cmd copy_files_md5 $old_dir $sqfile_dir $FRUGAL_FILES; then
+        #if ! time_cmd copy_files_md5 $old_dir $sqfile_dir $FRUGAL_FILES; then
+        if ! prog_copy_md5 $sqfile_dir $old_dir $FRUGAL_FILES; then
             warn  "Copy failed.  Erasing partial copy"
             log_cmd rm -f $sqfile_full
             return 40
@@ -2119,17 +2123,19 @@ need_unionfs() {
     if [ "$okay" ]; then
         [ "$USE_UNIONFS" != "$this" ] && warn  "$_Forcing_use_of_X_to_match_existing_rootfs_file_" $(pqw $this)
         USE_UNIONFS=$this
+        return 0
     else
-        fatal  "$_The_X_filesystem_is_not_available_Cant_use_this_Y_file_" "$this" 'rootfs'
+        non_fatal  "$_The_X_filesystem_is_not_available_Cant_use_this_Y_file_" "$this" 'rootfs'
+        return 1
     fi
 }
 
 check_existing_unionfs() {
     local mp=$1  type
     if test -d $mp/etc; then
-        need_unionfs "$AUFS_OKAY" aufs
+        need_unionfs "$AUFS_OKAY" aufs || return 1
     elif test -d $mp/upper; then
-        need_unionfs "$OVERLAY_OKAY" overlay
+        need_unionfs "$OVERLAY_OKAY" overlay || return 1
     fi
 
     case $USE_UNIONFS in
@@ -2137,6 +2143,8 @@ check_existing_unionfs() {
         overlay) ROOTFS_BASE=$ROOTFS_MP/upper                  ;;
               *) fatal "Unknown unionfs type: $USE_UNIONFS"    ;;
     esac
+
+    return 0
 }
 
 mount_unionfs() {
@@ -3351,6 +3359,97 @@ cp_rm_dest() {
     cp "$src" "$dest"
 }
 
+find_md5_files() {
+    local dir=$1  ; shift
+    local file
+    for file; do
+        test -e "$dir/$file"     && echo "$dir/$file"
+        test -e "$dir/$file.md5" && echo "$dir/$file.md5"
+    done
+}
+
+prog_copy_md5() {
+    local dest=$1  src=$2 ; shift 2
+    prog_copy $dest $(find_md5_files $src "$@")
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+prog_copy() {
+    local dest=$1 ; shift
+    local err_file=/prog-copy-failed
+    # TEST directories or fatal error
+
+    if [ "$NO_PROGRESS" ]; then
+        cp -a "$@" "$dest"
+        return $?
+    fi
+
+    local final_size=$(du_size "$@")
+    local base_size=$(du_size "$dest")
+
+    local cur_size=$base_size  last_x=0  cur_x
+
+    # Make progress bar 80% of screen width
+    local max_x=$((SCREEN_WIDTH * PROG_BAR_WIDTH / 100))
+
+    local dirty_ratio dirty_bytes
+    read dirty_ratio < /proc/sys/vm/dirty_ratio
+    read dirty_bytes < /proc/sys/vm/dirty_bytes
+
+    mkdir -p "$dest"
+    rm -f $err_file
+    (cp -a "$@" $dest/ || echo $? > $err_file) &
+    COPY_PID=$!
+    #echo "copy pid: $COPY_PID" >> $LOG_FILE
+
+    # Disable cursor
+    printf "\e[?25l"
+    # Create end-points and save our location on the screen
+    printf "\e[s$green|$nc_co"
+    printf "\e[u\e[$((max_x + 1))C$green|$nc_co\e[u"
+
+    while true; do
+        test -d /proc/$COPY_PID || break
+        sleep 0.2
+        cur_size=$(du_size $dest)
+        cur_x=$((max_x * cur_size / final_size))
+        [ $cur_x -ge $max_x ] && cur_x=$max_x
+        [ $cur_x -eq $last_x ] && continue
+        prog_bar $cur_x $last_x $max_x
+        [ $cur_x -ge $max_x ] && break
+        last_x=$cur_x
+    done
+    echo
+
+    sync ; sync
+
+    # Enable cursor
+    printf "\e[?25h"
+
+    echo $dirty_bytes >> /proc/sys/vm/dirty_bytes
+    echo $dirty_ratio >> /proc/sys/vm/dirty_ratio
+
+    # Use err_file as a semaphore from (...)& process
+    if test -e $err_file; then
+        rm -f $err_file
+        return 2
+    fi
+
+    test -d /proc/$COPY_PID && wait $COPY_PID
+
+    return 0
+}
+
+prog_bar() {
+    local x=$1  prev=$2  max=$3
+    local diff=$((x - prev))
+    local bar=$(printf "$cyan%${diff}s$yellow>$nc_co" "" | tr ' ' '=')
+    printf "\e[u\e[$((prev))C$bar\e[u\e[$((max + 1))C"
+}
+
+
 #------------------------------------------------------------------------------
 # Function: cp_dir <sorc> <dest>
 #------------------------------------------------------------------------------
@@ -3793,7 +3892,9 @@ _copy_to_ram() {
     done
     [ -e $from ] && cp $from.md5 $dest
 
-    if ! cp_file $orig $name $dest 2>&1; then
+    #if ! cp_file $orig $name $dest 2>&1; then
+
+    if ! prog_copy $dest $orig/$name; then
         err  "Copy failed.  Cannot do %s" $err_toram
         return 3
     fi
@@ -4245,9 +4346,9 @@ mount_and_copy_rootfs() {
 
 _mount_and_copy_rootfs() {
     mount_persist_file rootfs "$ROOTFS_MP" root "$WANT_ROOTFS" "$NEED_ROOTFS" || return 1
-    check_existing_unionfs $ROOTFS_MP
     PERSIST_ROOT_FULL="$PERSIST_FULL_PATH/rootfs"
     check_vid "$SQFS_VID" "$ROOTFS_BASE" rootfs.ver                           || return 1
+    check_existing_unionfs $ROOTFS_MP                                         || return 1
     [ "$STATIC_ROOT" ] || copy_persist_to_ram                                 || return 1
 
     return 0
@@ -4746,6 +4847,12 @@ Initrd_Out
     [ -d /sys/class/power_supply ] \
         && grep -q Battery /sys/class/power_supply/*/type 2>/dev/null \
         && touch $dir/laptop
+
+    local f full
+    for f in version $MADE_BY_FILE; do
+        full=$BOOT_MP/$f
+        test -e $full && cp $full $dir/
+    done
 }
 
 old_write_output_files() {
