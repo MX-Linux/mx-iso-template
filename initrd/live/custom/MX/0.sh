@@ -38,6 +38,7 @@ live_param_filter() {
         norepo|norepo=*|nostore) ;;
         udpi=*|sdpi=*) ;;
         fontsize=*) ;;
+        noskylake)  ;;
 
         *) printf "$param " ;;
         esac
