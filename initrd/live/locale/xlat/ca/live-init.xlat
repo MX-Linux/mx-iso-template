@@ -5,6 +5,7 @@ _Bad_desktop_delay_parameter_X_="Paràmetre de retard de l'escriptori incorrecte
 _Bad_fstab_option_X_="Opció de fstab errònia %s"
 _Bad_mirror_code_X_expected_two_letters_="Codi de rèplica %s erroni (s'esperaven dues lletres)"
 _Configuring_X_file_with_Y_="Configurant el fitxer %s amb %s"
+_Creating_file_X_="Creant el fitxer %s"
 _Directory_not_found_X_="No s'ha trobat el directori %s"
 _Disabling_fstab_hotplugging_this_will_also_disable_automount_="Desactivant la connexió en calent de fstab (això també desactiva l'automuntatge)"
 _Disabling_safe_mode_because_of_KMS_X_video_hardware_="Desactivant el mode segur a causa del KMS %s de maquinari de vídeo"

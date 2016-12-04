@@ -5,6 +5,7 @@ _Bad_desktop_delay_parameter_X_="Dålig fördröjningsparameter för skrivbordet
 _Bad_fstab_option_X_="Dålig fstab option %s"
 _Bad_mirror_code_X_expected_two_letters_="Dålig mirror kod %s (väntade två bokstäver)"
 _Configuring_X_file_with_Y_="Anpassar %s fil med %s"
+_Creating_file_X_="Skapa fil %s"
 _Directory_not_found_X_="Katalog ej hittad %s"
 _Disabling_fstab_hotplugging_this_will_also_disable_automount_="Stänger av fstab hotplugging (detta kommer också att stänga av automount)"
 _Disabling_safe_mode_because_of_KMS_X_video_hardware_="Stänger av säkert läge på grund av KMS %s video hårdvara"
