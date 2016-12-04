@@ -42,6 +42,7 @@ live_param_filter() {
         deskdelay=*) ;;
         udpi=*|sdpi=*) ;;
         fontsize=*) ;;
+        noskylake)  ;;
 
         *) printf "$param " ;;
         esac

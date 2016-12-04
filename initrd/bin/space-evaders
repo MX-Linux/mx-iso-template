@@ -247,10 +247,11 @@ draw_alien_row() {
     local y=$((alien_y + 2 * row - 2))
 
     # Erase row when move down
-    [ $alien_x -eq $alien_max_x ] && eval echo -e \"$e[$((y - 1))\;${alien_x}H"${line}"\"
+    [ $alien_x -eq $alien_max_x ] && echo -ne "$e[$((y - 1));${alien_x}H${line}"
 
     # Draw row
-    eval echo -e \"$e[$y\;${alien_x}H\$co_$row \$A_$a_type$row\"
+    eval local co_row=\$co_$row local b_type=\$A_$a_type$row
+    echo -ne "$e[$y;${alien_x}H$co_row $b_type"
 }
 
 update_aliens() {
@@ -324,7 +325,7 @@ draw_shot() {
 
     # Grab 3 (or 2) chars where possible hit occurred
     local row=$(( 1 + rel_y / 2 ))
-    local hit="$(eval echo -e \"\$A_0$row\" | sed -n "s/.\{$rel_x\}\(...\?\).*/\1/p")"
+    local hit="$(eval echo -ne \"\$A_0$row\" | sed -n "s/.\{$rel_x\}\(...\?\).*/\1/p")"
     local bonus
 
     [ ${#hit} -lt 2 ] && return 1
@@ -342,7 +343,7 @@ draw_shot() {
     # Erase the alien that was hit
     local start_x=$((rel_x - rel_x % alien_chars))
     for type in $seq_alien_types; do
-        eval A_$type$row='"$(eval echo -e \"\$A_$type$row\" | sed "s/\(.\{$start_x\}\).../\1   /")"'
+        eval A_$type$row='"$(eval echo -ne \"\$A_$type$row\" | sed "s/\(.\{$start_x\}\).../\1   /")"'
     done
 
     # Align explosion on alien
@@ -370,7 +371,7 @@ draw_shot() {
     # Trim rows and columns if sides or bottom are empty
     [ $hit_row = $rows ] && remove_rows
 
-    [ $hit_col = 1 ]           && trim_lead_cols
+    [ $hit_col = 1 ]     && trim_lead_cols
     [ $hit_col = $cols ] && trim_trail_cols
 
 }
@@ -380,7 +381,7 @@ remove_rows() {
 
     # Remove consecutive empty rows starting at the bottom
     for row in $(seq $rows -1 1); do
-        eval echo -e \"\$A_0$row\" | grep -q  '[^\ ]' && return
+        eval echo -ne \"\$A_0$row\" | grep -q  '[^\ ]' && return
         echo "remove row: $row" >&2
         rows=$((rows - 1))
         alien_height=$((2 * rows))
@@ -393,13 +394,13 @@ trim_lead_cols() {
 
     # Is the first column empty in all rows?
     for row in $seq_rows; do
-        eval echo -e \"\$A_0$row\" | grep -q "^   " || return
+        eval echo -ne \"\$A_0$row\" | grep -q "^   " || return
     done
 
     #echo "Trim lead column" >&2
     for row in $seq_rows; do
         for type in $seq_alien_types; do
-            eval A_$type$row='"$(eval echo -e \"\$A_$type$row\" | sed "s/^   $pad//")"'
+            eval A_$type$row='"$(eval echo -ne \"\$A_$type$row\" | sed "s/^   $pad//")"'
         done
     done
     cols=$((cols - 1))
@@ -415,13 +416,13 @@ trim_trail_cols() {
 
     # Only trim of the last column is empty in all rows
     for row in $seq_rows; do
-        eval echo -e \"\$A_0$row\" | grep -q "   $pad$" || return
+        eval echo -ne \"\$A_0$row\" | grep -q "   $pad$" || return
     done
 
     #echo "Trim trailing column" >&2
     for row in $seq_rows; do
         for type in $seq_alien_types; do
-            eval A_$type$row='"$(eval echo -e \"\$A_$type$row\" | sed "s/   $pad$//")"'
+            eval A_$type$row='"$(eval echo -ne \"\$A_$type$row\" | sed "s/   $pad$//")"'
         done
     done
     cols=$((cols - 1))
@@ -435,7 +436,7 @@ trim_trail_cols() {
 
 hide_tty() {
     stty cbreak -echo
-    echo -e $cursor_off
+    echo -ne $cursor_off
 }
 
 refresh() {
@@ -641,8 +642,8 @@ start_space_evaders() {
     done
 
     # We need the getch helper for non-blocking stdin
-    local getch=
-    for try_getch in $getch ./getch getch ./getch-64 getch-64; do
+    local getch=  my_dir=$(readlink -f "$(dirname "$0")")
+    for try_getch in $getch $my_dir/getch $my_dir/getch-64 ./getch getch ./getch-64 getch-64; do
         [ -n "$($try_getch 2>&1)" ] && continue
         getch=$try_getch
         break

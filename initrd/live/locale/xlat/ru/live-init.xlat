@@ -5,6 +5,7 @@ _Bad_desktop_delay_parameter_X_="Неверный параметр задерж�
 _Bad_fstab_option_X_="Ошибочная опция fstab %s"
 _Bad_mirror_code_X_expected_two_letters_="Плохой код зеркала %s (нужно два знака)"
 _Configuring_X_file_with_Y_="Настройка файла %s с %s"
+_Creating_file_X_="Создание файла %s"
 _Directory_not_found_X_="Директория не найдена %s"
 _Disabling_fstab_hotplugging_this_will_also_disable_automount_="Отключение горячего подключения fstab (это также отключает автомонтирование)"
 _Disabling_safe_mode_because_of_KMS_X_video_hardware_="Отключение безопасного режима по причине KMS %s видео оборудования"
