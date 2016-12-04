@@ -6,7 +6,7 @@
 # Required-Stop:
 # Should-Start:
 # Should-Stop:
-# Default-Start:     S 
+# Default-Start:     S
 # Default-Stop:
 # Short-Description: live-L10n
 # Description: Sets timezone, hostname, and console fonts.  Runs update-menus and update-locale
@@ -63,7 +63,7 @@ load_translation
     # Only set timezone via explicit boot parameter after the first time.
     TZ=${CMD_TZ:-$TZ}
     if [ "$TZ" ]; then
- 
+
         # Only set timezone via explicit boot parameter after the first time.
         if first_write /etc/localtime || [ "$CMD_TZ" ]; then
 
@@ -83,7 +83,7 @@ load_translation
         echo "$CMD_HOST" > /etc/hostname
         hostname -F /etc/hostname
     fi
-    
+
     if [ "$LANG" ]; then
         echo_live "$_Setting_locale_to_X_" "$(pquote $LANG)"
 
@@ -104,20 +104,26 @@ load_translation
         #/usr/sbin/install-keymap "$KEYTABLE"
         loadkeys -q "$KEYTABLE"
     fi
-    
+
 
     CONSOLE_FONT=${CMD_FONT:-$CONSOLE_FONT}
     if [ "$CONSOLE_FONT" ]; then
+        case $CONSOLE_FONT in
+            [0-9][0-9]x[0-9][0-9])
+                CONSOLE_FONT=Uni2-Terminus$CONSOLE_FONT ;;
+            [bB][0-9][0-9]x[0-9][0-9])
+                CONSOLE_FONT=Uni2-TerminusBold${CONSOLE_FONT#[bB]} ;;
+        esac
         FFILE=/usr/share/consolefonts/$CONSOLE_FONT
         if [ -e $FFILE -o -e $FFILE.gz -o -e $FFILE.psf.gz -o -e $FFILE.psfu.gz \
             -o -e $FFILE.cp.gz -o -e $FFILE.cp ]; then
             echo_live "$_Setting_console_font_to_X_" $(pquote $CONSOLE_FONT)
             setfont $CONSOLE_FONT
         else
-            error "$_Unknown_console_font_X_" confont "$(pquote $CONSOLE_FONT)"
+            error "$_Unknown_console_font_X_" "confont=$(pquote $CONSOLE_FONT)"
         fi
     fi
 
-} 2>&1 | tee -a $INIT_LOG_FILE 
+} 2>&1 | tee -a $INIT_LOG_FILE
 
 exit 0

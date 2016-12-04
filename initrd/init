@@ -25,8 +25,8 @@
 # that you don't want users to be able to adjust.
 
                      ME="initrd init"
-                VERSION="7.62.03"
-           VERSION_DATE="Thu Dec  1 06:45:42 MST 2016"
+                VERSION="7.63.01"
+           VERSION_DATE="Sat Dec  3 08:31:38 MST 2016"
               DEVELOPER="BitJam"
          BUG_REPORT_URL="liveboot@mxlinux.org"
 
@@ -737,6 +737,9 @@ read_cmdline_params()
                           issue) FORCE_ISSUE=true                                ;;
 
                          noprog) NO_PROGRESS=true                                ;;
+
+                      confont=*) CON_FONT=$value                                 ;;
+
         #----- These get interpreted late but we don't want them to be unknown
                 hwclock=*|hwc=*)  ;;
                          frugal)  ;;
@@ -1070,6 +1073,7 @@ read_xlat() {
     local font=$fdir/${lang:-default}  # don't want an empty $lang
     [ -e "$font" ] || font=$def_font
 
+    [ "$CON_FONT" -a -e "$fdir/$CON_FONT" ] && font=$fdir/$CON_FONT
     # Clear screen if we have previously set a font
     #[ -n "$PREVIOUS_FONT" -a -z "$NO_CLEAR" ] && clear
     #[ "$font" != "$def_font" ] && PREVIOUS_FONT=$font
@@ -3000,7 +3004,7 @@ do_early_menus() {
     case $MENU_VALUE in
         lang=*) LANG=${MENU_VALUE#lang=}
                 read_xlat init $LANG       ;;
-         reset) read_xlat                  ;;
+         reset) read_xlat init             ;;
     esac
 
     my_select_menu  "$_Select_Timezone_"            "$_Timezones_are_listed_by_longitude_"     t tz        "$_Timezone_"      'tz=*'
@@ -4347,8 +4351,8 @@ mount_and_copy_rootfs() {
 _mount_and_copy_rootfs() {
     mount_persist_file rootfs "$ROOTFS_MP" root "$WANT_ROOTFS" "$NEED_ROOTFS" || return 1
     PERSIST_ROOT_FULL="$PERSIST_FULL_PATH/rootfs"
-    check_vid "$SQFS_VID" "$ROOTFS_BASE" rootfs.ver                           || return 1
     check_existing_unionfs $ROOTFS_MP                                         || return 1
+    check_vid "$SQFS_VID" "$ROOTFS_BASE" rootfs.ver                           || return 1
     [ "$STATIC_ROOT" ] || copy_persist_to_ram                                 || return 1
 
     return 0
