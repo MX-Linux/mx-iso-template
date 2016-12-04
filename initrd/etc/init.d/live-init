@@ -27,11 +27,18 @@ KMS_VIDEO_MODULES="ast|bochs[_-]drm|cirrus|emgd|gma500[_-]gfx|i915|mgag200|nouve
 SISIMEDIA_K_DRIVERS="sis|sis[_-]agp"
 XORG_DRIVER_DIR="/usr/lib/xorg/modules/drivers"
 
+#See: https://en.wikipedia.org/wiki/List_of_Intel_graphics_processing_units
+
 UXA_PCI_ID="0042|0046|1132|1240|2562|2572|2582|258a|2592|2772|2776|2782
 2792|27a2|27a6|27ae|2972|2973|2982|2983|2992|2993|29a2|29a3
 29b2|29b3|29c2|29c3|29d2|29d3|2a02|2a03|2a12|2a13|2a42|2a43
 2e12|2e13|2e22|2e23|2e32|2e33|2e42|2e43|2e92|2e93|3577|3582
 358e|7121|7123|7125|7800|a001|a002|a011|a012"
+
+  SKYLAKE_PCI_ID="19[0-5]"
+BROADWELL_PCI_ID="1616|1612|161e|1626|162b|1622"  # The more powerful broadwell
+
+SKYLAKE_FLICKER_FILE="/etc/modprobe.d/skylake-flicker-fix.conf"
 
 AUTOMOUNT_CMD=/usr/local/bin/automount-antix
 
@@ -76,9 +83,10 @@ automount=off|amnt=off)                          AUTOMOUNT_OFF=true ;;
                 norepo)       NO_REPO=true                          ;;
               norepo=*)   IGNORE_REPO=$value                        ;;
            deskdelay=*) DESKTOP_DELAY=$value                        ;;
-             nomodeset)     NOMODESET=true                          ;;
+             nomodeset)    NO_MODESET=true                          ;;
             fontsize=*)     FONT_SIZE=$value                        ;;
-             vtblank=*)     VT_BLANK=$value                         ;;
+             vtblank=*)      VT_BLANK=$value                        ;;
+             noskylake)    NO_SKYLAKE=true                          ;;
     esac
 done
 
@@ -162,7 +170,7 @@ do_start() {
 
         set_server_dpi ${CMD_SDPI:-$dpi}
 
-        make_xorg_conf "$XORG_ARGS" "$FOUND_VDRIVER" "$FOUND_KMS_DRIVER" "$NOMODESET" "$NO_XORG"
+        make_xorg_conf "$XORG_ARGS" "$FOUND_VDRIVER" "$FOUND_KMS_DRIVER" "$NO_XORG"
 
         set_etc_desktop_delay $DESKTOP_DELAY
 
@@ -401,7 +409,7 @@ localize_repo() {
     sources_dir=/etc/apt/sources.list.d
     first_write $sources_dir || [ "$mirror" -o "$tz" -o "${IGNORE_REPO}" ] || return
 
-    [ "$DB_PLUS" ] && args="--verbose${args:+ }$args"
+    #[ "$DB_PLUS" ] && args="--verbose${args:+ }$args"
 
     #. Localizing source repos using <timezone|country-code>
     echo_live "$_Localizing_source_repos_using_X_" "$(wq $args)"
@@ -452,7 +460,7 @@ set_etc_desktop_delay() {
 #    4) we are in Virtual Box
 
 make_xorg_conf() {
-    local args=$1  found_vdriver=$2  found_kms_driver=$3  nomodeset=$4  no_xorg=$5
+    local args=$1  found_vdriver=$2  found_kms_driver=$3  no_xorg=$4
     local safe_mode xorg_conf=/etc/X11/xorg.conf
 
     case ,$args, in
@@ -479,7 +487,7 @@ make_xorg_conf() {
     [ "$found_vdriver" ]           && no_default=true
     [ -e /live/config/virtualbox ] && no_default=true
 
-    if [ -z "$nomodeset" -a -n "$found_kms_driver" -a -n "$safe_mode" ]; then
+    if [ -z "$NO_MODESET" -a -n "$found_kms_driver" -a -n "$safe_mode" ]; then
         #. Note: KMS means "kernel mode switching"
         #. Disabling safe mode because of KMS <video-driver> video hardware
         echo_live "$_Disabling_safe_mode_because_of_KMS_X_video_hardware_" "$(pquote $found_kms_driver)"
@@ -496,20 +504,11 @@ make_xorg_conf() {
         args=default${args:+,}$args
     fi
 
-    if [ "$FOUND_i915" -a -z "$no_xorg" ]; then
-        local arch=$(uname -m)
-        if [ $arch = x86_64 ] && need_uxa; then
-
-            #. Forcing <acceleration-type> acceleration on <cpu-type>
-            echo_live "$_Forcing_X_acceleration_on_Y_" $(pquote uxa) $(pquote pre-sandybridge)
-            args=uxa${args:+,}$args
-
-        elif [ $arch = i686 -a -z "$nomodeset" ] && need_modesetting; then
-            #. Forcing <driver-name> driver on <cpu-type>
-            echo_live "$_Forcing_X_driver_on_Y_" $(pquote modesetting) $(pquote skylake)
-            args=modesetting${args:+,}$args
-        fi
-    fi
+    local IS_SKYLAKE ARGS_OUT=$args
+    [ "$FOUND_i915" ] && is_skylake       && IS_SKYLAKE=true
+    [ "$IS_SKYLAKE" -a -z "$NO_SKYLAKE" ] && skylake_flicker_fix $SKYLAKE_FLICKER_FILE
+    [ "$FOUND_i915" -a -z "$no_xorg" ]    && fix_intel $args
+    args=$ARGS_OUT
 
     [ "$args" ] || return
     #. Configuring <xorg.conf> file with <arguments to xorg= cheat>
@@ -518,17 +517,42 @@ make_xorg_conf() {
     /sbin/make-xorg-conf --output=$xorg_conf $args
 }
 
-need_modesetting() {
-    # Get all skylake pci ids
-    # See recent pci.ids from http://pci-ids.ucw.cz/
-    # 8086:19* ==> Intel Skylake
-    lspci -n | cut -d" " -f3 | grep -q "^8086:19[0-5]"
-    return $?
-    #[ -z "$skylake" ] && return 1
+fix_intel() {
+    local args=$1
 
-    # Make sure no HD Graphics 510
-    #echo "$skylake" | grep -q "^8086:190[26]" && return 1
-    #return 0
+    local arch=$(uname -m)
+    if [ $arch = x86_64 ]; then
+
+        if need_uxa; then
+            #. Forcing <acceleration-type> acceleration on <cpu-type>
+            echo_live "$_Forcing_X_acceleration_on_Y_" $(pquote uxa) $(pquote pre-sandybridge)
+            args=uxa${args:+,}$args
+
+        elif is_broadwell; then
+            #. Forcing <driver-name> driver on <cpu-type>
+            echo_live "$_Forcing_X_driver_on_Y_" $(pquote modesetting) $(pquote broadwell)
+        fi
+
+    elif [ $arch = i686 ]; then
+        if [ "$IS_SKYLAKE" -a -z "$NO_MODESET" ]; then
+            #. Forcing <driver-name> driver on <cpu-type>
+            echo_live "$_Forcing_X_driver_on_Y_" $(pquote modesetting) $(pquote skylake)
+            args=modesetting${args:+,}$args
+        fi
+    fi
+
+    ARGS_OUT=$args
+}
+
+is_skylake() {
+    # See recent pci.ids from http://pci-ids.ucw.cz/
+    lspci -n | cut -d" " -f3 | egrep -q "^8086:($SKYLAKE_PCI_ID)"
+    return $?
+}
+
+is_broadwell() {
+    lspci -n | cut -d" " -f3 | egrep -q "^8086:($BROADWELL_PCI_ID)"
+    return $?
 }
 
 need_uxa() {
@@ -547,6 +571,24 @@ find_video_modules() {
     # for testing:
     # echo sis-agp
 }
+
+skylake_flicker_fix() {
+    local file=$1
+    echo_live "$_Creating_file_X_" $(pquote $file)
+    cat<<Skylake_Fix > $file
+#-----------------------------------------------------------------------------
+# fix flickering on skylake hardware with some kernels -----------------------
+#-----------------------------------------------------------------------------
+# This file is created automatically on skylake hardware by the antiX/MX
+# live boot system.
+#
+# This solves a flickering problem that was introduced around kernel 4.5
+# and still exists in 4.7 with the modesetting driver.
+
+options i915 enable_rc6=0
+Skylake_Fix
+}
+
 
 set_fbcondecor() {
     local boot_param=$1 orig_name=$2 param verbose theme=default new_name

@@ -4,6 +4,7 @@ _Bad_desktop_delay_parameter_X_="ungeeigneter Parameter für Desktop Verzögerun
 _Bad_fstab_option_X_="Ungültige fstab Option %s"
 _Bad_mirror_code_X_expected_two_letters_="Falscher Spiegel Code %s (erwartet zwei Buchstaben)"
 _Configuring_X_file_with_Y_="Datei %s wird mit %s konfiguriert"
+_Creating_file_X_="Erstelle die Datei %s"
 _Directory_not_found_X_="Verzeichnis nicht gefunden %s"
 _Disabling_fstab_hotplugging_this_will_also_disable_automount_="Hotplug mittels fstab abschalten (dies verhindert auch Automount)"
 _Disabling_safe_mode_because_of_KMS_X_video_hardware_="Sicherer Modus ausgestellt wegen KMS %s Video hardware"
