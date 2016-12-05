@@ -1,13 +1,24 @@
 Source: iso-template
 Section: admin
 Priority: optional
-Maintainer: Steven Pusser (Stevo) <maintainer@mepiscommunity.org>
+Maintainer: Steven Pusser <stevep@mxlinux.org>
 Build-Depends: debhelper (>=7.0.50~)
 Standards-Version: 3.9.5
 Vcs-Git: git://github.com/AdrianTM/iso-template
 
+Package: mx-iso-template
+Architecture: all
+Depends:
+Conflicts: iso-template (<< 16.17.1)
+Replaces: iso-template
+Provides: iso-template (= 16.17.1)
+Description:  MX ISO template
+  MX ISO Template is used by MX Snapshot to create a live ISO disk image from
+  the running system.
+  
 Package: iso-template
 Architecture: all
-Depends: ${misc:Depends}, ${shlibs:Depends}
-Description: ISO template
- ISO Template is used by MX Snapshot to create live-CDs from the running system.
+Section: oldlibs
+Description: ISO template (transitional package)
+  This is a dummy package for the transition to mx-iso-template.  It can safely
+  be removed after the upgrade.
