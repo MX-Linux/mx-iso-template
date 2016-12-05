@@ -1,3 +1,16 @@
+iso-template (16.17.1) mx; urgency=medium
+
+  * Rebuild for the repository, increment version to have it upgrade.
+  * Drop mx16 from version.
+  * debian/control:
+    - Update my Maintainer string.
+    - Drop unused Depends: variables.
+    - Rename package as mx-iso-template.
+    - make iso-template a transitional package.
+    - Update descriptions.
+
+ -- Steven Pusser <stevep@mxlinux.org>  Mon, 05 Dec 2016 10:48:49 -0800
+
 iso-template (16.17mx16) mx; urgency=medium
 
   * Add getch-64 to get space-evaders working on 64-bit again
