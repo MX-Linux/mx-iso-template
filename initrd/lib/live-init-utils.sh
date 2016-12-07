@@ -46,6 +46,9 @@ for param in $CMDLINE; do
     esac
 done
 
+test -e /live/config/low-color && COLOR_LOW=true
+test -e /live/config/no-color  && COLOR_OFF=true
+
 if ! [ "$COLOR_OFF" ]; then
     NO_COLOR="[0m"
     RED="[1;31m"
@@ -63,7 +66,7 @@ if [ "$COLOR_OFF" ]; then
     END_PARAM='"'
 elif [ "$COLOR_LOW" ]; then
     ANTIX_COLOR="$WHITE"
-    LIVE_COLOR="$AMBER"
+    LIVE_COLOR="$NO_COLOR"
     START_PARAM="$WHITE"
     END_PARAM="$LIVE_COLOR"
     SCRIPT_COLOR="$GREEN"
