@@ -505,8 +505,14 @@ make_xorg_conf() {
     fi
 
     local IS_SKYLAKE ARGS_OUT=$args
-    [ "$FOUND_i915" ] && is_skylake       && IS_SKYLAKE=true
-    [ "$IS_SKYLAKE" -a -z "$NO_SKYLAKE" ] && skylake_flicker_fix $SKYLAKE_FLICKER_FILE
+    [ "$FOUND_i915" ] && is_skylake && IS_SKYLAKE=true
+
+    if [ "$IS_SKYLAKE" -a -z "$NO_SKYLAKE" ]; then
+        skylake_flicker_fix $SKYLAKE_FLICKER_FILE
+    else
+        rm -f $SKYLAKE_FLICKER_FILE
+    fi
+
     [ "$FOUND_i915" -a -z "$no_xorg" ]    && fix_intel $args
     args=$ARGS_OUT
 
