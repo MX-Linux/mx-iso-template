@@ -45,11 +45,13 @@ content=$(ps $args | tail -n +2 | grep "$@" | egrep -v " ps $args$| tail -n +2$|
 
 echo "$content" | grep -q . || exit
 
+e=$(printf "\e")
+
 if [ "$n_only" ]; then
     echo "$content" | awk "{print \$$pid_col}"
     exit
 fi
 
 printf "\e[1;36m"
-ps $args | head -n 1
-printf "\e[0;39m%s\n" "$content"
+ps $args | head -n 1 | sed "s/$/$e[0;39m/" 
+echo "$content"
