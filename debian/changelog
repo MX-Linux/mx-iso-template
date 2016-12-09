@@ -1,3 +1,9 @@
+mx-iso-template (16.17.3) mx; urgency=medium
+
+  * new build
+
+ -- Adrian <adrian@mxlinux.org>  Fri, 09 Dec 2016 12:23:33 -0500
+
 iso-template (16.17.2) mx; urgency=medium
 
   * Restore the version file to match the .c32 files we're using in iso-template 
