@@ -25,12 +25,12 @@
 # that you don't want users to be able to adjust.
 
                      ME="initrd init"
-                VERSION="7.63.03"
-           VERSION_DATE="Mon Dec  5 01:49:02 MST 2016"
+                VERSION="7.63.06"
+           VERSION_DATE="Sat Dec 10 16:15:55 MST 2016"
               DEVELOPER="BitJam"
          BUG_REPORT_URL="liveboot@mxlinux.org"
 
-# This are all times in seconds, not attempts
+# These are all times in seconds, not attempts
              BOOT_RETRY=15
            FRUGAL_RETRY=10
           PERSIST_RETRY=10
@@ -470,6 +470,7 @@ main_core() {
         && mount_homefs $PERSIST_FULL_PATH/homefs $NEW_ROOT/home "$WANT_HOMEFS" "$NEED_HOMEFS"
 
     [ "$DB_PLUS"       ] && local plus_t1=$(get_time)
+    [ "$DB_PLUS"       ] && page_updown_keys "$NEW_ROOT"
     [ "$DO_XTRA"       ] && copy_xtra    $DEFAULT_DIR
     [ "$DO_XTRA"       ] && delete_files $DEFAULT_DIR
     [ "$DO_AUTO_LOGIN" ] && auto_login   "$AUTO_LOGIN_PROG" "$AUTO_LOGIN_TERMS" "$NEW_ROOT"
@@ -4622,6 +4623,15 @@ AutoLogin
     done
     return
 
+}
+
+#------------------------------------------------------------------------------
+# Bind page-up and page-down to history searches in Bash
+#------------------------------------------------------------------------------
+page_updown_keys() {
+    local file=$1/etc/inputrc
+    test -e $file || return
+    sed -i "/history-search/ s/^#\s*//" $file
 }
 
 fancy_prompt() {
