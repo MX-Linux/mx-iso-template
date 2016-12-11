@@ -1,3 +1,9 @@
+mx-iso-template (16.17.4) mx; urgency=medium
+
+  * change gfxboot font so non-English F key entries show 
+
+ -- anticapitalista <antix@operamail.com>  Fri, 09 Dec 2016 21:13:26 +0200
+
 mx-iso-template (16.17.3) mx; urgency=medium
 
   * new build
