@@ -1,0 +1,468 @@
+ dpkg-buildpackage -rfakeroot -D -us -uc
+dpkg-buildpackage: source package mx-iso-template
+dpkg-buildpackage: source version 16.17.4+nmu1
+dpkg-buildpackage: source distribution UNRELEASED
+dpkg-buildpackage: source changed by Adrian <adrian@mxlinux.org>
+ dpkg-source --before-build build
+dpkg-buildpackage: host architecture amd64
+ fakeroot debian/rules clean
+dh clean --parallel 
+   dh_testdir
+   debian/rules override_dh_auto_clean
+make[1]: Entering directory '/home/adrian/build'
+dh_auto_clean
+rm -f template-initrd.gz
+rm -f build-template.sh
+rm -f iso-template*.xz
+make[1]: Leaving directory '/home/adrian/build'
+   dh_clean
+ dpkg-source -b build
+dpkg-source: info: using source format `3.0 (native)'
+dpkg-source: info: building mx-iso-template in mx-iso-template_16.17.4+nmu1.tar.xz
+dpkg-source: info: building mx-iso-template in mx-iso-template_16.17.4+nmu1.dsc
+ debian/rules build
+dh build --parallel 
+   dh_testdir
+   dh_update_autotools_config
+   dh_auto_configure
+   dh_auto_build
+   dh_auto_test
+ fakeroot debian/rules binary
+dh binary --parallel 
+   dh_testroot
+   dh_prep
+   debian/rules override_dh_auto_install
+make[1]: Entering directory '/home/adrian/build'
+tar -cvzf iso-template.tar.gz iso-template
+iso-template/
+iso-template/EFI/
+iso-template/EFI/BOOT/
+iso-template/EFI/BOOT/bootia32.efi
+iso-template/EFI/BOOT/bootx64.efi
+iso-template/EFI/BOOT/fallback.efi
+iso-template/EFI/BOOT/grubx64.efi
+iso-template/EFI/BOOT/mt86.png
+iso-template/boot/
+iso-template/boot/grub/
+iso-template/boot/grub/fonts/
+iso-template/boot/grub/fonts/7x13.pf2
+iso-template/boot/grub/fonts/dejavu-sans-14.pf2
+iso-template/boot/grub/fonts/dejavu-sans-16.pf2
+iso-template/boot/grub/fonts/font.pf2
+iso-template/boot/grub/i386-efi/
+iso-template/boot/grub/i386-efi/acpi.mod
+iso-template/boot/grub/i386-efi/ahci.mod
+iso-template/boot/grub/i386-efi/all_video.mod
+iso-template/boot/grub/i386-efi/aout.mod
+iso-template/boot/grub/i386-efi/appleldr.mod
+iso-template/boot/grub/i386-efi/archelp.mod
+iso-template/boot/grub/i386-efi/at_keyboard.mod
+iso-template/boot/grub/i386-efi/ata.mod
+iso-template/boot/grub/i386-efi/bitmap.mod
+iso-template/boot/grub/i386-efi/bitmap_scale.mod
+iso-template/boot/grub/i386-efi/blocklist.mod
+iso-template/boot/grub/i386-efi/boot.mod
+iso-template/boot/grub/i386-efi/bufio.mod
+iso-template/boot/grub/i386-efi/cat.mod
+iso-template/boot/grub/i386-efi/cbfs.mod
+iso-template/boot/grub/i386-efi/cbls.mod
+iso-template/boot/grub/i386-efi/cbmemc.mod
+iso-template/boot/grub/i386-efi/cbtable.mod
+iso-template/boot/grub/i386-efi/cbtime.mod
+iso-template/boot/grub/i386-efi/chain.mod
+iso-template/boot/grub/i386-efi/cmdline_cat_test.mod
+iso-template/boot/grub/i386-efi/cmp.mod
+iso-template/boot/grub/i386-efi/command.lst
+iso-template/boot/grub/i386-efi/cpuid.mod
+iso-template/boot/grub/i386-efi/crc64.mod
+iso-template/boot/grub/i386-efi/cs5536.mod
+iso-template/boot/grub/i386-efi/datehook.mod
+iso-template/boot/grub/i386-efi/disk.mod
+iso-template/boot/grub/i386-efi/div_test.mod
+iso-template/boot/grub/i386-efi/dm_nv.mod
+iso-template/boot/grub/i386-efi/echo.mod
+iso-template/boot/grub/i386-efi/efi_gop.mod
+iso-template/boot/grub/i386-efi/efi_uga.mod
+iso-template/boot/grub/i386-efi/efifwsetup.mod
+iso-template/boot/grub/i386-efi/efinet.mod
+iso-template/boot/grub/i386-efi/ehci.mod
+iso-template/boot/grub/i386-efi/elf.mod
+iso-template/boot/grub/i386-efi/eval.mod
+iso-template/boot/grub/i386-efi/exfat.mod
+iso-template/boot/grub/i386-efi/exfctest.mod
+iso-template/boot/grub/i386-efi/ext2.mod
+iso-template/boot/grub/i386-efi/extcmd.mod
+iso-template/boot/grub/i386-efi/fat.mod
+iso-template/boot/grub/i386-efi/file.mod
+iso-template/boot/grub/i386-efi/fixvideo.mod
+iso-template/boot/grub/i386-efi/font.mod
+iso-template/boot/grub/i386-efi/fs.lst
+iso-template/boot/grub/i386-efi/gettext.mod
+iso-template/boot/grub/i386-efi/gfxmenu.mod
+iso-template/boot/grub/i386-efi/gfxterm.mod
+iso-template/boot/grub/i386-efi/gfxterm_background.mod
+iso-template/boot/grub/i386-efi/gfxterm_menu.mod
+iso-template/boot/grub/i386-efi/gptsync.mod
+iso-template/boot/grub/i386-efi/grub.cfg
+iso-template/boot/grub/i386-efi/halt.mod
+iso-template/boot/grub/i386-efi/hdparm.mod
+iso-template/boot/grub/i386-efi/hfs.mod
+iso-template/boot/grub/i386-efi/hfsplus.mod
+iso-template/boot/grub/i386-efi/hfspluscomp.mod
+iso-template/boot/grub/i386-efi/iorw.mod
+iso-template/boot/grub/i386-efi/jpeg.mod
+iso-template/boot/grub/i386-efi/keylayouts.mod
+iso-template/boot/grub/i386-efi/keystatus.mod
+iso-template/boot/grub/i386-efi/ldm.mod
+iso-template/boot/grub/i386-efi/linux.mod
+iso-template/boot/grub/i386-efi/linux16.mod
+iso-template/boot/grub/i386-efi/linuxefi.mod
+iso-template/boot/grub/i386-efi/loadbios.mod
+iso-template/boot/grub/i386-efi/loadenv.mod
+iso-template/boot/grub/i386-efi/loopback.mod
+iso-template/boot/grub/i386-efi/ls.mod
+iso-template/boot/grub/i386-efi/lsacpi.mod
+iso-template/boot/grub/i386-efi/lsefi.mod
+iso-template/boot/grub/i386-efi/lsefimmap.mod
+iso-template/boot/grub/i386-efi/lsefisystab.mod
+iso-template/boot/grub/i386-efi/lsmmap.mod
+iso-template/boot/grub/i386-efi/lspci.mod
+iso-template/boot/grub/i386-efi/lssal.mod
+iso-template/boot/grub/i386-efi/lvm.mod
+iso-template/boot/grub/i386-efi/lzopio.mod
+iso-template/boot/grub/i386-efi/macbless.mod
+iso-template/boot/grub/i386-efi/macho.mod
+iso-template/boot/grub/i386-efi/memrw.mod
+iso-template/boot/grub/i386-efi/minicmd.mod
+iso-template/boot/grub/i386-efi/mmap.mod
+iso-template/boot/grub/i386-efi/moddep.lst
+iso-template/boot/grub/i386-efi/mpi.mod
+iso-template/boot/grub/i386-efi/msdospart.mod
+iso-template/boot/grub/i386-efi/multiboot.mod
+iso-template/boot/grub/i386-efi/multiboot2.mod
+iso-template/boot/grub/i386-efi/nativedisk.mod
+iso-template/boot/grub/i386-efi/normal.mod
+iso-template/boot/grub/i386-efi/ntfs.mod
+iso-template/boot/grub/i386-efi/ntfscomp.mod
+iso-template/boot/grub/i386-efi/offsetio.mod
+iso-template/boot/grub/i386-efi/ohci.mod
+iso-template/boot/grub/i386-efi/part_apple.mod
+iso-template/boot/grub/i386-efi/part_gpt.mod
+iso-template/boot/grub/i386-efi/part_msdos.mod
+iso-template/boot/grub/i386-efi/partmap.lst
+iso-template/boot/grub/i386-efi/parttool.lst
+iso-template/boot/grub/i386-efi/parttool.mod
+iso-template/boot/grub/i386-efi/pata.mod
+iso-template/boot/grub/i386-efi/pbkdf2.mod
+iso-template/boot/grub/i386-efi/pbkdf2_test.mod
+iso-template/boot/grub/i386-efi/pcidump.mod
+iso-template/boot/grub/i386-efi/png.mod
+iso-template/boot/grub/i386-efi/priority_queue.mod
+iso-template/boot/grub/i386-efi/probe.mod
+iso-template/boot/grub/i386-efi/progress.mod
+iso-template/boot/grub/i386-efi/read.mod
+iso-template/boot/grub/i386-efi/reboot.mod
+iso-template/boot/grub/i386-efi/regexp.mod
+iso-template/boot/grub/i386-efi/relocator.mod
+iso-template/boot/grub/i386-efi/scsi.mod
+iso-template/boot/grub/i386-efi/serial.mod
+iso-template/boot/grub/i386-efi/setjmp.mod
+iso-template/boot/grub/i386-efi/setjmp_test.mod
+iso-template/boot/grub/i386-efi/setpci.mod
+iso-template/boot/grub/i386-efi/signature_test.mod
+iso-template/boot/grub/i386-efi/sleep.mod
+iso-template/boot/grub/i386-efi/sleep_test.mod
+iso-template/boot/grub/i386-efi/terminal.lst
+iso-template/boot/grub/i386-efi/terminal.mod
+iso-template/boot/grub/i386-efi/terminfo.mod
+iso-template/boot/grub/i386-efi/test.mod
+iso-template/boot/grub/i386-efi/test_blockarg.mod
+iso-template/boot/grub/i386-efi/testload.mod
+iso-template/boot/grub/i386-efi/testspeed.mod
+iso-template/boot/grub/i386-efi/tftp.mod
+iso-template/boot/grub/i386-efi/time.mod
+iso-template/boot/grub/i386-efi/tr.mod
+iso-template/boot/grub/i386-efi/trig.mod
+iso-template/boot/grub/i386-efi/true.mod
+iso-template/boot/grub/i386-efi/udf.mod
+iso-template/boot/grub/i386-efi/ufs1.mod
+iso-template/boot/grub/i386-efi/ufs1_be.mod
+iso-template/boot/grub/i386-efi/ufs2.mod
+iso-template/boot/grub/i386-efi/uhci.mod
+iso-template/boot/grub/i386-efi/usb.mod
+iso-template/boot/grub/i386-efi/usb_keyboard.mod
+iso-template/boot/grub/i386-efi/usbms.mod
+iso-template/boot/grub/i386-efi/usbserial_common.mod
+iso-template/boot/grub/i386-efi/usbserial_ftdi.mod
+iso-template/boot/grub/i386-efi/usbserial_pl2303.mod
+iso-template/boot/grub/i386-efi/usbserial_usbdebug.mod
+iso-template/boot/grub/i386-efi/usbtest.mod
+iso-template/boot/grub/i386-efi/verify.mod
+iso-template/boot/grub/i386-efi/video.lst
+iso-template/boot/grub/i386-efi/video.mod
+iso-template/boot/grub/i386-efi/video_bochs.mod
+iso-template/boot/grub/i386-efi/video_cirrus.mod
+iso-template/boot/grub/i386-efi/video_colors.mod
+iso-template/boot/grub/i386-efi/video_fb.mod
+iso-template/boot/grub/i386-efi/videoinfo.mod
+iso-template/boot/grub/i386-efi/videotest.mod
+iso-template/boot/grub/i386-efi/videotest_checksum.mod
+iso-template/boot/grub/i386-efi/xnu.mod
+iso-template/boot/grub/i386-efi/xnu_uuid.mod
+iso-template/boot/grub/i386-efi/xnu_uuid_test.mod
+iso-template/boot/grub/i386-efi/xzio.mod
+iso-template/boot/grub/theme/
+iso-template/boot/grub/theme/background.jpg
+iso-template/boot/grub/theme/inbox_e.png
+iso-template/boot/grub/theme/inbox_n.png
+iso-template/boot/grub/theme/inbox_ne.png
+iso-template/boot/grub/theme/inbox_nw.png
+iso-template/boot/grub/theme/inbox_s.png
+iso-template/boot/grub/theme/inbox_se.png
+iso-template/boot/grub/theme/inbox_sw.png
+iso-template/boot/grub/theme/inbox_w.png
+iso-template/boot/grub/theme/progress_bar_c.png
+iso-template/boot/grub/theme/progress_highlight_c.png
+iso-template/boot/grub/theme/select_c.png
+iso-template/boot/grub/theme/select_e.png
+iso-template/boot/grub/theme/select_n.png
+iso-template/boot/grub/theme/select_ne.png
+iso-template/boot/grub/theme/select_nw.png
+iso-template/boot/grub/theme/select_s.png
+iso-template/boot/grub/theme/select_se.png
+iso-template/boot/grub/theme/select_sw.png
+iso-template/boot/grub/theme/select_w.png
+iso-template/boot/grub/theme/theme.txt
+iso-template/boot/grub/x86_64-efi/
+iso-template/boot/grub/x86_64-efi/acpi.mod
+iso-template/boot/grub/x86_64-efi/ahci.mod
+iso-template/boot/grub/x86_64-efi/all_video.mod
+iso-template/boot/grub/x86_64-efi/aout.mod
+iso-template/boot/grub/x86_64-efi/appleldr.mod
+iso-template/boot/grub/x86_64-efi/archelp.mod
+iso-template/boot/grub/x86_64-efi/at_keyboard.mod
+iso-template/boot/grub/x86_64-efi/ata.mod
+iso-template/boot/grub/x86_64-efi/bitmap.mod
+iso-template/boot/grub/x86_64-efi/bitmap_scale.mod
+iso-template/boot/grub/x86_64-efi/blocklist.mod
+iso-template/boot/grub/x86_64-efi/boot.mod
+iso-template/boot/grub/x86_64-efi/bufio.mod
+iso-template/boot/grub/x86_64-efi/cat.mod
+iso-template/boot/grub/x86_64-efi/cbfs.mod
+iso-template/boot/grub/x86_64-efi/cbls.mod
+iso-template/boot/grub/x86_64-efi/cbmemc.mod
+iso-template/boot/grub/x86_64-efi/cbtable.mod
+iso-template/boot/grub/x86_64-efi/cbtime.mod
+iso-template/boot/grub/x86_64-efi/chain.mod
+iso-template/boot/grub/x86_64-efi/cmdline_cat_test.mod
+iso-template/boot/grub/x86_64-efi/cmp.mod
+iso-template/boot/grub/x86_64-efi/command.lst
+iso-template/boot/grub/x86_64-efi/cpuid.mod
+iso-template/boot/grub/x86_64-efi/crc64.mod
+iso-template/boot/grub/x86_64-efi/cs5536.mod
+iso-template/boot/grub/x86_64-efi/datehook.mod
+iso-template/boot/grub/x86_64-efi/disk.mod
+iso-template/boot/grub/x86_64-efi/div_test.mod
+iso-template/boot/grub/x86_64-efi/dm_nv.mod
+iso-template/boot/grub/x86_64-efi/echo.mod
+iso-template/boot/grub/x86_64-efi/efi_gop.mod
+iso-template/boot/grub/x86_64-efi/efi_uga.mod
+iso-template/boot/grub/x86_64-efi/efifwsetup.mod
+iso-template/boot/grub/x86_64-efi/efinet.mod
+iso-template/boot/grub/x86_64-efi/ehci.mod
+iso-template/boot/grub/x86_64-efi/elf.mod
+iso-template/boot/grub/x86_64-efi/eval.mod
+iso-template/boot/grub/x86_64-efi/exfat.mod
+iso-template/boot/grub/x86_64-efi/exfctest.mod
+iso-template/boot/grub/x86_64-efi/ext2.mod
+iso-template/boot/grub/x86_64-efi/extcmd.mod
+iso-template/boot/grub/x86_64-efi/fat.mod
+iso-template/boot/grub/x86_64-efi/file.mod
+iso-template/boot/grub/x86_64-efi/fixvideo.mod
+iso-template/boot/grub/x86_64-efi/font.mod
+iso-template/boot/grub/x86_64-efi/fs.lst
+iso-template/boot/grub/x86_64-efi/gettext.mod
+iso-template/boot/grub/x86_64-efi/gfxmenu.mod
+iso-template/boot/grub/x86_64-efi/gfxterm.mod
+iso-template/boot/grub/x86_64-efi/gfxterm_background.mod
+iso-template/boot/grub/x86_64-efi/gfxterm_menu.mod
+iso-template/boot/grub/x86_64-efi/gptsync.mod
+iso-template/boot/grub/x86_64-efi/grub.cfg
+iso-template/boot/grub/x86_64-efi/halt.mod
+iso-template/boot/grub/x86_64-efi/hdparm.mod
+iso-template/boot/grub/x86_64-efi/hfs.mod
+iso-template/boot/grub/x86_64-efi/hfsplus.mod
+iso-template/boot/grub/x86_64-efi/hfspluscomp.mod
+iso-template/boot/grub/x86_64-efi/iorw.mod
+iso-template/boot/grub/x86_64-efi/jpeg.mod
+iso-template/boot/grub/x86_64-efi/keylayouts.mod
+iso-template/boot/grub/x86_64-efi/keystatus.mod
+iso-template/boot/grub/x86_64-efi/ldm.mod
+iso-template/boot/grub/x86_64-efi/linux.mod
+iso-template/boot/grub/x86_64-efi/linux16.mod
+iso-template/boot/grub/x86_64-efi/linuxefi.mod
+iso-template/boot/grub/x86_64-efi/loadbios.mod
+iso-template/boot/grub/x86_64-efi/loadenv.mod
+iso-template/boot/grub/x86_64-efi/loopback.mod
+iso-template/boot/grub/x86_64-efi/ls.mod
+iso-template/boot/grub/x86_64-efi/lsacpi.mod
+iso-template/boot/grub/x86_64-efi/lsefi.mod
+iso-template/boot/grub/x86_64-efi/lsefimmap.mod
+iso-template/boot/grub/x86_64-efi/lsefisystab.mod
+iso-template/boot/grub/x86_64-efi/lsmmap.mod
+iso-template/boot/grub/x86_64-efi/lspci.mod
+iso-template/boot/grub/x86_64-efi/lssal.mod
+iso-template/boot/grub/x86_64-efi/lvm.mod
+iso-template/boot/grub/x86_64-efi/lzopio.mod
+iso-template/boot/grub/x86_64-efi/macbless.mod
+iso-template/boot/grub/x86_64-efi/macho.mod
+iso-template/boot/grub/x86_64-efi/memrw.mod
+iso-template/boot/grub/x86_64-efi/minicmd.mod
+iso-template/boot/grub/x86_64-efi/mmap.mod
+iso-template/boot/grub/x86_64-efi/moddep.lst
+iso-template/boot/grub/x86_64-efi/mpi.mod
+iso-template/boot/grub/x86_64-efi/msdospart.mod
+iso-template/boot/grub/x86_64-efi/multiboot.mod
+iso-template/boot/grub/x86_64-efi/multiboot2.mod
+iso-template/boot/grub/x86_64-efi/nativedisk.mod
+iso-template/boot/grub/x86_64-efi/normal.mod
+iso-template/boot/grub/x86_64-efi/ntfs.mod
+iso-template/boot/grub/x86_64-efi/ntfscomp.mod
+iso-template/boot/grub/x86_64-efi/offsetio.mod
+iso-template/boot/grub/x86_64-efi/ohci.mod
+iso-template/boot/grub/x86_64-efi/part_apple.mod
+iso-template/boot/grub/x86_64-efi/part_gpt.mod
+iso-template/boot/grub/x86_64-efi/part_msdos.mod
+iso-template/boot/grub/x86_64-efi/partmap.lst
+iso-template/boot/grub/x86_64-efi/parttool.lst
+iso-template/boot/grub/x86_64-efi/parttool.mod
+iso-template/boot/grub/x86_64-efi/pata.mod
+iso-template/boot/grub/x86_64-efi/pbkdf2.mod
+iso-template/boot/grub/x86_64-efi/pbkdf2_test.mod
+iso-template/boot/grub/x86_64-efi/pcidump.mod
+iso-template/boot/grub/x86_64-efi/png.mod
+iso-template/boot/grub/x86_64-efi/priority_queue.mod
+iso-template/boot/grub/x86_64-efi/probe.mod
+iso-template/boot/grub/x86_64-efi/progress.mod
+iso-template/boot/grub/x86_64-efi/read.mod
+iso-template/boot/grub/x86_64-efi/reboot.mod
+iso-template/boot/grub/x86_64-efi/regexp.mod
+iso-template/boot/grub/x86_64-efi/relocator.mod
+iso-template/boot/grub/x86_64-efi/scsi.mod
+iso-template/boot/grub/x86_64-efi/serial.mod
+iso-template/boot/grub/x86_64-efi/setjmp.mod
+iso-template/boot/grub/x86_64-efi/setjmp_test.mod
+iso-template/boot/grub/x86_64-efi/setpci.mod
+iso-template/boot/grub/x86_64-efi/signature_test.mod
+iso-template/boot/grub/x86_64-efi/sleep.mod
+iso-template/boot/grub/x86_64-efi/sleep_test.mod
+iso-template/boot/grub/x86_64-efi/terminal.lst
+iso-template/boot/grub/x86_64-efi/terminal.mod
+iso-template/boot/grub/x86_64-efi/terminfo.mod
+iso-template/boot/grub/x86_64-efi/test.mod
+iso-template/boot/grub/x86_64-efi/test_blockarg.mod
+iso-template/boot/grub/x86_64-efi/testload.mod
+iso-template/boot/grub/x86_64-efi/testspeed.mod
+iso-template/boot/grub/x86_64-efi/tftp.mod
+iso-template/boot/grub/x86_64-efi/time.mod
+iso-template/boot/grub/x86_64-efi/tr.mod
+iso-template/boot/grub/x86_64-efi/trig.mod
+iso-template/boot/grub/x86_64-efi/true.mod
+iso-template/boot/grub/x86_64-efi/udf.mod
+iso-template/boot/grub/x86_64-efi/ufs1.mod
+iso-template/boot/grub/x86_64-efi/ufs1_be.mod
+iso-template/boot/grub/x86_64-efi/ufs2.mod
+iso-template/boot/grub/x86_64-efi/uhci.mod
+iso-template/boot/grub/x86_64-efi/usb.mod
+iso-template/boot/grub/x86_64-efi/usb_keyboard.mod
+iso-template/boot/grub/x86_64-efi/usbms.mod
+iso-template/boot/grub/x86_64-efi/usbserial_common.mod
+iso-template/boot/grub/x86_64-efi/usbserial_ftdi.mod
+iso-template/boot/grub/x86_64-efi/usbserial_pl2303.mod
+iso-template/boot/grub/x86_64-efi/usbserial_usbdebug.mod
+iso-template/boot/grub/x86_64-efi/usbtest.mod
+iso-template/boot/grub/x86_64-efi/verify.mod
+iso-template/boot/grub/x86_64-efi/video.lst
+iso-template/boot/grub/x86_64-efi/video.mod
+iso-template/boot/grub/x86_64-efi/video_bochs.mod
+iso-template/boot/grub/x86_64-efi/video_cirrus.mod
+iso-template/boot/grub/x86_64-efi/video_colors.mod
+iso-template/boot/grub/x86_64-efi/video_fb.mod
+iso-template/boot/grub/x86_64-efi/videoinfo.mod
+iso-template/boot/grub/x86_64-efi/videotest.mod
+iso-template/boot/grub/x86_64-efi/videotest_checksum.mod
+iso-template/boot/grub/x86_64-efi/xnu.mod
+iso-template/boot/grub/x86_64-efi/xnu_uuid.mod
+iso-template/boot/grub/x86_64-efi/xnu_uuid_test.mod
+iso-template/boot/grub/x86_64-efi/xzio.mod
+iso-template/boot/grub/efi.img
+iso-template/boot/grub/grub.cfg
+iso-template/boot/grub/grub.cfg_x64
+iso-template/boot/grub/loopback.cfg
+iso-template/boot/isolinux/
+iso-template/boot/isolinux/README
+iso-template/boot/isolinux/chain.c32
+iso-template/boot/isolinux/gfx-cpio
+iso-template/boot/isolinux/gfxboot.c32
+iso-template/boot/isolinux/gfxsave.cfg
+iso-template/boot/isolinux/isolinux.bin
+iso-template/boot/isolinux/isolinux.cfg
+iso-template/boot/isolinux/isolinux.cfg_x64
+iso-template/boot/isolinux/isolinux.msg
+iso-template/boot/isolinux/isolinux.msg_64
+iso-template/boot/isolinux/ldlinux.c32
+iso-template/boot/isolinux/libcom32.c32
+iso-template/boot/isolinux/libmenu.c32
+iso-template/boot/isolinux/libutil.c32
+iso-template/boot/isolinux/menu.c32
+iso-template/boot/isolinux/readme.msg
+iso-template/boot/isolinux/version
+iso-template/boot/syslinux/
+iso-template/boot/syslinux/README
+iso-template/boot/syslinux/chain.c32
+iso-template/boot/syslinux/gfx-cpio
+iso-template/boot/syslinux/gfxboot.c32
+iso-template/boot/syslinux/gfxsave.cfg
+iso-template/boot/syslinux/ldlinux.c32
+iso-template/boot/syslinux/libcom32.c32
+iso-template/boot/syslinux/libmenu.c32
+iso-template/boot/syslinux/libutil.c32
+iso-template/boot/syslinux/menu.c32
+iso-template/boot/syslinux/readme.msg
+iso-template/boot/syslinux/syslinux.cfg
+iso-template/boot/syslinux/syslinux.cfg_x64
+iso-template/boot/syslinux/syslinux.msg
+iso-template/boot/syslinux/syslinux.msg_x64
+iso-template/boot/syslinux/version
+iso-template/boot/uefi-mt/
+iso-template/boot/uefi-mt/mtest-32.efi
+iso-template/boot/uefi-mt/mtest-64.efi
+iso-template/boot/memtest
+iso-template/cdrom.ico
+(cd initrd && find . | cpio -o -H newc --owner root:root | gzip -9) > template-initrd.gz
+9161 blocks
+make[1]: Leaving directory '/home/adrian/build'
+   dh_install
+   dh_installdocs
+   dh_installchangelogs
+   dh_perl
+   dh_link
+   dh_strip_nondeterminism
+   dh_compress
+   dh_fixperms
+   dh_installdeb
+   dh_gencontrol
+dpkg-gencontrol: warning: File::FcntlLock not available; using flock which is not NFS-safe
+   dh_md5sums
+   dh_builddeb
+dpkg-deb: building package `mx-iso-template' in `../mx-iso-template_16.17.4+nmu1_all.deb'.
+ dpkg-genchanges  >../mx-iso-template_16.17.4+nmu1_amd64.changes
+dpkg-genchanges: including full source code in upload
+ dpkg-source --after-build build
+dpkg-buildpackage: full upload; Debian-native package (full source is included)
+Now signing changes and any dsc files...
+ signfile mx-iso-template_16.17.4+nmu1.dsc Adrian <adrian@mxlinux.org>
+
+ signfile mx-iso-template_16.17.4+nmu1_amd64.changes Adrian <adrian@mxlinux.org>
+
+Successfully signed dsc and changes files

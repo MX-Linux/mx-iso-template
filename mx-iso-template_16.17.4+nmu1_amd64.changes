@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Format: 1.8
+Date: Wed, 08 Feb 2017 15:41:26 -0500
+Source: mx-iso-template
+Binary: mx-iso-template
+Architecture: source all
+Version: 16.17.4+nmu1
+Distribution: UNRELEASED
+Urgency: medium
+Maintainer: Steven Pusser <stevep@mxlinux.org>
+Changed-By: Adrian <adrian@mxlinux.org>
+Description:
+ mx-iso-template - MX ISO template
+Changes:
+ mx-iso-template (16.17.4+nmu1) UNRELEASED; urgency=medium
+ .
+   * background for Workbench
+Checksums-Sha1:
+ 0950bae3b0acff8e2cb4f61c4e2cac69268a48b9 1165 mx-iso-template_16.17.4+nmu1.dsc
+ d7d09cb1e7b08293607cf13f93227d8e5be01bf5 8995544 mx-iso-template_16.17.4+nmu1.tar.xz
+ 9857354df0161e707e7537d8c88cc101a8ddc081 7452308 mx-iso-template_16.17.4+nmu1_all.deb
+Checksums-Sha256:
+ 3b0a122fd3c7426e3d699c9e1b244ce219a8673516557f4780c2c30ec46b26fc 1165 mx-iso-template_16.17.4+nmu1.dsc
+ d07e5ab345aef95522b8bf3cabd4621ea8d93f885739bbdc79fe9aced7cdb698 8995544 mx-iso-template_16.17.4+nmu1.tar.xz
+ 62430c83e62187040b6931f9517c8f1a1947bd171a20c86445950fb9c9e2e7e9 7452308 mx-iso-template_16.17.4+nmu1_all.deb
+Files:
+ d5a898dc60e37ae6daf12c703b11591b 1165 admin optional mx-iso-template_16.17.4+nmu1.dsc
+ d2c953d4c159c2c8cb53e20d62ff27d2 8995544 admin optional mx-iso-template_16.17.4+nmu1.tar.xz
+ b816548288fbca73065f9cc5f0331f8a 7452308 admin optional mx-iso-template_16.17.4+nmu1_all.deb
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQEcBAEBAgAGBQJYm4K7AAoJEHCTjHgGee6Yf+wH/3/B9g11imRyhDLRT/G0IW/A
+y4BIBw946/8KQ3gUqt1clV0T4Yk8FYWQx6daJQx+xgZe+UB0NMCVHMTYplpNLhib
+85B9I4p2G+Pv1hwZd2JwwkcY38tt4yGzQViWr+8hjT07jxOr1g8qGDNOc/6wLlPA
+4gUMdolgY+3dZRcACj7T9dEN/FwtxeEeH4dGbu+oR4eVddAYoTisTrXSM4VKY0ag
+10pTlUEIy8WKOhj+iCh7gCTk85HjvMwePVkvi2/5q7d9YWNzoCfigBfMn5uKllan
+GDXG0qMPu4awy5Z+hsTgUIx1oKCOZ/PuatOAVWvdx11Jknrx6+7Mwgeoez8GRnI=
+=fV1O
+-----END PGP SIGNATURE-----
