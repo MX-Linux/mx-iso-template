@@ -1,0 +1,43 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA1
+
+Format: 1.8
+Date: Sat, 30 Sep 2017 10:29:46 -0400
+Source: mx-iso-template
+Binary: mx-iso-template
+Architecture: source all
+Version: 17.10mx17+1
+Distribution: mx
+Urgency: medium
+Maintainer: Adrian <adrian@mxlinux.org>
+Changed-By: Adrian <adrian@mxlinux.org>
+Description:
+ mx-iso-template - MX ISO template
+Changes:
+ mx-iso-template (17.10mx17+1) mx; urgency=medium
+ .
+   * generalize template
+Checksums-Sha1:
+ 8e786fe8745fcb96e17e32c053b0964315f79284 1154 mx-iso-template_17.10mx17+1.dsc
+ 93534a92ca8f21a078e3f6ce74e5bae94b39be58 3506848 mx-iso-template_17.10mx17+1.tar.xz
+ 5b1ff5b598be14b68a42faab0803e82dc6637223 7301010 mx-iso-template_17.10mx17+1_all.deb
+Checksums-Sha256:
+ f33742ac9fb9e22ba46aebf58907d5ec12180a5ce9bed0b15e1e1e2c3761da07 1154 mx-iso-template_17.10mx17+1.dsc
+ dc5926de2e26c2f6a0928c3aff627f87f69609233519b68f0c2fdd02199d55c1 3506848 mx-iso-template_17.10mx17+1.tar.xz
+ 6ae9e05864f2cfef11c576b37fd4ec8f05b2bac1725b15a1fa21be91e50a7ed0 7301010 mx-iso-template_17.10mx17+1_all.deb
+Files:
+ d2efc65e314568d079b2d09d366663fc 1154 admin optional mx-iso-template_17.10mx17+1.dsc
+ b4c8162bb423273ad00d9b20249f27f9 3506848 admin optional mx-iso-template_17.10mx17+1.tar.xz
+ b41dc61b42eb31f211aa7bf8a44bce1f 7301010 admin optional mx-iso-template_17.10mx17+1_all.deb
+
+-----BEGIN PGP SIGNATURE-----
+Version: GnuPG v1
+
+iQEcBAEBAgAGBQJZz6qBAAoJEHCTjHgGee6YC2EH/iLb2EvMrAwJ/S07nzGlj2t2
+m6mVRwiFjM7jV+DMTvDm2PFNOxdvGoge4zYPPK7dLOJcdcC2gJUlcJgXZD9ZP7k9
+sEu6ZMpRIAMxQDmfoIu3tvvWLTERX66UhlvSFig58QQMr1pKiRtFn5tI3oP79ydF
+5tp6lBVMJP91hJofrao037F3O6AalWHMWjlK5WitDluCGhObWxiQtrTyGK4YqNXr
+WiBfXKIPW2tKr/bRdadxrWG7N7s7mDdAuXfzQbf4Do+WC+gYuO+W2hwb7rfHk+re
++R/Ee0smz0OtbV6P3fbQXdNj7qK4aWcP2Jeh9dLMu+KjTFzZ/Dq+8qFdF4P2KzA=
+=uPOb
+-----END PGP SIGNATURE-----
