@@ -1,3 +1,9 @@
+mx-iso-template (17.10mx17) mx; urgency=medium
+
+  * Template for MX17
+
+ -- Adrian <adrian@mxlinux.org>  Sat, 30 Sep 2017 00:00:34 -0400
+
 mx-iso-template (16.17.4) mx; urgency=medium
 
   * change gfxboot font so non-English F key entries show 
