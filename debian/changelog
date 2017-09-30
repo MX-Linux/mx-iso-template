@@ -1,3 +1,9 @@
+mx-iso-template (17.10mx17+1) mx; urgency=medium
+
+  * generalize template
+
+ -- Adrian <adrian@mxlinux.org>  Sat, 30 Sep 2017 10:29:46 -0400
+
 mx-iso-template (17.10mx17) mx; urgency=medium
 
   * Template for MX17
