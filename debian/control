@@ -1,10 +1,10 @@
 Source: mx-iso-template
 Section: admin
 Priority: optional
-Maintainer: Steven Pusser <stevep@mxlinux.org>
+Maintainer: Adrian <adrian@mxlinux.org>
 Build-Depends: debhelper (>=7.0.50~)
 Standards-Version: 3.9.5
-Vcs-Git: git://github.com/AdrianTM/mx-iso-template
+Vcs-Git: git://github.com/mx-linux/mx-iso-template
 
 Package: mx-iso-template
 Architecture: all
