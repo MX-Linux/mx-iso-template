@@ -13,20 +13,20 @@ Build-Depends: debhelper (>= 7.0.50~)
 Package-List:
  mx-iso-template deb admin optional arch=all
 Checksums-Sha1:
- c632a94fc1da2003d1a078db55628a744bfa6d73 3507324 mx-iso-template_17.10mx17+1.tar.xz
+ 8d12b112ce5b8834a41d593a3b1cac52320da454 3830060 mx-iso-template_17.10mx17+1.tar.xz
 Checksums-Sha256:
- fb749f749050125dad00b7919061bdb7396d1cdf02b65a8c9e28a648aa37df40 3507324 mx-iso-template_17.10mx17+1.tar.xz
+ ba5e20ebe14c400b5d906082de4fb8c93abd20c56b13a246478c1ad71a9837cd 3830060 mx-iso-template_17.10mx17+1.tar.xz
 Files:
- abdd181a132edb7991c160ac793a4991 3507324 mx-iso-template_17.10mx17+1.tar.xz
+ 8fc6ba2c90c49a4c53912f6fc085719b 3830060 mx-iso-template_17.10mx17+1.tar.xz
 
 -----BEGIN PGP SIGNATURE-----
 Version: GnuPG v1
 
-iQEcBAEBAgAGBQJZz65EAAoJEHCTjHgGee6YktQIAIkiVdZY2qO5+d2CIPiXldZw
-ni9XyzfeLW+IZWY+rGAcomMVvu08hUebuJSlc7sLVXE+n3SStk7W34tUrJsBV8pK
-rxwIR8jaWi69bxzjOCzuZgXfq1j/HuTCmTEwJBF8Gg+tMHKtbNnqHYzfFJdvZUsr
-YyNaw3BwkOAqw/hviAGe7dtoShYHOcUpyNzz6/LGlTJnoNRCcAgYS0C+3rymRJIw
-gni2Uj+pO9ryF9SAvJA/GUZVdFuMqbAtVVdBgxOzoCDXmZ1lWCodWtlkU6wz0Z5y
-82YdloNH8tham0ld+7IMIWJyLFGHnLmXxNEDHUsAKXt8E3ny7HYk0D5DgzEYxJc=
-=U9yX
+iQEcBAEBAgAGBQJZz8HJAAoJEHCTjHgGee6YPvQH/0FnMpXp/WIK5Nyw6pdEFWZW
+5hhXFrTEBAxXPPFK/UuEMxOtvncDPkvLkiYJ4/hDn7LXj9hVmm1eIGKGQ6phVpPQ
+AaeVoh4wOuQeLXjPK4K35zf0BqFazuLl9tZAn9x4YRq+PAjqdATSuG9E3rchwdvp
+pL/23Zg1i2yPr0CaoMDGdPoFh7Pm0OwJzVMdm+YrnU28cjgYwp9uInXfPUhwxPEG
+gNQtjPY1d+Fkyt6wnGV8rKXW6OzpXLwND2IoK5hPIBBBqiyRF6VhbOj75/FUX4CE
+PzrbfL5/iglij81db8qAfetQZ8rjEYFJRDTaceaQN2RNYeigDcmVp9lnyMou22U=
+=8PIJ
 -----END PGP SIGNATURE-----
