@@ -7,6 +7,7 @@ _Kill_any_remaining_processes_="Διακοπή εναπομένουσες δια
 _Killing_remaining_processes_="Διακοπή εναπομένουσες διαδικασίες"
 _Please_remove_the_disc_close_the_tray_="Αφαιρέστε το δίσκο, κλείστε τη συσκευή"
 _Ready_to_X_="Έτοιμος να %s"
+_Saving_random_seed_="Εξοικονόμηση τυχαίων seed"
 _Unable_to_kill_X_="Ανίκανος να σκοτώσει: %s"
 _Unmount_most_filesystems_="Αποπροσαρτήσετε περισσότερα συστήματα αρχείων"
 _X_Waiting_for_termination_Y_="%s Αναμονή για τον τερματισμό του %s"

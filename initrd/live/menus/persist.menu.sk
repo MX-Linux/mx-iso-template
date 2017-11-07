@@ -1,0 +1,10 @@
+   1)  Predvolené
+   2)  persist_all     Rýchle. Ukladá root a home (používa RAM, ukladá pri odhlásení)
+   3)  persist_root    Rýchle. Ukladá iba root (používa RAM, ukladá pri odhlásení)
+   4)  persist_static  Pomalé. Ukladá root a home (nepoužíva RAM, ukladá ihneď)
+   5)  persist_home    Iba home persistencia
+   6)  frugal_persist  Sporivý s oboma root a home persistenciou
+   7)  frugal_root     Sporivý s root persistenciou
+   8)  frugal_static   Sporivý s home a statickou root persistenciou
+   9)  frugal_home     Sporivý iba s home persistenciou
+  10)  frugal_only     Iba Sporivý, žiadna persistencia

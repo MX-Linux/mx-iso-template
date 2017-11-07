@@ -1,4 +1,4 @@
-#!/live/bin/sh
+#!/live/bin/bash
 
 OLD_GFX_CONFIG_FILE="/live/config/gfxsave.conf"
          GFX_SUFFIX=".def"
@@ -15,7 +15,7 @@ main() {
     local GFX_MESSAGE_FILE
     local GFX_OUTPUT_DIRS
 
-    [ -n "$CMDLINE" ] || CMDLINE="$(cat /proc/cmdline)"
+    : ${CMDLINE:=$(cat /proc/cmdline)}
 
     case $VERBOSE in
         [0-9]|[0-9][0-9]) ;;
@@ -117,7 +117,7 @@ unpack_cpio() {
     rm -rf $dir
     mkdir -p $dir || return 1
     msg " Unpack CPIO file:$cheat_co $file"
-    (cd $dir && cpio -idum < $file)
+    (cd $dir && cpio -idum --quiet < $file)
     return 0
 }
 
@@ -125,7 +125,7 @@ repack_cpio() {
     local file=$1  dir=$2
     test -r $file || return 1
     msg " Repack CPIO file:$cheat_co $file"
-    (cd $dir && find . | cpio -o) > $file
+    (cd $dir && find . | cpio -o --quiet) > $file
     return 0
 }
 
@@ -546,12 +546,15 @@ extra_cmdline_params() {
     local param menu_params=$1
     for param in $CMDLINE; do
         case $param in
+                        ubp=*) continue ;;
+                         bp=*) continue ;;
             gfxsave|gfxsave=*) continue ;;
           bootsave|bootsave=*) continue ;;
                  BOOT_IMAGE=*) continue ;;
         savestate|nosavestate) continue ;;
               nostore|dostore) continue ;;
              checkmd5|checkfs) continue ;;
+                  noautomount) continue ;;
             automount|mount=*) continue ;;
                     hwclock=*) continue ;;
                     desktop=*) continue ;;
