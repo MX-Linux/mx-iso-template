@@ -17,7 +17,7 @@ PROTECT_DIR=/etc/live/protect
 PERSIST_PROTECT_FILE=$PROTECT_DIR/persist
 REMASTER_PROTECT_FILE=$PROTECT_DIR/remaster
 
-_INIT_LOG_FILE=/var/log/live/live-init.log
+_INIT_LOG_FILE=/var/log/live/live-init.log.color
 INIT_LOG_FILE=/dev/null
 
 for live_config in /live/config/initrd.out /live/config/linuxrc.out; do

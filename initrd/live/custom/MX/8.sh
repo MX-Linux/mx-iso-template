@@ -17,7 +17,7 @@ antix_specific_code() {
     # Must exist for samba to work
     [ -d $dir/var/lib/samba ] && echo -n > $dir/var/lib/samba/unexpected.tdb
     
-    [ ! -e $dir/etc/localtime ] && cp_rm_dest $SQFS_MP/etc/localtime $dir/etc/localtime
+    #[ ! -e $dir/etc/localtime ] && cp_rm_dest $SQFS_MP/etc/localtime $dir/etc/localtime
 
     rm -f $dir/etc/console/boottime.old.kmap.gz
     cp $SQFS_MP/etc/console/* $dir/etc/console/ &>/dev/null

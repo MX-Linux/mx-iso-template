@@ -2,7 +2,7 @@
 
 #==============================================================================
 # LiveCD/USB/HD init script
-# (C) 2009-2016 Paul Banham <antiX@operamail.com>
+# (C) 2009-2017 Paul Banham <antiX@operamail.com>
 # Inspired by the work of Klaus Knopper
 #
 # License: GPLv3 or later
@@ -25,10 +25,10 @@
 # that you don't want users to be able to adjust.
 
                      ME="initrd init"
-                VERSION="7.63.06"
-           VERSION_DATE="Sat Dec 10 16:15:55 MST 2016"
+                VERSION="8.12.02"
+           VERSION_DATE="Sat Nov  4 22:21:26 MDT 2017"
               DEVELOPER="BitJam"
-         BUG_REPORT_URL="liveboot@mxlinux.org"
+         BUG_REPORT_URL="liveboot@antixlinux.org"
 
 # These are all times in seconds, not attempts
              BOOT_RETRY=15
@@ -36,7 +36,8 @@
           PERSIST_RETRY=10
     FAILSAFE_BOOT_RETRY=30
 
-    DISABLE_SERVICES_OPTS="(c[0-9]+(\.[0-9]*)?|c\.[0-9]+|[DLMPSXacdgklmnNrsvwx])+"
+    #DISABLE_SERVICES_OPTS="(c[0-9]+(\.[0-9]*)?|c\.[0-9]+|[ADLMPSWXacdgklmnNrsvwx])+"
+    DISABLE_SERVICES_OPTS="[aAdgkilLmnNPrsSvVwWx]+"
 
            RW_MODE="ro"
        #DISTRO_NAME="Linux"
@@ -48,7 +49,7 @@
 
           AUFS_DIR="aufs"
 
-       EXTRA_FILES="deb xtra xtra.tgz state"
+       EXTRA_FILES="deb xtra xtra.tgz"
        MIN_SYS_RAM=80
       MIN_AUFS_RAM=80
 
@@ -58,14 +59,15 @@
             MY_LOG=/init.log
            VID_DIR="/etc/live/version"
           VID_FILE="$VID_DIR/linuxfs.ver"
-          MAKE_OLD="rootfs xtra deb xtra.tgz linuxfs.md5"
+          MAKE_OLD="rootfs xtra deb xtra.tgz linuxfs.md5 state"
            MOD_DIR="/lib/modules/$(uname -r)"
 
          FROM_TYPE="usb,cd"
      FROM_TYPE_ALL="usb,cd,hd"
 
-      FRUGAL_FILES="linuxfs vmlinuz vmlinuz1 initrd.gz xtra xtra.tgz"
+      FRUGAL_FILES="linuxfs vmlinuz vmlinuz1 initrd.gz xtra xtra.tgz esp-uuid"
       FRUGAL_FILES="$FRUGAL_FILES ../boot ../efi ../EFI ../cdrom.ico ../version"
+       FRUGAL_NAME="antiX"
 
      MAX_MOUNT_CNT=30
        RETRY_DELAY=50               # in hundredths of a second
@@ -82,13 +84,24 @@
 
         # Note: adding "crc32c-generic" works around a bug in the kernel:
         # https://github.com/manjaro/packages-core/issues/8
-        LOAD_FIRST="usb-common usbcore ehci-hcd fusbh200-hcd fotg210-hcd battery aufs overlay crc32c-generic mmc-block"
+        LOAD_FIRST="usb-common usbcore ehci-hcd fusbh200-hcd fotg210-hcd battery aufs overlay crc32c-generic mmc-block dm-crypt"
 
           VID_NAME=VID
       LINUXFS_NAME=linuxfs
+       CRYPT_FNAME=encrypted
+   OLD_CRYPT_FNAME=crypt
+         LUKS_NAME=liveb
+
+ ENCRYPT_MODE_FILE=/etc/encrypt
+   ENCRYPT_DISABLE=disable
+      ENCRYPT_BOTH=both
+      ENCRYPT_ONLY=enable
+
+      PHRASE_FNAME=passphrase
+        SEED_FNAME=random-seed
 
         BLACK_LIST=
-   BLACK_LIST_FILE=/etc/modprobe.d/initrd.conf
+   BLACK_LIST_FILE=/etc/modprobe.d/live-initrd-blacklist.conf
  KMS_VIDEO_MODULES="ast,bochs-drm,cirrus,emgd,gma500_gfx,i915,mgag200,nouveau,qxl,radeon,udl,vmwgfx"
     DEFAULT_SQFILE=/antiX/linuxfs
   DEFAULT_ISO_FILE=/antiX/antiX.iso
@@ -97,10 +110,10 @@
   LIVE_386_LD_PATH="/lib:/lib/i386-linux-gnu:/usr/lib"
 
 MKFS_FREE_MARGIN=10
-  rootfs_SIZE_PARAM="min_size=250 mid_size=100 max_size=2000 factor=50"
-  homefs_SIZE_PARAM="min_size=10 mid_size=100 max_size=4000 factor=25"
-         MKFS_SIZES="250 375 500 750 1000 1500 2000 2500 3000 4000"
-       BIGGER_SIZES="5000 6000"
+  rootfs_SIZE_PARAM="min_size=250 mid_size=100 max_size=4096 factor=50"
+  homefs_SIZE_PARAM="min_size=10 mid_size=100 max_size=8192 factor=25"
+         MKFS_SIZES="250 375 500 750 1024 1500 2048 2500 3072 4096"
+       BIGGER_SIZES="5120 6144 8192 10240 12288 15360 20480"
       SMALLER_SIZES="10 100 175"
 
       LIVE_SCRIPTS="live-L10n live-init"
@@ -111,13 +124,21 @@ MKFS_FREE_MARGIN=10
 
           LAZYTIME=""
       MADE_BY_FILE="made-by-live-usb-maker"
-    PROG_BAR_WIDTH=85
+    PROG_BAR_WIDTH=100
+
+   MIN_SCREEN_WIDTH=80
+   DEF_SCREEN_WIDTH=120
+
+    #           HUP INT QUIT SEGV TERM
+    SIGNAL_LIST="1   2   3    11   15"
+
 
 set_live_dirs() {
     local dir=$1
 
          FRUGAL_MP="$dir/frugal"
            BOOT_MP="$dir/boot-dev"
+           BIOS_MP="$dir/bios-dev"
         ISO_DEV_MP="$dir/iso-dev"
        ISO_FILE_MP="$dir/iso-file"
           TORAM_MP="$dir/to-ram"
@@ -127,6 +148,7 @@ set_live_dirs() {
         PERSIST_MP="$dir/persist-dev"
            SQFS_MP="$dir/linux"         # where the linuxfs file gets *mounted*
       WRAP_FILE_MP="$dir/wrapper"
+          PLAIN_MP="$dir/plain"
         OUTPUT_DIR="$dir/config"
         LOCALE_DIR="$dir/locale"
         CUSTOM_DIR="$dir/custom"
@@ -152,9 +174,7 @@ main_wrapper() {
     set_live_dirs $LIVE_DIR
     mkdir -p $OUTPUT_DIR
 
-    # Don't allow interrupts to ruin our day
-    #       HUP INT QUIT SEGV TERM
-    trap "" 1   2   3    11   15
+    trap "" $SIGNAL_LIST
 
     umask 022
 
@@ -166,7 +186,7 @@ main_wrapper() {
     read_distro_release /etc/initrd-release
     : ${DISTRO_BUG_REPORT_URL:=$BUG_REPORT_URL}
     : ${DISTRO_NAME:=antiX}
-    : ${DISTRO_PRETTY_NAME:=antiX-16 (generic)}
+    : ${DISTRO_PRETTY_NAME:=antiX-17 (generic)}
 
     custom_code 0 'before reading boot codes'
 
@@ -180,6 +200,7 @@ main_wrapper() {
     set_colors "$NO_COLOR" "$LOW_COLOR"
 
     read_xlat init $LANG
+    set_console_width "$CON_WIDTH" "$LANG"
 
     # disable console screen blanking
     printf "\e[9;0]\e[14;0]"
@@ -234,10 +255,16 @@ main_wrapper() {
     run_init_scripts $NEW_ROOT $LIVE_SCRIPTS
     PATH=$LIVE_BIN
 
+    decolor_file $NEW_ROOT/var/log/live/live-init.log.color
+
     test -r /late-umount.sh && . /late-umount.sh
     sync
+    prep_seed_dev_random "$SEED_FILE"
     late_umount $PERSIST_DEVICE
-    late_umount $SQFILE_DEV
+
+     [ -z "$TORAM_STORE" ] && late_umount $SQFILE_DEV
+
+    late_umount $BIOS_DEV
 
     if [ -z "$DISABLE_STORE" ]; then
         if detect_old_persist_scripts $NEW_ROOT; then
@@ -252,7 +279,12 @@ main_wrapper() {
                 mount --bind /live/aufs/live/$dir $new_dir
             done
 
-            chmod 700 $NEW_ROOT/live
+            # Leave ext2/3/4 as read-write
+            case $(mntpnt_fstype $NEW_ROOT$BOOT_MP) in
+                ext[234]|iso9660) ;;
+                   btrfs|xfs|jfs) ;;
+                               *) chmod 700 $NEW_ROOT/live ;;
+            esac
         fi
     fi
 
@@ -262,6 +294,9 @@ main_wrapper() {
         rm_list="$rm_list $f"
     done
     rm -f $rm_list
+
+    rm -f $NEW_ROOT$BLACK_LIST_FILE
+    [ -e $BLACK_LIST_FILE ] && cp $BLACK_LIST_FILE $NEW_ROOT$BLACK_LIST_FILE
 
     dmesg > $NEW_ROOT/live/config/dmesg.out
 
@@ -291,7 +326,7 @@ main_wrapper() {
         vmsg 5 "${hi_co}%s" 'Please exit shells normally to allow for a clean unmount'
 
         CHROOT_BIN=$FINAL_DIR/bin
-        chroot $NEW_ROOT $CHROOT_BIN/setsid $CHROOT_BIN/cttyhack $INIT_PROG
+        $SET_ARCH chroot $NEW_ROOT $CHROOT_BIN/setsid $CHROOT_BIN/cttyhack $INIT_PROG
         breakpoint i "after init= chroot"
 
         MY_LOG=/dev/null
@@ -301,19 +336,24 @@ main_wrapper() {
         : ${INIT_COMMAND:=/sbin/init}
         test -x $NEW_ROOT$INIT_COMMAND || INIT_COMMAND=/sbin/init
         vmsg 6  "Start %s process" $(pq $INIT_COMMAND)
+
+        [ "$NO_CLEAR" ] || [ "$NO_MODESET" ] || clear
         exec $LIVE_BIN/switch_root -c /dev/console $NEW_ROOT $INIT_COMMAND "$@"
     fi
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 main_core() {
-    [ "$NO_CLEAR" ] || printf "\e[1J"       # Clear and reset screen
+    [ "$NO_CLEAR" ] || clear       # Clear and reset screen
     vmsg 6 "=== initrd bootstrap =================================================="
 
     vmsg 6 '%s started at %s seconds' "$ME" $(nq $(get_seconds $time_0))
 
     mkdir -p $MOD_DIR
     depmod &>/dev/null
-    blacklist_modules $BLACK_LIST
+    blacklist_modules "$BLACK_LIST" "$BLACK_LIST_FILE"
 
     breakpoint 1 "before welcome"
 
@@ -348,9 +388,10 @@ main_core() {
 
     initialize_cmdline2
 
-    read PROC_CMDLINE 2>/dev/null </proc/cmdline
+    local p
+    PROC_CMDLINE=$(for p in $(cat /proc/cmdline 2>/dev/null); do echo $p; done)
 
-    [ "$DO_MENUS" ]; do_early_menus
+    [ "$DO_MENUS" ] && do_early_menus
 
     read_late_cmdline_params "$PROC_CMDLINE $(cat /live/config/cmdline)"
     echo "$PROC_CMDLINE" > /live/config/proc-cmdline
@@ -370,6 +411,8 @@ main_core() {
     # will always work
     #[ "$NO_EHCI" ] && disable_hcd ehci
 
+    #[ "$SET_CRYPT" -a -z "$NO_CRYPT" ] && setup_crypt "$CRYPT_ID" "$BOOT_DIR/$CRYPT_FNAME" "$BOOT_MP"
+
     breakpoint 3 "before looking for linuxfs file"
 
     RW_MODE=ro
@@ -384,6 +427,7 @@ main_core() {
     dir_has_param "$BOOT_MP" rw && REMASTERABLE=true
     [ "$DID_ISO" ] && REMASTERABLE=
 
+    BOOT_FSTYPE=$(mntpnt_fstype $BOOT_MP)
     case $BOOT_FSTYPE in
         iso9660|udf) REMASTERABLE= ;;
     esac
@@ -391,11 +435,24 @@ main_core() {
     BOOT_UUID=$(device_uuid $SQFILE_DEV)
     [ "$BOOT_UUID" ] && vmsg 6 "boot device uuid: $BOOT_UUID"
 
-    breakpoint 4 "after mounting boot device"
+    vmsg 7 "BOOT_MP:    $BOOT_MP"
+    vmsg 7 "SQFILE_DEV: $SQFILE_DEV"
+    vmsg 7 "SQFILE_MP   $SQFILE_MP"
 
+    SEED_FULL=$(dirname "$SQFILE_FULL")/$SEED_FNAME
+    seed_dev_random "$SEED_FULL"
+
+    breakpoint 4 "after mounting boot device"
     mount -o remount,rw $SQFILE_DEV 2>/dev/null
     dir_has_param "$SQFILE_MP" rw || REMASTERABLE=
-    [ "$REMASTERABLE" ] && do_remaster "$SQFILE_FULL"
+
+    detect_vga_menu "$CMD_VGA" "$GFX_SAVE"
+
+    if remasterable; then
+        do_remaster "$SQFILE_FULL"
+        prep_seed_dev_random "$SEED_FULL"
+        echo "$SEED_FILE" > /live/config/seed-file
+    fi
 
     mount_linuxfs "$SQFS_MP" "$SQFILE_FULL" "$WRAP_FILE_MP"
 
@@ -424,7 +481,8 @@ main_core() {
 
     breakpoint 5 "after mounting persistence device"
 
-    fsck_boot_dev "$SQFILE_DEV" "$SQFILE_MP"
+    fsck_any_device "$SQFILE_DEV" "$SQFILE_MP" boot
+    fsck_any_device "$BIOS_DEV"   "$BIOS_MP"   bios
 
     ORIG_SQFILE_MP=$SQFILE_MP
     ORIG_SQFILE_DIR=$SQFILE_PATH
@@ -434,7 +492,10 @@ main_core() {
 
     # Check md5 of files in directory containing linuxfs file
     # 'fromiso' causes us to check md5sums in two places
-    [ "$CHECK_MD5" ] && check_md5 $SQFILE_DIR
+    if [ "$CHECK_MD5" ]; then
+        check_md5 $SQFILE_DIR
+        [ "$ENCRYPTED" ] && check_md5 $BIOS_MP/$(dirname $SQFILE_FILE)
+    fi
 
     [ "$TO_RAM" ] && copy_to_ram "$SQFILE_FULL" $TORAM_MP
 
@@ -463,34 +524,21 @@ main_core() {
 
     breakpoint 6 "after mounting aufs"
 
-    rm -f $NEW_ROOT$BLACK_LIST_FILE
-    [ -e $BLACK_LIST_FILE ] && cp $BLACK_LIST_FILE $NEW_ROOT$BLACK_LIST_FILE
-
     [ "$WANT_HOMEFS" ] \
         && mount_homefs $PERSIST_FULL_PATH/homefs $NEW_ROOT/home "$WANT_HOMEFS" "$NEED_HOMEFS"
 
-    [ "$DB_PLUS"       ] && local plus_t1=$(get_time)
-    [ "$DB_PLUS"       ] && page_updown_keys "$NEW_ROOT"
     [ "$DO_XTRA"       ] && copy_xtra    $DEFAULT_DIR
     [ "$DO_XTRA"       ] && delete_files $DEFAULT_DIR
     [ "$DO_AUTO_LOGIN" ] && auto_login   "$AUTO_LOGIN_PROG" "$AUTO_LOGIN_TERMS" "$NEW_ROOT"
     [ "$DO_FANCY"      ] && fancy_prompt "$FANCY_PROMPT" "$NEW_ROOT"
-    if [ "$DB_PLUS" ]; then
-        local plus_t2=$(get_time)
-        local delta=$(get_seconds $((plus_t2 - plus_t1)))
-        vmsg 8 "$green@${cyan} Extras took$hi_co $delta${cyan} seconds"
-    fi
-
-    [ ! -e /$NEW_ROOT/etc/issue -o -n "$FORCE_ISSUE" ] && cp /issue $NEW_ROOT/etc/issue
+    [ "$DB_PLUS"       ] && page_updown_keys "$NEW_ROOT"
 
     # FIXME: do this after copy_xtra for easy testing (for now) (????)
     PROC_CMDLINE=$(cat /live/config/proc-cmdline)
     [ "$DO_MENUS" ] && do_late_menus
     echo "$PROC_CMDLINE" > /live/config/proc-cmdline
 
-    [ "$NO_NEW_OUTPUT" ] || write_output_files     $OUTPUT_DIR
-    [ "$NO_OLD_OUTPUT" ] || old_write_output_files $OUTPUT_DIR
-
+    write_output_files $OUTPUT_DIR
     update_store_file "$NO_STORE" "$DO_STORE"
 
     mkdir -p $NEW_ROOT/etc/live
@@ -511,6 +559,8 @@ main_core() {
 
     prepare_switch_root $NEW_ROOT $LIVE_DIR $FINAL_DIR
 
+    breakpoint 7 "after prepare switch_root"
+
     write_ntfs_pids $FINAL_DIR/aufs/run/sendsigs.omit.d/initrd-ntfs-3g
 
     echo $LAST_BP_TIME > /LAST_BP_TIME
@@ -521,6 +571,10 @@ SQFILE_DEV="$SQFILE_DEV"
 HOMEFS_DEV="$HOMEFS_DEV"
 ROOTFS_DEV="$ROOTFS_DEV"
 LINUXFS_DEV="$LINUXFS_DEV"
+BIOS_DEV="$BIOS_DEV"
+CRYPT_DEV="$CRYPT_DEV"
+SEED_FILE="$SEED_FILE"
+TORAM_STORE="$TORAM_STORE"
 Late_Umount
 }
 
@@ -541,7 +595,9 @@ system_mount() {
     mount -t devpts devpts $dir/dev/pts
 }
 
-
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 make_nodes() {
     local dir=$1
     mkdir -p $dir
@@ -551,12 +607,18 @@ make_nodes() {
     [ -e $dir/tty0    ] || mknod $dir/tty0    c 4 0
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 read_distro_release() {
     local file=$1
     #sed -r -n 's/^\s*([A-Z0-9_]+=)/DISTRO_\1/p' $file >> $MY_LOG
     eval $(sed -r -n 's/^\s*([A-Z0-9_]+=)/DISTRO_\1/p' $file)
 }
 
+#------------------------------------------------------------------------------
+# Clear out all extraneous environment variables
+#------------------------------------------------------------------------------
 clear_env() {
     local ev
     # unset almost all env variables
@@ -568,6 +630,9 @@ clear_env() {
     done
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 read_late_cmdline_params() {
     #vmsg 6 "read_late_cmdline_params: $*"
     local param value cmdline=${1:-$(cat /proc/cmdline)}
@@ -589,6 +654,7 @@ read_late_cmdline_params() {
                   nousb2|noehci) NO_EHCI=true                         ;;
               private|private=*) FORCE_PASSWD=true                    ;;
                           toram) TO_RAM=true                          ;;
+                    toram_store) TO_RAM=true ; TORAM_STORE=true       ;;
 
         # Convenience short cuts from our menus
                     persist_all) PERSIST='root!,home'                 ;;
@@ -608,8 +674,11 @@ read_late_cmdline_params() {
     done
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 set_frugal() {
-    : ${FRUGAL_ID:=label=$DISTRO_NAME-Frugal}
+    : ${FRUGAL_ID:=label=$FRUGAL_NAME-Frugal}
     [ "$NO_LABEL_FRUGAL" ] || LABEL_FRUGAL=true
     PERSIST=$1
 }
@@ -629,15 +698,14 @@ read_cmdline_params()
         case $param in
                            aufs) WANT_UNIONFS=aufs                               ;;
                       overlayfs) WANT_UNIONFS=overlay                            ;;
-                          menus) DO_MENUS=${MENUS_LIST:-ltopfs}                  ;;
+                          menus) DO_MENUS=${MENUS_LIST:-cltopfs}                 ;;
                         menus=*) DO_MENUS=$DO_MENUS$value                        ;;
             rootdelay=*|delay=*) small_int COLDPLUG_DELAY $param                 ;;
-                       old-conf) NO_NEW_OUTPUT=true                              ;;
-                       new-conf) NO_OLD_OUTPUT=true                              ;;
                          splash) SPLASH_PARAM=v                                  ;;
                        splash=*) SPLASH_PARAM=$value                             ;;
                        poweroff) poweroff -f -n                                  ;;
                          reboot) reboot -f -n                                    ;;
+                         fdir=*) FRUGAL_DIR=$value                               ;;
                bootdir=*|bdir=*) BOOT_DIR=$value                                 ;;
     bootlabel=*|blabel=*|blab=*) BOOT_ID=label=$value                            ;;
              bootuuid=*|buuid=*) BOOT_ID=uuid=$value                             ;;
@@ -650,6 +718,13 @@ read_cmdline_params()
  persistlabel=*|plabel=*|plab=*) PERSIST_ID=label=$value  ;  SET_PERSIST=true    ;;
           persistuuid=*|puuid=*) PERSIST_ID=uuid=$value   ;  SET_PERSIST=true    ;;
             persistdev=*|pdev=*) PERSIST_ID=name=$value   ;  SET_PERSIST=true    ;;
+
+                     passphrase) CHANGE_PASSPHRASE=true                          ;;
+                        nocrypt) ENCRYPT_MODE=$ENCRYPT_DISABLE                   ;;
+                      encrypt=*) ENCRYPT_MODE=$value                             ;;
+                        encrypt) ENCRYPT_MODE=$ENCRYPT_ONLY                      ;;
+                    encrypt=off) ENCRYPT_MODE=$ENCRYPT_DISABLE                   ;;
+                     encrypt=on) ENCRYPT_MODE=$ENCRYPT_ONLY                      ;;
 
                          btry=*) small_int CMD_BOOT_RETRY $param                 ;;
                          ftry=*) small_int CMD_FRUGAL_RETRY $param               ;;
@@ -697,6 +772,7 @@ read_cmdline_params()
                       gfxsave=*) GFX_SAVE=$value ; BOOT_SAVE=true                ;;
                    save|gfxsave) GFX_SAVE=both   ; BOOT_SAVE=true                ;;
                        bootsave) BOOT_SAVE=true                                  ;;
+                          vga=*) CMD_VGA=$value                                  ;;
 
                       nocheckfs) DO_FSCK=                                        ;;
 
@@ -722,7 +798,7 @@ read_cmdline_params()
                       vtblank=*) small_int VT_BLANK $param                       ;;
 
                livedir=*|ldir=*) FINAL_DIR=$value                                ;;
-        pw|passwd|pw=*|passwd=*) FORCE_PASSWD=true                               ;;
+    pw|password|pw=*|password=*) FORCE_PASSWD=true                               ;;
                       bootchart) INIT_COMMAND=/sbin/bootchartd ; BOOT_CHART=true ;;
                         noplink) NO_PLINK=,noplink                               ;;
                           plink) NO_PLINK=                                       ;;
@@ -740,8 +816,11 @@ read_cmdline_params()
 
                          noprog) NO_PROGRESS=true                                ;;
 
-                      confont=*) CON_FONT=$value                                 ;;
+                     #confont=*) CON_FONT=$value                                 ;;
+                     conwidth=*) CON_WIDTH=$value                                ;;
                       nomodeset) NO_MODESET=true                                 ;;
+            noumount|noumnt|noU) NO_UMOUNT=true                                  ;;
+                          [1-6]) RUN_LEVEL=$val                                  ;;
 
         #----- These get interpreted late but we don't want them to be unknown
                 hwclock=*|hwc=*)  ;;
@@ -756,6 +835,7 @@ read_cmdline_params()
                   nousb2|noehci)  ;;
               private|private=*)  ;;
                           toram)  ;;
+                    toram_store)  ;;
 
         # Convenience short cuts from our menus
                     persist_all)  ;;
@@ -773,157 +853,10 @@ read_cmdline_params()
         #----- Some known codes -------------------------
 
         [sS1-6]|BOOT_IMAGE=*);;
-        video.*);;
-
-        # Most kernel codes from version 3.8 (plus additions)
-        acpi_force_table_verification|acpi_no_auto_serialize|acpica_no_return_repair);;
-        forcepae|systemd.*);;
-        acpi=*|acpi_rsdp=*|acpi_apic_instance=*|acpi_backlight=*);;
-        acpi.debug_layer=*|acpi.debug_level=*|acpi_irq_balance);;
-        acpi_irq_nobalance|acpi_irq_isa=*|acpi_irq_pci=*|acpi_no_auto_ssdt);;
-        acpi_os_name=*|acpi_osi=*|acpi_pm_good|acpi_sci=*|acpi_serialize);;
-        acpi_skip_timer_override|acpi_sleep=*|acpi_use_timer_override);;
-        acpi_enforce_resources=*|add_efi_memmap|agp=*|ALSA|alignment=*);;
-        align_va_addr=*|amd_iommu=*|amd_iommu_dump=*|amijoy.map=*);;
-        analog.map=*|apc=*|apic=*|autoconf=*|show_lapic=*|apm=*|arcrimi=*);;
-        ataflop=*|atarimouse=*|atkbd.extra=*|atkbd.reset=*|atkbd.set=*);;
-        atkbd.scroll=*|atkbd.softraw=*|atkbd.softrepeat=*|baycom_epp=*);;
-        baycom_par=*|baycom_ser_fdx=*|baycom_ser_hdx=*|boot_delay=*);;
-        bootmem_debug|bttv.card=*|bttv.radio=*|bttv.pll=*|bttv.tuner=*);;
-        bulk_remove=*|c101=*|cachesize=*|ccw_timeout_log|cgroup_disable=*);;
-        checkreqprot|cio_ignore=*|clock=*|clocksource=*|clearcpuid=*|cma=*);;
-        cmo_free_hint=*|coherent_pool=*|code_bytes|com20020=*|com90io=*);;
-        com90xx=*|condev=*|conmode=*|console=*|consoleblank=*);;
-        coredump_filter=*|cpuidle.off=*|cpcihp_generic=*|crashkernel=*);;
-        cs89x0_dma=*|cs89x0_media=*|dasd=*|db9.dev[23]=*|ddebug_query=*|debug);;
-        debug_locks_verbose=*|debug_objects|no_debug_objects);;
-        debug_guardpage_minorder=*|debugpat|decnet.addr=*);;
-        default_hugepagesz=*|dhash_entries=*|digi=*|digiepca=*|disable=*);;
-        disable_ddw|disable_ipv6=*|disable_mtrr_cleanup|disable_mtrr_trim);;
-        disable_timer_pin_1|dma_debug=*|dma_debug_entries=*);;
-        dma_debug_driver=*|drm_kms_helper.edid_firmware=*|dscc4.setup=*);;
-        dyndbg|dyndbg=*|module.dyndbg|module.dyndbg=*|earlycon=*);;
-        earlyprintk=*|ekgdboc=*|edd=*|eisa_irq_edge=*|elanfreq=*|elevator=*);;
-        elfcorehdr=*|enable_mtrr_cleanup|enable_timer_pin_1|enforcing);;
-        erst_disable|ether=*|evm=*|failslab=*|fail_page_alloc=*);;
-        fail_make_request=*|floppy=*|force_pal_cache_flush|ftrace=*);;
-        ftrace_dump_on_oops|ftrace_dump_on_oops=*|ftrace_filter=*);;
-        ftrace_notrace=*|ftrace_graph_filter=*|gamecon.map[23]=*|gamma=*);;
-        gart_fix_e820=*|gcov_persist=*|gpt|grcan.enable0=*|grcan.enable1=*);;
-        grcan.select=*|grcan.txsize=*|grcan.rxsize=*|hashdist=*|hcl=*|hd=*);;
-        hest_disable|highmem=*|highres=*|hisax=*|hlt|hpet=*|hugepages=*);;
-        hugepagesz=*|hvc_iucv=*|hvc_iucv_allow=*|keep_bootcon|i2c_bus=*);;
-        i8042.debug|i8042.direct|i8042.dumbkbd|i8042.noaux|i8042.nokbd);;
-        i8042.noloop|i8042.nomux|i8042.nopnp|i8042.notimeout|i8042.reset);;
-        i8042.unlock|i810=*|i8k.ignore_dmi|i8k.force|i8k.power_status);;
-        i8k.restricted|i915.invert_brightness=*|icn=*|ide-core.nodma=*);;
-        ide-pci-generic.all-generic-ide|idle=*|ignore_loglevel);;
-        ihash_entries=*|ima_appraise=*|ima_appraise_tcb|ima_audit=*);;
-        ima_hash=*|ima_tcb|init=*|initcall_debug|initrd=*|inport.irq=*);;
-        intel_iommu=*|intel_idle.max_cstate=*|intremap=*|iomem=*|iommu=*);;
-        io7=*|io_delay=*|ip=*|ip2=*|irqfixup|irqpoll|isapnp=*|isolcpus=*);;
-        iucv=*|js=*|keepinitrd|kernelcore=*|kgdbdbgp=*|kgdboc=*|kgdbwait);;
-        kmac=*|kmemleak=*|kstack=*|kvm.ignore_msrs=*|kvm.mmu_audit=*);;
-        kvm-amd.nested=*|kvm-amd.npt=*|kvm-intel.ept=*);;
-        kvm-intel.emulate_invalid_guest_state=*|kvm-intel.flexpriority=*);;
-        kvm-intel.nested=*|kvm-intel.unrestricted_guest=*|kvm-intel.vpid=*);;
-        l2cr=*|l3cr=*|lapic|lapic=*|lapic_timer_c2_ok|libata.dma=*);;
-        libata.ignore_hpa=*|libata.noacpi|libata.force=*|memblock=*);;
-        load_ramdisk=*|lockd.nlm_grace_period=*|lockd.nlm_tcpport=*);;
-        lockd.nlm_timeout=*|lockd.nlm_udpport=*|logibm.irq=*|loglevel=*);;
-        log_buf_len=*|logo.nologo|lp=*|lpj=*|ltpc=*|machvec=*|machtype=*);;
-        max_addr=*|maxcpus=*|max_loop=*|mce|mce=*|md=*);;
-        mdacon=*|mem=*|memchunk=*|memmap=*|memory_corruption_check=*);;
-        memory_corruption_check_size=*|memory_corruption_check_period=*);;
-        memtest=*|meye.*=*|mfgpt_irq=*|mfgptfix|mga=*|min_addr=*|mini2440=*);;
-        mminit_loglevel=*|module.sig_enforce|mousedev.tap_time=*);;
-        mousedev.xres=*|mousedev.yres=*|movablecore=*|MTD_Partition=*);;
-        MTD_Region=*|mtdparts=*|multitce=*|onenand.bdry=*|mtdset=*);;
-        mtouchusb.raw_coordinates=*|mtrr_chunk_size=*|mtrr_gran_size=*);;
-        mtrr_spare_reg_nr=*|n2=*|netdev=*|nf_conntrack.acct=*|nfsaddrs=*);;
-        nfsroot=*|nfsrootdebug|nfs.callback_tcpport=*|nfs.cache_getent=*);;
-        nfs.cache_getent_timeout=*|nfs.idmap_cache_timeout=*);;
-        nfs.enable_ino64=*|nfs.max_session_slots=*);;
-        nfs.nfs4_disable_idmapping=*|nfs.nfs4_unique_id=*);;
-        nfs.send_implementation_id|nfsd.nfs4_disable_idmapping=*);;
-        objlayoutdriver.osd_login_prog=*|nmi_debug=*|nmi_watchdog=*);;
-        netpoll.carrier_timeout=*|no387|no_console_suspend|noaliencache);;
-        noalign|noapic|noautogroup|nobats|nocache|noclflush|nodelayacct);;
-        nodisconnect|nodsp|noefi|noexec|nosmap|nosmep|noexec32|nofpu|nofxsr);;
-        noxsave|eagerfpu=*|nohlt|no-hlt|no_file_caps|nohalt|nohz=*|noiotrap);;
-        noirqdebug|no_timer_check|noisapnp|noinitrd|nointremap|nointroute);;
-        nojitter|no-kvmclock|no-kvmapf|no-steal-acc|nolapic|nolapic_timer);;
-        noltlbs|nomca|nomce|nomfgpt|nonmi_ipi|nomodule|nopat|norandmaps);;
-        noreplace-paravirt|noreplace-smp|noresidual|nordrand|noresume);;
-        no-scroll|nosbagart|nosep|nosmp|nosoftlockup|nosync|notsc|nousb);;
-        nowatchdog|nowb|nox2apic|cpu0_hotplug|nptcg=*|nr_cpus=*|nr_uarts=*);;
-        numa_balancing=*|numa_zonelist_order=*|ohci1394_dma=*);;
-        olpc_ec_timeout=*|omap_mux=*|oprofile.timer=*|oprofile.cpu_type=*);;
-        oops=*|OSS|panic=*|parkbd.port=*|parkbd.mode=*|parport=*);;
-        parport_init_mode=*|pause_on_oops=*|pcbit=*|pcd.|pci=*|pcie_aspm=*);;
-        pcie_hp=*|pcie_ports=*|pcie_pme=*|pcmv=*|pd.|pdcchassis=*);;
-        percpu_alloc=*|pf.|pg.|pirq=*|plip=*|pmtmr=*|pnp.debug=*|pnpacpi=*);;
-        pnpbios=*|pnp_reserve_irq=*|pnp_reserve_dma=*|pnp_reserve_io=*);;
-        pnp_reserve_mem=*|ports=*|print-fatal-signals=*);;
-        printk.always_kmsg_dump=*|printk.time=*|processor.max_cstate=*);;
-        processor.nocst|profile=*|prompt_ramdisk=*|psmouse.proto=*);;
-        psmouse.rate=*|psmouse.resetafter=*|psmouse.resolution=*);;
-        psmouse.smartscroll=*|pstore.backend=*|pt.|pty.legacy_count=*|quiet);;
-        r128=*|raid=*|ramdisk_blocksize=*|ramdisk_size=*|rcu_nocbs=*);;
-        rcu_nocb_poll|rcutree.blimit=*|rcutree.fanout_leaf=*);;
-        rcutree.qhimark=*|rcutree.qlowmark=*|rcutree.rcu_cpu_stall_suppress=*);;
-        rcutree.rcu_cpu_stall_timeout=*|rcutree.jiffies_till_first_fqs=*);;
-        rcutree.jiffies_till_next_fqs=*|rcutorture.fqs_duration=*);;
-        rcutorture.fqs_holdoff=*|rcutorture.fqs_stutter=*);;
-        rcutorture.irqreader=*|rcutorture.n_barrier_cbs=*);;
-        rcutorture.nfakewriters=*|rcutorture.nreaders=*);;
-        rcutorture.onoff_holdoff=*|rcutorture.onoff_interval=*);;
-        rcutorture.shuffle_interval=*|rcutorture.shutdown_secs=*);;
-        rcutorture.stall_cpu=*|rcutorture.stall_cpu_holdoff=*);;
-        rcutorture.stat_interval=*|rcutorture.stutter=*);;
-        rcutorture.test_boost=*|rcutorture.test_boost_duration=*);;
-        rcutorture.test_boost_interval=*|rcutorture.test_no_idle_hz=*);;
-        rcutorture.torture_type=*|rcutorture.verbose=*|rdinit=*|reboot=*);;
-        relax_domain_level=*|reserve=*|reservetop=*|reservelow=*);;
-        reset_devices|resume=*|resume_offset=*|resumedelay=*|resumewait);;
-        hibernate=*|retain_initrd|rhash_entries=*|riscom8=*|ro|root=*);;
-        rootdelay=*|rootflags=*|rootfstype=*|rootwait|rw|S|sa1100ir|sbni=*);;
-        sched_debug|skew_tick=*|security=*|selinux=*|apparmor=*|serialnumber);;
-        shapers=*|show_msr=*|simeth=*|simscsi=*|slram=*|slab_max_order=*);;
-        slub_debug|slub_debug=*|slub_max_order=*|slub_min_objects=*);;
-        slub_min_order=*|slub_nomerge|smart2=*|smsc-ircc2.nopnp);;
-        smsc-ircc2.ircc_cfg=*|smsc-ircc2.ircc_sir=*|smsc-ircc2.ircc_fir=*);;
-        smsc-ircc2.ircc_irq=*|smsc-ircc2.ircc_dma=*);;
-        smsc-ircc2.ircc_transceiver=*|softlockup_panic=*|sonypi.*=*);;
-        specialix=*|spia_io_base=*|spia_fio_base=*|spia_pedr=*|spia_peddr=*);;
-        stacktrace|stacktrace_filter=*|sti=*|sti_font=*|stifb=*);;
-        sunrpc.min_resvport=*|sunrpc.max_resvport=*|sunrpc.pool_mode=*);;
-        sunrpc.tcp_slot_table_entries=*|sunrpc.udp_slot_table_entries=*);;
-        swapaccount|swapaccount=*|swiotlb=*|switches=*|sysfs.deprecated=*);;
-        sysrq_always_enabled|tdfx=*|test_suspend=*|thash_entries=*);;
-        thermal.act=*|thermal.crt=*|thermal.nocrt=*|thermal.off=*);;
-        thermal.psv=*|thermal.tzp=*|threadirqs|topology=*|tp720=*);;
-        tpm_suspend_pcr=*|trace_buf_size=*|trace_event=*|trace_options=*);;
-        transparent_hugepage=*|tsc=*|turbografx.map[23]=*|udbg-immortal);;
-        uhash_entries=*|uhci-hcd.ignore_oc=*|unknown_nmi_panic);;
-        usbcore.authorized_default=*|usbcore.autosuspend=*);;
-        usbcore.usbfs_snoop=*|usbcore.blinkenlights=*);;
-        usbcore.old_scheme_first=*|usbcore.usbfs_memory_mb=*);;
-        usbcore.use_both_schemes=*|usbcore.initial_descriptor_timeout=*);;
-        usbhid.mousepoll=*|usb-storage.delay_use=*|usb-storage.quirks=*);;
-        user_debug=*|userpte=*|vdso=*|vdso32=*|vector=*|video=*);;
-        virtio_mmio.device=*|vga=*|vmalloc=*|vmhalt=*|vmpanic=*|vmpoff=*);;
-        vsyscall=*|vt.cur_default=*|vt.default_blu=*|vt.default_grn=*);;
-        vt.default_red=*|vt.default_utf8=*|vt.global_cursor_default=*);;
-        watchdog|x2apic_phys|x86_mrst_timer=*|xd=*|xd_geo=*|xen_emul_unplug=*);;
-        xirc2ps_cs=*);;
-
-        drm.*|i915.*) ;;
-        nomodeset|*.modeset=*);;
-        nosplash|splash=*|fbcon=*);;
 
         #------------------------------------------------------------------------
         # NOTE: see /live/custom/$DISTRO_NAME/0.sh for distro specific boot codes
+        # and a massive list of known kernel and module parameters
         #------------------------------------------------------------------------
 
         *) UNKNOWN_BOOTCODES="$UNKNOWN_BOOTCODES $param"
@@ -942,9 +875,15 @@ read_cmdline_params()
         USER_UID=0
         USER_GID=0
     fi
+
+    case $CMD_VGA in
+        ask+save) GFX_SAVE=both ; BOOT_SAVE=true ;;
+    esac
 }
 
-
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 small_int() {
     local var=$1 val=${2#*=} name=${2%%=*} param=$2
 
@@ -956,6 +895,9 @@ small_int() {
     INTEGER_ERRORS="$INTEGER_ERRORS $param"
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 any_int() {
     local var=$1 val=${2#*=} name=${2%%=*} param=$2
 
@@ -972,6 +914,9 @@ coldplug_delay() {
     sleep $COLDPLUG_DELAY
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 start_coldplug_loop() {
     coldplug-loop $PLUG_LOOP_DELAY &>/dev/null 17>/dev/null &
     COLDPLUG_LOOP_PID=$!
@@ -979,6 +924,9 @@ start_coldplug_loop() {
     echo $COLDPLUG_LOOP_PID > /COLDPLUG_LOOP_PID
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 start_hotplug() {
     local trace_load=$1  targ=/proc/sys/kernel/hotplug
 
@@ -997,6 +945,9 @@ start_hotplug() {
     fi
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 stop_hotplug() {
     local targ=/proc/sys/kernel/hotplug
     test -e $targ && echo | tee $targ &>/dev/null
@@ -1008,11 +959,17 @@ stop_hotplug() {
     kill -9 $COLDPLUG_LOOP_PID
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 old_stop_hotplug() {
     local targ=/proc/sys/kernel/hotplug
     test -e $targ && echo | tee $targ &>/dev/null
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 list_modules() {
     local mod list cnt=0
     list=$( echo $(lsmod | grep "^[a-z]" | cut -d" " -f1) | sort)
@@ -1029,9 +986,11 @@ list_modules() {
     vmsg 6 '%s module(s) failed to load' $(nq $ecnt)
 
     vmsg 7 "$white$ERR_MODULES"
-
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 select_breakpoints() {
     case $BREAK_POINTS in
         *\?*|*ask*)
@@ -1050,6 +1009,9 @@ select_breakpoints() {
     esac
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 mem_info() {
     local info amt kb
     while read info amt kb; do
@@ -1059,32 +1021,23 @@ mem_info() {
     done </proc/meminfo
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 clean_xlat() {
     find $LOCALE_DIR/xlat -name init.xlat -delete
     #rm -rf $LOCALE_DIR/fonts
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 read_xlat() {
     local prog=$1  lang=${2%%_*}
     local xdir=$LOCALE_DIR/xlat
-    local fdir=$LOCALE_DIR/fonts
-    local def_font=$fdir/default
 
     local xlat=$xdir/en/$prog.xlat
     [ -r $xlat ] && . $xlat
-
-    local font=$fdir/${lang:-default}  # don't want an empty $lang
-    [ -e "$font" ] || font=$def_font
-
-    [ "$CON_FONT" -a -e "$fdir/$CON_FONT" ] && font=$fdir/$CON_FONT
-    # Clear screen if we have previously set a font
-    #[ -n "$PREVIOUS_FONT" -a -z "$NO_CLEAR" ] && clear
-    #[ "$font" != "$def_font" ] && PREVIOUS_FONT=$font
-
-    [ "$NO_CLEAR" ] || clear   # Clear and reset screen
-
-    vmsg 7 'Setting font to %s' $(pq $(basename $font))
-    log_cmd setfont $font -C $(tty)
 
     local alt=$DISTRO_ASCII_PRETTY_NAME
     [ -n "$lang" -a -e $fdir/$lang -a -n "$alt" ] && DISTRO_PRETTY_NAME=$alt
@@ -1097,6 +1050,88 @@ read_xlat() {
     vmsg 7 'Translate to %s' $(pq $lang)
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+set_console_width() {
+    local width=${1:-$DEF_SCREEN_WIDTH}  lang=$2  dir=${3:-$LOCALE_DIR/fonts}
+    local def_size=8  name=Terminus  ext=.psf
+
+    # allow conwidth=aa,bb
+    width=${width%%,*}
+
+    case $width in
+        [1-9][0-9]|[1-9][0-9][0-9]) ;;
+        off) return ;;
+        *) warn  "$_Invalid_X_value_Y_" "$(pqw conwidth)" "$(pqw $width)"
+           return ;;
+      esac
+
+    # Setting these fonts only makes sense on a framebuffer
+    test -e /dev/fb0 || return
+
+    # Make sure we have at least 80 chars per line
+    local min_width=${MIN_SCREEN_WIDTH:-80}
+    [ $width -lt $min_width ] && width=$min_width
+
+    local pixel_width=$(get_fbcondecor_width)
+    local cmd_size=$((pixel_width / width))
+
+    vmsg 6 'Width of screen in pixels %s'  "$(pq $pixel_width)"
+    vmsg 6 'Try to set line length to %s'  "$(pq $width)"
+    vmsg 6 'Using size %s'                 "$(pq $cmd_size)"
+
+    local size
+    case $cmd_size in
+              [1-7]) size=12x6                ;;
+               [89]) size=16                  ;;
+                 10) size=20x10               ;;
+                 11) size=22x11               ;;
+              1[23]) size=24x12               ;;
+              1[45]) size=28x14               ;;
+            1[6789]) size=32x16               ;;
+       [23456][0-9]) size=32x16               ;;
+    esac
+
+    local code
+    case ${lang%%_*} in
+                     kk|ky|tj) code='CyrAsia'  ;;
+                        ru|uk) code='CyrKoi'   ;;
+                  bg|mk|ru|sr) code='CyrSlav'  ;;
+      bs|hr|cs|hu|pl|ro|sk|sl) code='Lat2'     ;;
+        af|sq|ast|da|nl|et|fr) code='Lat15'    ;;
+    'fi'|de|is|id|pt|es|sv|tr) code='Lat15'    ;;
+                        lt|lv) code='Lat7'     ;;
+                           el) code='Greek'    ;;
+                            *) code='Uni2'     ;;
+    esac
+
+    local try  font  f_size  f_face file
+    for f_size in $size $def_size; do
+        for f_face in ${name}Bold VGA $name; do
+            try=$code-$f_face$f_size
+            file=$dir/$try$ext
+            test -e $file || continue
+            font=$try
+            break
+        done
+        [ "$font" ] && break
+    done
+
+    [ "$font" ] || return 2
+
+    [ "$NO_CLEAR" ] || clear
+    vmsg 5  "$_Set_font_to_X_" "$(pq $font)"
+
+    log_cmd setfont $file -C $(tty)
+
+    SCREEN_WIDTH=$(stty size 2>/dev/null | cut -d" " -f2)
+    vmsg 7  "$_New_screen_width_X_"  "$(pq $SCREEN_WIDTH)"
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 do_welcome() {
 
     [ "$NO_CLEAR" ] || clear   # Clear and reset screen
@@ -1111,15 +1146,10 @@ do_welcome() {
         *[pP][aA][eE]) arch="$arch pae" ;;
     esac
 
-    vmsg 2  "$_Welcome_to_X_" "$(pq $pretty_name$arch)!"
+    pretty_name="$pretty_name$arch"
+    vmsg 2  "$_Welcome_to_X_" "$(pq $pretty_name)!"
 
-    (   imsg  "$_Welcome_to_X_Powered_by_Y_" "$(gq $pretty_name$arch)" "$(gq Debian)."
-        if [ -n "$CLI_INSTALLER" ]; then
-            echo
-            imsg  "$_For_command_line_install_login_as_X_password_Y_" "$(gq root)" "$(gq root)"
-            imsg  "$_Enter_the_command_X_Follow_the_instructions_" "$(gq $CLI_INSTALLER)"
-        fi
-    ) > /issue
+    echo "$pretty_name" > /live/config/pretty-name
 
     if lspci -n | grep -iq " 80ee:beef"; then
         vmsg 7 'VirtualBox detected'
@@ -1161,6 +1191,9 @@ do_welcome() {
     # vmsg 6  "$cpu_format" '                    Cache' "$(cpu_param 'cache size' unknown)"
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 show_bootcodes() {
     local unknown=$1
 
@@ -1179,6 +1212,9 @@ show_bootcodes() {
     vmsg 4
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 show_integer_errors() {
     local param name value params=$1
 
@@ -1191,6 +1227,9 @@ show_integer_errors() {
     done
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 show_disable_errors() {
     local codes=$1  ds_param=$2
     [ -n "$codes" ] || return
@@ -1200,12 +1239,18 @@ show_disable_errors() {
     warn  "$_Unknown_option_s_in_X_Unknown_option_s_Y_" "$(pqw $ds_param)" "$(pqw $bad)"
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 cpu_param() {
     local result=$(grep "^$1" /proc/cpuinfo | head -n 1 | sed 's/.*\t: //')
     [ "$result" ] || result=$2
     echo "$result"
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 disable_hcd() {
     local type=$1
     local dir=/sys/bus/pci/drivers/${type}_hcd
@@ -1220,6 +1265,44 @@ disable_hcd() {
     done
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+get_fbcondecor_width() {
+    local theme=${1:-default}  res
+    local fbsize_file=/sys/class/graphics/fb0/virtual_size
+    read res 2>/dev/null <$fbsize_file
+    [ -z "$res" ] && return
+    if test -e /dev/fbcondecor; then
+        local file=/etc/splash/$theme/${res/,/x}.cfg
+        test -r $file || return
+        sed -rn "s/^\s*tw=([0-9]+).*/\1/p" $file | tail -n1
+    else
+        cut -d, -f1 $fbsize_file
+    fi
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+get_fbcondecor_theme() {
+
+    local boot_param=${1:-$SPLASH_PARAM}
+    local param theme
+    for param in ${boot_param//,/ }; do
+        case $param in
+          t=*|theme=*) theme=${param#*=} ;;
+        esac
+    done
+    test -d /etc/$theme/ || theme=default
+    test -d /etc/$theme/ || return 1
+    echo $theme
+    return 0
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 set_fbcondecor() {
     local boot_param=$1 orig_name=$2 param verbose theme=default
     #vmsg 5 "set_fbcondecor('$1' '$2')"
@@ -1251,15 +1334,31 @@ set_fbcondecor() {
     $prog -c on 2>/dev/null
 }
 
+#------------------------------------------------------------------------------
+# Create a file to blacklist modules when the initrd and when the main
+# system boots.  Specified by blacklist=xxx or bl=xxxx.
+#------------------------------------------------------------------------------
 blacklist_modules() {
-    local black_list=$1
+    local black_list=$1  local file=$2
     [ "$black_list" ] || return
 
     black_list=$(echo $black_list | sed -r "s/(VIDEO|KMS)/$KMS_VIDEO_MODULES/");
     mkdir -p /etc/modprobe.d/
+    cat << Black_List_File
+#------------------------------------------------------------------------------
+# file ${file##*/} created around $(date)
+#
+# Created by the antiX/MX live initrd.  This file will be erased on every
+# live boot.  Please rename it if you want to keep it.
+#------------------------------------------------------------------------------
+
+Black_List_File
     echo $black_list | sed 's/,/\n/g' | sed -r 's/^([a-z])/blacklist \1/' >> $BLACK_LIST_FILE
 }
 
+#------------------------------------------------------------------------------
+# Load kernel modules giving by load=xxx
+#------------------------------------------------------------------------------
 load_kernel_modules() {
     local list=$1 file=$2
 
@@ -1278,6 +1377,9 @@ load_kernel_modules() {
     done
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 load_all_modules() {
     local subdir=$1
     msg  "$_Loading_all_modules_"
@@ -1288,12 +1390,18 @@ load_all_modules() {
         | xargs modprobe -q -a -b 2>/dev/null
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 debug_cmd() {
     echo "==== $*"                        >> $MY_LOG
     "$@"                                  >> $MY_LOG
     echo "==============================" >> $MY_LOG
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 coldplug_modules() {
     local verb=$1
 
@@ -1336,6 +1444,9 @@ is_usb_or_removable() {
     return $?
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 is_removable() {
     local drive=$(get_drive $1)
     local dir=/sys/block/$drive flag
@@ -1354,6 +1465,23 @@ get_drive() {
         mmcblk*) echo ${part%p[0-9]}                        ;;
               *) drive=${part%[0-9]}  ; echo ${drive%[0-9]} ;;
     esac
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+next_partition() {
+    local device=$1  dev=${1##*/}
+    local pre=${device%%$dev}
+    local root  part
+    case $dev in
+        mmcblk*p[1-9]) root=${dev%[1-9]}  ; part=${dev#${root}}  ;;
+          nvme*p[1-9]) root=${dev%[1-9]}  ; part=${dev#${root}}  ;;
+                    *) root=${dev%[0-9]}  ; root=${root%[0-9]}
+                       part=${dev#$root}                         ;;
+    esac
+    part=$((part + 1))
+    echo "$pre$root$part"
 }
 
 #------------------------------------------------------------------------------
@@ -1436,6 +1564,9 @@ from_filter() {
     return $?
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 find_boot_file() {
     local ret
     find_files boot "$@"
@@ -1458,7 +1589,7 @@ find_boot_file() {
 }
 
 #------------------------------------------------------------------------------
-# Function: find_files <files> <mntpnt> <dev> <label> <uuid> <retry>
+# Function: find_files <type> <files> <mntpnt> <device_id> <retry_time>
 #
 # The outer wrapper lets us show the loop times regardless of how we left the
 # main code in _find_files().
@@ -1721,6 +1852,7 @@ _find_files() {
                 fi
                 FOUND_DEV=$dev
                 FOUND_MP=$mntpnt
+                FOUND_FNAME=$fname
                 return 0
             done
             [ "$mounted" ] && mountpoint -q $mp_orig && umount $mp_orig
@@ -1769,26 +1901,56 @@ find_device() {
     return $err_ret
 }
 
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+create_grub_entry() {
+    local bdir=$1  uuid=$2
+    cat <<Grub_Entry
+menuentry "$DISTRO_PRETTY_NAME Frugal Install" {
+    search --no-floppy --set=root --fs-uuid $uuid
+    linux /$bdir/vmlinuz bdir=$bdir buuid=$uuid $(gather_frugal_cmdline)
+    initrd /$bdir/initrd.gz
+}
+Grub_Entry
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 device_uuid() {
     local device=$1
     blkid $device | sed -n -r 's/.* UUID="([^"]*)"( |$).*/\1/p'
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 device_label() {
     local device=$1
     blkid $device | sed -n -r -e 's/" (UUID=|TYPE=)".*//' -e 's/[^:]*: LABEL="//p'
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 device_fstype() {
     local device=$1
     blkid $device | sed -n -r 's/.* TYPE="([^"]*)"$/\1/p' | tail -n 1
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 mntpnt_fstype() {
-    local dev=$(df $1 | tail -n1 | cut -d" " -f1)
+    local dev=$(df -P $1 | tail -n1 | cut -d" " -f1)
     device_fstype $dev
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 frugal_error() {
 
     # Disable persistence if frugal fails or is aborted
@@ -1801,11 +1963,15 @@ frugal_error() {
     done
 
     non_fatal  "Frugal install failed (or was teminated)"
-
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 find_frugal_file() {
-    local frugal_id=$1  bdir=$DISTRO_NAME-Frugal-$(uname -r)
+    local frugal_id=$1  bdir=$FRUGAL_DIR
+    : ${bdir:=$FRUGAL_NAME-Frugal-$(uname -r)}
+
     local sqfile=$bdir/$SQFILE_NAME need_to_ask
     local device name=${frugal_id%%=*}  value=${frugal_id#*=}
 
@@ -1841,7 +2007,7 @@ find_frugal_file() {
         msg 'Force frugal install'
         if [ $ret -eq 0  ]; then
             device=$FOUND_DEV
-            umount $FOUND_DEV
+            log_cmd umount $FOUND_DEV
         fi
 
     else
@@ -1851,9 +2017,9 @@ find_frugal_file() {
         warn
     fi
 
-    find_boot_file "$SQFILE_FILE" "$BOOT_MP" "$BOOT_ID" "$BOOT_RETRY" \
-        || linuxfs_error  "$_Could_not_find_X_file_Y_" "$LINUXFS_NAME" "$(fqe \"$SQFILE_FILE\")"
+    find_crypt_or_linuxfs
 
+    BIOS_DEV=$FOUND_DEV
     SQFILE_MP=$BOOT_MP
     SQFILE_DEV=$FOUND_DEV
 
@@ -1883,7 +2049,7 @@ find_frugal_file() {
 
         [ -z "$device" -o "$device" =  "$_quit_" ] && return 1
 
-        [ "$LABEL_FRUGAL" ] && label_device $device "$DISTRO_NAME-Frugal"
+        [ "$LABEL_FRUGAL" ] && label_device $device "$FRUGAL_NAME-Frugal"
     fi
 
     if ! mkdir -p $FRUGAL_MP; then
@@ -1933,13 +2099,20 @@ find_frugal_file() {
             log_cmd rm -f $sqfile_full
             return 40
         fi
+
+        create_grub_entry "$bdir" "$(device_uuid $device)"  >  $sqfile_dir/grub.entry
+
+        case $(device_fstype $BIOS_DEV) in
+            vfat|ext[234]) device_uuid $BIOS_DEV > $sqfile_dir/bios-dev-uuid
+        esac
+
         #. The <frugal> install succeeded
         warn  "$_The_X_install_succeeded_" frugal
         DID_FRUGAL=true
     fi
 
-    log_cmd umount $SQFS_MP
-    log_cmd umount $BOOT_MP
+    lazy_umount $SQFS_MP
+    lazy_umount $BOOT_MP
 
     mount --move $FRUGAL_MP $BOOT_MP
     rmdir $FRUGAL_MP
@@ -1956,6 +2129,9 @@ find_frugal_file() {
     return 0
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 find_linuxfs_file() {
 
     if [ -n "$ISO_FILE" -o -n "$FROM_ISO" ]; then
@@ -1985,19 +2161,19 @@ find_linuxfs_file() {
         # Find the linuxfs file
         SQFILE_FULL="$ISO_FILE_MP/$SQFILE_FILE"
         [ -f "$SQFILE_FULL" ] \
-            || linuxfs_error  "$_File_X_not_found_on_device_Y_" "$LINUXFS_NAME" "$SQFILE_FULL" "$FOUND_DEV"
+            || linuxfs_error  "$_File_X_not_found_on_device_Y_" "$SQFILE_FULL" "$FOUND_DEV"
 
         SQFILE_MP=$ISO_FILE_MP
         SQFILE_DEV=$FOUND_DEV   # Used for toram-eject
         SQFILE_PATH=${SQFILE_FILE%/*}
 
         DID_ISO=true
+
     else
-        find_boot_file "$SQFILE_FILE" "$BOOT_MP" "$BOOT_ID" "$BOOT_RETRY" \
-            || linuxfs_error  "$_Could_not_find_X_file_Y_" "$LINUXFS_NAME" "$(fqe \"$SQFILE_FILE\")"
+
+        find_crypt_or_linuxfs
 
         SQFILE_MP=$BOOT_MP
-
         SQFILE_DEV=$FOUND_DEV
 
         SQFILE_FULL=$BOOT_MP/$SQFILE_FILE
@@ -2010,8 +2186,281 @@ find_linuxfs_file() {
     DEFAULT_DIR=$SQFILE_DIR
 }
 
+#------------------------------------------------------------------------------
+# Make sure the mode is valid and if encryption is enabled then make sure that
+# we have all of the tools needed, otherwise disable it.
+#------------------------------------------------------------------------------
+validate_encryption_mode() {
+
+    : ${ENCRYPT_MODE=$(head -n1 $ENCRYPT_MODE_FILE 2>/dev/null)}
+
+    # Default to enable or disabled depending on existence of cryptsetup program
+    if [ -z "$ENCRYPT_MODE" ]; then
+        if test -x /bin/cryptsetup; then
+            ENCRYPT_MODE=$ENCRYPT_ONLY
+        else
+            ENCRYPT_MODE=$ENCRYPT_DISABLE
+        fi
+    fi
+
+    case $ENCRYPT_MODE in
+                   $ENCRYPT_DISABLE) return ;;
+        $ENCRYPT_BOTH|$ENCRYPT_ONLY)        ;;
+                             uuid=*)        ;;
+        *) fatal  "$_Invalid_encryption_mode_X_" "$mode" ;;
+    esac
+
+    test -d /sys/module/dm_crypt  || fatal  "$_Required_encryption_kernel_module_X_not_found_"      "$(pqh dm-crypt)"
+    test -e /bin/cryptsetup       || fatal  "$_The_X_program_was_not_found_Cannot_do_encryption_" "$(pqh cryptsetup)"
+    cryptsetup --help &>/dev/null || fatal  "$_The_X_program_is_broken_Cannot_do_encryption_"     "$(pqh cryptsetup)"
+}
+
+#------------------------------------------------------------------------------
+# This code is used in 2 places.  Very yuck right now.
+#------------------------------------------------------------------------------
+find_crypt_or_linuxfs() {
+
+    validate_encryption_mode
+
+    local boot_dir=$(dirname $SQFILE_FILE)  fname=$(basename $SQFILE_FILE)
+    local crypt_full="$boot_dir/$CRYPT_FNAME"
+
+    CRYPT_UUID=
+    local files
+    case $ENCRYPT_MODE in
+        $ENCRYPT_DISABLE) files="$SQFILE_FILE"              ;;
+           $ENCRYPT_BOTH) files="$crypt_full $SQFILE_FILE"  ;;
+           $ENCRYPT_ONLY) files="$crypt_full"               ;;
+                  uuid=*) CRYPT_UUID=${ENCRYPT_MODE#uuid=}  ;;
+                       *) fatal 'Unknown encyption mode %s' "$ENCRYPT_MODE" ;;
+    esac
+
+    local crypt_dev
+
+    # Perhaps this can be improved.  Maybe we should grep on the fstype?
+    if [ "$CRYPT_UUID" ]; then
+        local try devs
+        msg  "$_Looking_for_encrypted_device_with_uuid_X_" "$(pq "$CRYPT_UUID")"
+        for try in $(seq 1 $BOOT_RETRY); do
+
+            devs=$(uuid_to_dev $CRYPT_UUID  "$_TYPE_crypto_LUKS_")
+            [ -n "$devs" ] && break
+            echo -n "."
+            sleep 1
+        done
+        echo
+        # Take just the first found device for now :(
+        crypt_dev=${devs%% *}
+    else
+
+        if ! find_boot_file "$files" "$BOOT_MP" "$BOOT_ID" "$BOOT_RETRY"; then
+            case $ENCRYPT_MODE in
+                $ENCRYPT_DISABLE) linuxfs_error  "$_Could_not_find_file_X_" "$(fqe $SQFILE_FILE)"                             ;;
+                   $ENCRYPT_BOTH) linuxfs_error  "$_Could_not_find_files_X_or_Y_" "$(fqe $SQFILE_FILE)" "$(fqe $crypt_full)" ;;
+                   $ENCRYPT_ONLY) linuxfs_error  "$_Could_not_find_file_X_" "$(fqe $crypt_full)"                              ;;
+            esac
+        fi
+
+        [ "$FOUND_FNAME" != "$crypt_full" ] && return
+
+        BIOS_UUID=$(device_uuid $FOUND_DEV)
+        BIOS_DEV=$FOUND_DEV
+
+        # Move mounted "bios" device out of the way
+        mkdir -p $BIOS_MP
+        log_cmd mount --move $BOOT_MP $BIOS_MP
+
+        local crypt_file="$BIOS_MP/${crypt_full#/}"
+
+        CRYPT_UUID=$(head -n1 $crypt_file 2>/dev/null)
+        [ -n "$CRYPT_UUID" ] && crypt_dev=$(blkid | grep "UUID=.$CRYPT_UUID." | cut -d: -f1)
+    fi
+
+    vmsg 7 'crypt_uuid %s   crypt_dev %s' "$(pq "$CRYPT_UUID")" "$(pq $crypt_dev)"
+
+    [ -z "$crypt_dev" ] && fatal  "$_No_encrypted_device_with_uuid_X_was_found_" "$(pqh "$CRYPT_UUID")"
+
+    : ${CRYPT_UUID:=$(device_uuid $crypt_dev)}
+
+    BOOT_UUID=$CRYPT_UUID
+
+    msg  "$_Checking_for_encrypted_partition_on_device_X_" "$crypt_dev"
+
+    test -e "$crypt_dev" || fatal  "$_Encrypted_device_X_does_not_exist_"                 "$(dqe $crypt_dev)"
+    test -b "$crypt_dev" || fatal  "$_Encrypted_device_X_is_not_a_block_device_"          "$(dqe $crypt_dev)"
+    cryptsetup isLuks "$crypt_dev" || fatal  "$_Encrypted_device_X_is_not_a_LUKS_device_" "$(dqe $crypt_dev)"
+
+    mount -o remount,rw $BIOS_DEV
+
+    local phrase_full=$BIOS_MP/$boot_dir/$PHRASE_FNAME
+    if test -f $phrase_full; then
+        reset_passphrase $phrase_full $crypt_dev
+    elif [ "$CHANGE_PASSPHRASE" ]; then
+        change_passphrase $crypt_dev
+    fi
+
+    warn  "$_Found_encrypted_device_You_will_be_asked_to_enter_your_passphrase_below_"
+    cttyhack cryptsetup open --type luks $crypt_dev $LUKS_NAME || fatal  "$_Could_not_open_LUKS_device_X_" $crypt_dev
+    local mapper_dev=/dev/mapper/$LUKS_NAME
+    msg  "$_Opened_encrypted_device_X_at_Y_" "$crypt_dev" "$mapper_dev"
+    try_mount "$mapper_dev" "$BOOT_MP" || fatal  "$_Could_not_mount_encrypted_device_"
+    test -e "$BOOT_MP/$SQFILE_FILE" || fatal  "$_Could_not_find_file_X_on_encrypted_partition_" "$SQFILE_FILE"
+    BOOT_FSTYPE=$(mntpnt_fstype $BOOT_MP)
+    ENCRYPTED=true
+    CRYPT_DEV=$mapper_dev
+    FOUND_DEV=$mapper_dev
+    if [ "$HAVE_SET_PASSPHRASE" ]; then
+        warn  "$_Are_you_sure_you_have_written_down_or_memorized_the_new_passphrase_"
+        msg  "$_press_X_to_continue_" "<$(bq  "$_Enter_")>"
+        local xxxx
+        read xxxx
+    fi
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+change_passphrase() {
+    local dev=$1
+
+    warn  "$_Changing_encryption_passphrase_"
+
+    local old file=/passphrase
+    while true; do
+        echo -e  "$_Please_enter_current_passphrase_in_clear_text_"
+        echo -n "> "
+        read old
+        echo -n "$old" > $file
+        cryptsetup open --type luks --test-passphrase --key-file $file $dev &>/dev/null && break
+
+        warn  "$_The_entered_passphrase_does_not_match_"
+        YES_no  "$_Do_you_want_to_try_again_" && continue
+        warn  "$_Passphrase_change_aborted_"
+        return 3
+    done
+
+    if ! set_new_passphrase "$file" "$dev"; then
+        err  "$_Passphrase_was_not_changed_"
+        return 3
+    fi
+
+    rm $file
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+reset_passphrase() {
+    local file=$1  dev=$2
+    test -f $file || return
+    local size=$(wc -c $file | cut -d" " -f1)
+
+    warn  "$_Preparing_for_passphrase_first_boot_reset_"
+
+    if [ $size -eq 0 ]; then
+        warn  "$_Reset_aborted_passphrase_file_is_empty_"
+        return 1
+    fi
+
+    if ! cryptsetup open --type luks --test-passphrase --key-file $file $dev &>/dev/null; then
+        warn  "$_Reset_aborted_wrong_passphrase_in_passphrase_file_"
+        return 2
+    fi
+
+    if ! set_new_passphrase "$file" "$dev"; then
+        err  "$_Passphrase_was_not_changed_"
+        return 3
+    fi
+
+    mv $file $file.old
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+set_new_passphrase() {
+    local file=$1  dev=$2
+    [ "$DB_PLUS" ] && msg  "$_current_phrase_X_" "$(pq $(cat $file))"
+    while true; do
+        warn  "$_You_will_be_asked_to_enter_a_new_passphrase_twice_"
+        cttyhack cryptsetup luksChangeKey --key-file $file $dev 2>&1 && return 0
+        YES_no  "$_Do_you_want_to_try_again_" || return 2
+    done
+}
+
+#------------------------------------------------------------------------------
+# These version offers the choice of several randomly generated passphrases
+# as well as setting your own.  The problem is there is almost zero entropy
+# this early in the boot process so the "random" phrases are really not very
+# random at all.  Someday we could offer a generated passphrase as an option
+# and then ask the user to generate entropy by typing or something like that.
+# But even that can be tricky because address randomization can eat up more
+# entropy than we generate.
+#------------------------------------------------------------------------------
+fancy_set_new_passphrase() {
+    local file=$1  dev=$2
+
+    local phrase  phrase_2  phrase_3   phrase_4   phrase_5
+    local fmt="$m_co %2s$to_co)$m_co %s$nc_co\n"
+
+    warn 'Please select a passphrase or create your own'
+
+    local i=1
+    printf "$fmt" "$i" 'Create your own passphrase (default)'
+
+    local len=4  max_len=8 seq=$(seq 2 5)
+    for i in $seq; do
+        phrase=$(mkpassphrase $len)
+        eval phrase_$i=\$phrase
+        printf "$fmt" "$i" "$(bq "$phrase")"
+
+        len=$((len + 2))
+        [ $len -gt $max_len ] && len=$max_len
+
+    done
+    i=$((i + 1))
+    printf "$fmt" "$i" 'Reboot'
+    i=$((i + 1))
+    printf "$fmt" "$i" 'Poweroff'
+
+    local ans  create_own use_phrase
+    while true; do
+        read ans
+        case $ans in
+         1|"") create_own=true               ;;
+        [2-5]) eval use_phrase=\$phrase_$ans ;;
+            6) safe-reboot                   ;;
+            7) safe-poweroff                 ;;
+            *) warn 'Invalid selection, please try again' ; continue ;;
+        esac
+        break
+    done
+
+    if [ "$create_own" ]; then
+        warn 'You will be asked to enter a new passphrase twice'
+        cttyhack cryptsetup luksChangeKey --key-file $file $dev 2>&1 || return $?
+
+    elif [ "$use_phrase" ]; then
+        msg 'Using passphrase %s' "$(bq "$use_phrase")"
+        [ "$DB_PLUS" ] && echo -n "$use_phrase" > /live/config/passphrase
+        printf "%s" "$use_phrase" | cryptsetup luksChangeKey --key-file $file $dev 2>&1 || return $?
+    else
+        fatal 'Internal error setting new passphrase'
+    fi
+
+    warn 'Please DO NOT forget your new passphrase! You will need it every time you boot'
+    #warn "You will be asked for the new passphrase to mount the encrypted partition"
+    warn
+    HAVE_SET_PASSPHRASE=true
+    return 0
+}
+
 # FIXME: mention failsafe option or load=all.
 
+#------------------------------------------------------------------------------
+# Get error message from args and then print extra info about our search in a
+# fatal error message.
+#------------------------------------------------------------------------------
 linuxfs_error() {
     local msg=$(printf "$@")  device_list=$(echo $DEVICE_LIST)
     local all_devices=$(echo $(most_block_devices));
@@ -2024,6 +2473,10 @@ linuxfs_error() {
         "$(printf  "$_Please_contact_X_at_Y_" "$DEVELOPER" "$DISTRO_BUG_REPORT_URL")"
 }
 
+#------------------------------------------------------------------------------
+# Make sure the running kernel has a /lib/modules/$KERNEL directory inside the
+# linuxfs file
+#------------------------------------------------------------------------------
 check_kernel_version() {
     local mp=${1%/}  fatal=$2
     local kversion=$(uname -r)
@@ -2040,6 +2493,30 @@ check_kernel_version() {
             "$(printf  "$_Kernel_version_X_" $(pqh $kversion))" \
             "$(printf  "$_The_module_directory_X_is_missing_" $(pqh $mp$mod_dir))"
     fi
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+seed_dev_random() {
+    local file=$1
+    test -r "$file" || return
+    vmsg 5  "$_Initializing_random_number_generator_"
+    (date +%s.%N ; cat $file 2>/dev/null) >/dev/urandom
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+prep_seed_dev_random() {
+    local i  file=$1  cnt=${2:-32}
+    [ -z "$file" ]   && return
+    test -e "$file"  || touch $file 2>/dev/null
+    test -w "$file"  || return
+    # A random seed is used to start the random number generator differently each boot
+    msg  "$_Saving_random_seed_"
+    dd if=/dev/urandom bs=1 count=512 2>/dev/null > $file
+    chmod 600 $file 2>/dev/null
 }
 
 #==============================================================================
@@ -2066,7 +2543,7 @@ mount_linuxfs() {
             || fatal  "$_Could_not_mount_X_as_a_Y_file_" $sqfile_full 'filesystem'
     fi
 
-    LINUXFS_DEV=$(df $sqfile_full | tail -n1 | cut -d" " -f1)
+    LINUXFS_DEV=$(df -P $sqfile_full | tail -n1 | cut -d" " -f1)
 
     SQFS_VID=$(get_vid $vid_file)
 
@@ -2079,6 +2556,9 @@ mount_linuxfs() {
     SQFS_VID_FILE=$vid_file
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 mount_aufs_ram() {
     local aufs_ram_mp=$1  min_aufs_ram=$2  free_mem=$3
     # Default tempfs size for tempfs = 80% of FREE_MEM
@@ -2090,6 +2570,9 @@ mount_aufs_ram() {
     mount_tmpfs $aufs_ram_mp $AUFS_RAM_SIZE 'aufs ram' || fatal  "$_Create_X_failed_" 'aufs tmpfs'
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 check_unionfs() {
     test -d /sys/module/aufs    && AUFS_OKAY=true
     test -d /sys/module/overlay && OVERLAY_OKAY=true
@@ -2115,6 +2598,9 @@ check_unionfs() {
     esac
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 want_unionfs() {
     local okay=$1  this=$2  other=$3
     if [ "$okay" ]; then
@@ -2125,6 +2611,9 @@ want_unionfs() {
     fi
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 need_unionfs() {
     local okay=$1  this=$2
     if [ "$okay" ]; then
@@ -2137,6 +2626,9 @@ need_unionfs() {
     fi
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 check_existing_unionfs() {
     local mp=$1  type
     if test -d $mp/etc; then
@@ -2154,6 +2646,9 @@ check_existing_unionfs() {
     return 0
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 mount_unionfs() {
     local upper_mp aufs_mp=$1  aufs_ram_mp=$3  rootfs_mp=$4
 
@@ -2180,6 +2675,9 @@ mount_unionfs() {
     chmod 1777 $aufs_mp/tmp $aufs_mp/var/tmp
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 mount_overlayfs() {
     local  aufs_mp=$1  sqfs_mp=$2  upper_mp=$3
 
@@ -2207,6 +2705,9 @@ mount_aufs() {
         || fatal  "$_Could_not_mount_X_" aufs
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 link_top_dirs() {
     local mp=$1  dir  mp_dir
     shift
@@ -2221,27 +2722,36 @@ link_top_dirs() {
     vmsg 7
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 try_mount() {
     local dev=$1  mp=$2  rw=${3:-$RW_MODE}
     local type=$(blkid $dev | sed -n -r 's/.* TYPE="([^"]*)"$/\1/p' | tail -n 1)
     [ "$type" ] || return 1
     local opts=$rw,noatime
-    local winopts=$opts,umask=000,dmask=002,fmask=113
+    local winopts=umask=000,dmask=002,fmask=113
+    local ntfsopts=force,rw,$winopts
     local fatopts=$winopts,shortname=winnt,uid=$USER_UID,gid=$USER_GID
 
     case $type in
+     crypto_LUKS) return 1 ;;
             ext4) log_cmd mount -t $type   -o $opts$LAZYTIME  $dev "$mp" 2>/dev/null ;;
         ext[234]) log_cmd mount -t $type   -o $opts           $dev "$mp" 2>/dev/null ;;
-            vfat) log_cmd mount -t vfat    -o $fatopts        $dev "$mp" 2>/dev/null ;;
+            vfat) modprobe -q nls-cp437
+                  log_cmd mount -t vfat    -o $fatopts        $dev "$mp" 2>/dev/null ;;
          iso9660) log_cmd mount -t iso9660 -o ro              $dev "$mp" 2>/dev/null ;;
              udf) log_cmd mount -t udf     -o ro              $dev "$mp" 2>/dev/null ;;
-            ntfs) log_cmd ntfs-3g          -o force,$winopts  $dev "$mp" 2>/dev/null 17>/dev/null || \
+            ntfs) log_cmd ntfs-3g          -o $ntfsopts       $dev "$mp" 2>/dev/null 17>/dev/null || \
                   log_cmd mount -t ntfs    -o umask=000,ro    $dev "$mp" 2>/dev/null ;;
                *) log_cmd mount -t $type   -o $opts           $dev "$mp" 2>/dev/null ;;
     esac
     return $?
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 try_file_mount() {
     local file=$1  mp=$2  rw=${3:-$RW_MODE}
     local opts=loop,$rw,noatime
@@ -2265,6 +2775,16 @@ mount_tmpfs() {
     vmsg 8  "$_Create_X_at_Y_Z_" "${hi_co}$full_name${m_co}" "$(fq "$full_mp")" "(${num_co}$size ${m_co}MB)"
     log_cmd $LIVE_BIN/mount -t tmpfs -o size=${size}m$opts,noatime tmpfs $mp
     return $?
+}
+
+#------------------------------------------------------------------------------
+# Try a lazy umount and throw an error if the mp is still mounted.  Use with
+# caution.
+#------------------------------------------------------------------------------
+lazy_umount() {
+    local mp=$1
+    log_cmd umount -l $mp
+    mountpoint -q $mp && non_fatal "Was not able to unmount $mp"
 }
 
 #==============================================================================
@@ -2294,6 +2814,9 @@ $(dd if=$dev bs=1 skip=1024 count=128 2>/dev/null| hexdump -d | sed -r "s/ 0+([0
 DD_Hexdump
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 should_fsck() {
     local dev=$1  sdev=${1##*/}  name=$2  max_count=$MAX_MOUNT_CNT
     [ "$DO_FSCK" ] || return 1
@@ -2355,6 +2878,9 @@ should_fsck() {
     return 0
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 do_fsck() {
     local err ret  name=$1 dev=$2  sdev=$(pq ${2##*/}) opts=${3:--n} filefs=$4
 
@@ -2393,20 +2919,24 @@ do_fsck() {
     return $err
 }
 
-fsck_boot_dev() {
-    local dev=$1  mp=$2
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+fsck_any_device() {
+    local dev=$(readlink -f "$1")  mp=$2  lab=$3
+    [ -n "$mp" -a -n "$dev" ] || return
 
     local type=$(grep "^$dev " /proc/mounts | cut -d" " -f3)
 
     if [ -n "$FORCE_FSCK" -a -n "${type##ext[234]}" ]; then
-        msg 'Cannot check %s device filesystem of type %s' "$(pq boot)" "$(pq $type)"
+        msg 'Cannot check %s device filesystem of type %s' "$(pq $lab)" "$(pq $type)"
         return
     fi
 
-    should_fsck $dev boot || return
+    should_fsck $dev $lab || return
 
     log_cmd mount -o remount,ro $dev
-    do_fsck  "$_boot_device_" $dev -n
+    do_fsck "$lab device" $dev -n
 }
 
 #==============================================================================
@@ -2418,6 +2948,9 @@ set_path() {
     hash -r
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 should_break_at() {
     local bp=$1
     case ,$BREAK_POINTS, in
@@ -2432,6 +2965,9 @@ should_break_at() {
     esac
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 custom_code() {
     local file=$1  desc=$2
 
@@ -2447,6 +2983,9 @@ custom_code() {
     fi
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 breakpoint() {
     local bp=$1  desc=$2
 
@@ -2455,7 +2994,8 @@ breakpoint() {
     if [ "$DB_PLUS" -a -n "${bp##b*}" ]; then
         local now=$(get_time)
         local delta=$(get_seconds $((now - LAST_BP_TIME)))
-        vmsg 9 "$green@bp$cyan[$num_co$bp$m_co]$hi_co $(get_seconds $now)s ($delta)$m_co: $desc"
+        vmsg 8 "$green@bp$cyan[$num_co$bp$m_co]$hi_co %5ss (%5s)$m_co: %s" "$(get_seconds $now)" "$delta" "$desc"
+        #vmsg 8 'Available entropy %s' "$(pq $(cat /proc/sys/kernel/random/entropy_avail 2>/dev/null))"
         LAST_BP_TIME=$now
     fi
 
@@ -2471,13 +3011,23 @@ breakpoint() {
     echo "$green    Use$white safe-poweroff$green and$white safe-reboot$green to poweroff and reboot"
 
     local bp_time_1=$(get_time)
+
+    trap - $SIGNAL_LIST
+
     env PS1="${green}bp $red$bp$cyan>$nc_co " BP=$bp PATH=$LIVE_BIN:$PATH \
         setsid cttyhack sh 17>/dev/null
+
+    trap "" $SIGNAL_LIST
+
     bp_time_2=$(get_time)
+
     time_0=$((time_0 + bp_time_2 - bp_time_1))
     echo
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 do_bash_chroot() {
 
     local rc_file=/root/chrootrc bp=${1:-bash} root_dir=${2:-$NEW_ROOT}
@@ -2496,7 +3046,13 @@ Chroot_RC
     echo "$green    Use$white poweroff$green and$white reboot$green to poweroff and reboot"
 
     rm -f $root_dir/poweroff $/root_dir/reboot
+
+    trap - $SIGNAL_LIST
+
     setsid cttyhack aufs-chroot bash --init-file $rc_file
+
+    trap "" $SIGNAL_LIST
+
     local do_poweroff do_reboot
     test -e $root_dir/poweroff && do_poweroff=true
     test -e $root_dir/reboot   && do_reboot=true
@@ -2531,13 +3087,9 @@ hq()     { echo "$hi_co$*$m_co"           ;}
 ncq()    { echo "$hi_co$*$nc_co"          ;}
 gq()     { echo "$hi_co$*$lt_green"       ;}
 
-
-imsg() {
-    local fmt=$1
-    shift
-    printf "$lt_green$fmt$nc_co\n" "$@"
-}
-
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 vmsg() {
     local level=$1  fmt=$2
     shift 2
@@ -2549,6 +3101,9 @@ vmsg() {
     return 0
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 vmsgN() {
     local level=$1  fmt=$2
     shift 2
@@ -2560,17 +3115,26 @@ vmsgN() {
     return 0
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 vmsg_if() {
     local level=$1; shift
     [ "$VERBOSE" -ge "$level" ] || return
     vmsg $level "$@"
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 vmsg_nc() {
     local level=$1; shift
     vmsg $level "$nc_co$@"
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 set_colors() {
     local noco=$1  loco=$2
 
@@ -2596,18 +3160,26 @@ set_colors() {
      num_co=$white
 }
 
-
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 get_time() { cut -d" " -f22 /proc/self/stat ;}
 
 show_time() {
     msg "$(printf "$green%ss$yellow %s" $(get_seconds) "$*")"
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 get_seconds() {
     local dt=${1:-$(get_time)}
     printf "%03d" $dt | sed -r 's/(..)$/.\1/'
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 bogo_meter() {
     local width=${1:-$SCREEN_WIDTH} delay=60  dot=.
     local cnt=$(( width * 80 / 100 ))
@@ -2621,6 +3193,9 @@ bogo_meter() {
     done
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 time_cmd() {
     local t0=$(get_time)
     (bogo_meter)&
@@ -2636,6 +3211,9 @@ time_cmd() {
     return $ret
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 vmsg_old() {
     local msg nflag  level=$1; shift
 
@@ -2654,6 +3232,9 @@ vmsg_old() {
     return 0
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 heading() {
     vmsg 6 $head_co$tbar
     #. Begin [doing some sub process]
@@ -2661,6 +3242,9 @@ heading() {
     vmsg 3 "$@"
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 log_cmd() {
     vmsg_nc 8 "$*"
     #"$@" >/dev/null
@@ -2725,6 +3309,9 @@ _error() {
     done
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 move_mountpoints() {
     local dir mp old aufs_live=/live/aufs$FINAL_DIR
 
@@ -2741,6 +3328,9 @@ move_mountpoints() {
     done
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 mountpoint_list() {
     local dev mp other ret=1
 
@@ -2754,6 +3344,9 @@ Read_Mounts
     return $ret
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 final_umount() {
     local mp list i
     move_mountpoints
@@ -2769,6 +3362,9 @@ final_umount() {
     return 1
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 safe_shutdown() {
     local cmd=$1  ask=$2
 
@@ -2777,7 +3373,7 @@ safe_shutdown() {
     final_umount && vmsg 1  "$_Unmount_successful_"
     breakpoint u "final umount"
     if [ "$ask" ]; then
-        vmsgN 1  "$_Press_Enter_to_X_" "$(hq $cmd)"
+        vmsgN 1  "$_Press_X_to_Y_" "<$(bq  "$_Enter_")>" "$(hq $cmd)"
         read x
     fi
     vmsg -1  "$_Will_now_X_the_system_" "$(hq $cmd)"
@@ -2815,6 +3411,9 @@ _yes_no() {
     done
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 my_select() {
     local title=$1  var=$2  width=${3:-0}  default=$4
     shift 4
@@ -2828,6 +3427,13 @@ my_select() {
         data="${data}$dcnt:$lab\n"
 
         [ "$lab" =  "$_quit_" ] && lab=$bold_co$lab$nc_co
+
+        # Highlight "G" and "M" numerical suffix
+        if echo "$lab" | egrep -q "^[0-9]+[GM]iB$"; then
+            local num=${lab%[GM]iB}
+            local suffix=${lab#$num}
+            lab="$num $suffix"
+        fi
         [ $cnt = "$default" ] && lab=$(printf "%${width}s (%s)" "$lab" "$(cq  "$_default_")")
         display="${display}$(printf "$green%2d$white)$cyan %${width}s" $dcnt "$lab")\n"
     done
@@ -2835,6 +3441,9 @@ my_select() {
     my_select_2 "$title" $var "$default" "$data" "$display"
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 my_select_2() {
     local title=$1  var=$2  default=$3  data=$4  display=$5
     local def_prompt=$(printf  "$_Press_X_for_the_default_selection_" "$(cq  "$_enter_")")
@@ -2883,38 +3492,37 @@ initialize_cmdline2() {
         [ -z "${DISABLE_SERVICES##*s*}" ] && cmdline="$cmdline${cmdline:+ }nosavestate"
         [ -z "${DISABLE_SERVICES##*r*}" ] && cmdline="$cmdline${cmdline:+ }norepo"
         [ -z "${DISABLE_SERVICES##*k*}" ] && cmdline="$cmdline${cmdline:+ }noloadkeys"
-        if [ -z "${DISABLE_SERVICES##*c*}" ]; then
-            local desk_delay=$(echo $DISABLE_SERVICES | sed -r 's/[^c]*c([0-9]+(\.[0-9]*)?|\.[0-9]+|).*/\1/')
-            cmdline="$cmdline${cmdline:+ }deskdelay=${desk_delay:-0}"
-        fi
+        [ -z "${DISABLE_SERVICES##*V*}" ] && cmdline="$cmdline${cmdline:+ }vboxdecor"
+        # if [ -z "${DISABLE_SERVICES##*c*}" ]; then
+        #     local desk_delay=$(echo $DISABLE_SERVICES | sed -r 's/[^c]*c([0-9]+(\.[0-9]*)?|\.[0-9]+|).*/\1/')
+        #     cmdline="$cmdline${cmdline:+ }deskdelay=${desk_delay:-0}"
+        # fi
         [ "$cmdline" ] && echo "$cmdline" >> /live/config/cmdline2
     fi
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 my_select_menu() {
-    local dir=$BOOT_MENU_DIR menu=$DO_MENUS
+    local dir=$BOOT_MENU_DIR do_menu=$DO_MENUS
     unset MENU_VALUE
-    [ "$menu" ] || return
+    [ "$do_menu" ] || return
 
     local title=$1  blurb=$2  cheat=$3  dfile=$dir/$4.data mfile=$dir/$4.menu  label=$5  fields=$6
 
-    [ -z "${menu##*$cheat*}" ] || return
+    [ -z "${do_menu##*$cheat*}" ] || return
 
     local def_label
     local data=$(cat $dfile)
-    mfile=$(xlat_mfile "$mfile" $LANG)
 
-    if [ ! -e $dfile -o  ! -e $mfile ]; then
-        [ "$BOOT_MENU_WARN" ] && warn "Missing $dfile or $mfile"
+    if [ ! -e $dfile ]; then
+        [ "$BOOT_MENU_WARN" ] && warn "Missing $dfile"
         return
     fi
 
-    local default_str=$(rpad 16  "$_Default_")
-    local menu=$(cat $mfile | sed -r \
-        -e "s/Default( {8}| *$)/$default_str/" \
-        -e "s/( [0-9]+)(\))/$green\1$white\2$cyan/g" \
-        -e "s/\*/$bold_co*$cyan/g" \
-        -e "s/\(([^)]+)\)/$nc_co(\1)$cyan/g")
+    local menu=$(read_menu_file $mfile)
+    [ -z "$menu" ] && return
 
     [ "$blurb"     ] && title="$title\n$blurb"
     [ "$fields"    ] && def_label=$(get_default_label "$fields" $dfile)
@@ -2944,6 +3552,32 @@ my_select_menu() {
     esac
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+read_menu_file() {
+    local name=$1
+    local mfile=$(xlat_mfile "$mfile" $LANG)
+
+    if [ ! -e $dfile -o  ! -e $mfile ]; then
+        [ "$BOOT_MENU_WARN" ] && warn "Missing $dfile or $mfile"
+        return 1
+    fi
+
+    local default_str=$(rpad 16  "$_Default_")
+
+    cat $mfile | sed -r \
+        -e "s/Default( {8}| *$)/$default_str/" \
+        -e "s/( [0-9]+)(\))/$green\1$white\2$cyan/g" \
+        -e "s/\*/$bold_co*$cyan/g" \
+        -e "s/\(([^)]+)\)/$nc_co(\1)$cyan/g"
+
+    return 0
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 rpad() {
     local width=$1  str=$2
     local pad=$((width - $(echo $str | wc -m)))
@@ -2951,6 +3585,9 @@ rpad() {
     printf "%s%${pad}s" "$str" ""
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 get_default_label() {
     local fields=$1 file=$2
     local cheat=$(extract_from_cmdline "$fields")
@@ -2959,6 +3596,9 @@ get_default_label() {
     echo ${value:-$cheat}
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 extract_from_cmdline() {
     local p fields=$1
     [ "$fields" ] || return
@@ -2969,6 +3609,9 @@ extract_from_cmdline() {
     done
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 filter_cmdline() {
     local p fields=$1
     shift
@@ -2986,6 +3629,48 @@ filter_cmdline() {
     done
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+gather_frugal_cmdline() {
+    local p out value
+    for p in $(cat /live/config/proc-cmdline /live/config/cmdline 2>/dev/null) $*; do
+        value=${p#*=}
+        case $p in
+                frugal=*) p=persist=$value      ;;
+          frugal_persist) p=persist_all         ;;
+             frugal_root) p=persist_root        ;;
+           frugal_static) p=persist_static      ;;
+             frugal_home) p=persist_home        ;;
+        esac
+
+        case $p in
+   bdir=*|bdev=*|blab=*|buuid=*)                ;;
+   fdir=*|fdev=*|flab=*|fuuid=*)                ;;
+                         frugal)                ;;
+                    frugal_only)                ;;
+                  menus|menus=*)                ;;
+                     bp=*|upb=*)                ;;
+              gfxsave|gfxsave=*)                ;;
+            bootsave|bootsave=*)                ;;
+                   BOOT_IMAGE=*)                ;;
+          savestate|nosavestate)                ;;
+                nostore|dostore)                ;;
+           md5|checkmd5|checkfs)                ;;
+              automount|mount=*)                ;;
+                    noautomount)                ;;
+                        fstab=*)                ;;
+                      hwclock=*)                ;;
+                      desktop=*)                ;;
+                              *) out=$out${out:+ }$p ;;
+        esac
+    done
+    echo $out
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 xlat_mfile() {
     local file=$1 lang=${2%%_*}
     echo "xlat_mfile: $lang $file" >> /mfile.log
@@ -2997,28 +3682,53 @@ xlat_mfile() {
     echo $file
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 do_early_menus() {
     local BOOT_MENU_DIR=/live/menus
     local MENU_VALUE BOOT_MENU_WARN=true
     local lang time_zone option persist desktop
     local cmdline
-    my_select_menu  "$_Select_Language_"            "$_Languages_are_listed_alphabetically_"   l lang  "$_Language_" 'lang=*'
+    my_select_menu  "$_Select_Language_"            "$_Languages_are_listed_alphabetically_"   l lang      "$_Language_"           'lang=*'
 
+    local need_font
     case $MENU_VALUE in
         lang=*) LANG=${MENU_VALUE#lang=}
+                need_font=true
                 read_xlat init $LANG       ;;
-         reset) read_xlat init             ;;
     esac
+
+    my_select_menu  "$_Select_number_of_console_columns_"   "$_Wider_means_a_smaller_font_"    w conwidth  "$_Console_columns_"  'conwidth=*'
+
+    case $MENU_VALUE in
+        conwidth=*) CON_WIDTH=${MENU_VALUE#conwidth=}
+                    set_console_width "$CON_WIDTH" "$LANG";;
+                 *) [ "$need_font" ] && \
+                    set_console_width "$CON_WIDTH" "$LANG" ;;
+    esac
+
+    # my_select_menu "Select Console Font size"  "The default size is 8"                c confont  "Console font size"  'confont=*'
+
+    # case $MENU_VALUE in
+    #     confont=*) CON_FONT=${MENU_VALUE#confont=}
+    #                set_console_font "$LANG" "$CON_FONT" ;;
+    #             *) [ "$need_font" ] && \
+    #                set_console_font "$LANG" "$CON_FONT" ;;
+    # esac
 
     my_select_menu  "$_Select_Timezone_"            "$_Timezones_are_listed_by_longitude_"     t tz        "$_Timezone_"      'tz=*'
     my_select_menu  "$_Select_Option_"              "$_Only_one_option_can_be_selected_"       o options   "$_Options_"       "$OPTIONS_ENTRIES"
     my_select_menu  "$_Select_Mounting_Option_"     "$_Automounting_is_enabled_by_default_"    m mount     "$_Mount_"          "$_automount_mount_"
     my_select_menu  "$_Select_Persistence_Option_" ""                                      p persist   "$_Persistence_"   'persist_*|frugal_*'
-    my_select_menu  "$_Select_font_size_"           "$_Scale_fonts_in_graphics_display_Default_is_1_0_"  f fontsize  "$_Font_size_" 'fontsize=*'
+    my_select_menu  "$_Select_font_size_"           "$_Scale_fonts_in_graphics_display_Default_is_1_0_"  f fontsize "X font size" 'fontsize=*'
     #vmsg 6 "cmdline:$white $cmdline"
     [ ${#cmdline} -gt 0 ] && echo "$cmdline" >> /live/config/cmdline
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 do_late_menus() {
     local BOOT_MENU_DIR=/live/aufs/usr/local/share/boot-menus
     local BOOT_MENU_WARN=
@@ -3026,7 +3736,7 @@ do_late_menus() {
     local cmdline
     my_select_menu  "$_Select_Desktop_" "" d desktop  "$_Desktop_" 'desktheme=*'
 
-    if [ "$REMASTERABLE" ]; then
+    if remasterable; then
         BOOT_MENU_DIR=/live/menus
         my_select_menu  "$_Save_these_changes_" "" s save  "$_Save_"
         echo "$cmdline" | grep -q bootsave && BOOT_SAVE=true
@@ -3036,6 +3746,9 @@ do_late_menus() {
     [ ${#cmdline} -gt 0 ] && echo "$cmdline" >> /live/config/cmdline
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 size_label_m() { _size_label $1   "M G T" ;}
 size_label_k() { _size_label $1 "K M G T" ;}
 
@@ -3056,6 +3769,22 @@ _size_label() {
     echo "$size$unit"
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+meg_to_gig() {
+    local meg=$1
+    local gig=$((meg / 1024))
+    if [ $((meg - gig * 1024)) -eq 0 ]; then
+        echo "${gig}GiB"
+    else
+        echo "${meg}MiB"
+    fi
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 select_device() {
     local title_type=$1  var=$2  min_size=${3:-0} not_mounted=$4
     local title=$(printf  "$_Please_select_X_device_" "$title_type")
@@ -3102,7 +3831,8 @@ select_device() {
 
         local dev=/dev/$name
 
-        local label=$(echo "$line" | sed -n -r -e 's/" (UUID=|TYPE=)".*//' -e 's/[^:]*: LABEL="//p')
+        local label=$(echo "$line" | sed -n -r -e 's/" (UUID=|TYPE=)".*//' -e 's/^LABEL="//p')
+
         size_rev=
         name_rev=
         free_rev=
@@ -3154,7 +3884,6 @@ select_device() {
         pretty=$(printf "$format" "$cnt_lab" "$name_rev" "$name" "$size_rev" "$size_lab" \
             "$free_rev" "$free_lab" "$type_rev" "$type" "$rtype" "$model" "$label")
 
-
         local display="${display}$pretty\n"
 
         [ -z "$cnt_lab" ] && continue
@@ -3169,9 +3898,10 @@ Blkid
     echo
 
     if [ $cnt -le 1 ]; then
-        display="$header\n$display"
-        msg_nc "$display"
+        #display="$header\n$display"
+        #msg_nc "$display"
         warn  "No suitable devices were found."
+        press_enter
         return 1
     fi
 
@@ -3204,6 +3934,9 @@ sorted_blkid() {
         | sed -e 's/^sd.[0-9][0-9]+//' -e 's/://'
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 label_device() {
     local dev=$1  new=$2
     local type=$(device_fstype $dev)
@@ -3249,6 +3982,9 @@ label_device() {
     msg  "$_Label_updated_to_X_" $(pq $new)
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 label_to_dev() {
     local label=$1 devices
     local dev line lab
@@ -3261,18 +3997,24 @@ EOT
     echo $devices
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 uuid_to_dev() {
-    local uuid=$1 devices
+    local uuid=$1  grep_for=${2:-.} devices
     local dev line id
     while read dev line; do
         id=$(echo "$line" | sed -n -r 's/(^|.* )UUID="([^"]*)"( |$).*/\2/p')
         [ ${#id} -gt 0 -a -z "${id##$uuid}" ] && devices="$devices${devices:+ }${dev%:}"
     done <<EOT
-$(blkid)
+$(blkid | grep "$grep_for")
 EOT
     echo $devices
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 cleanse_dev() {
     case $1 in
         /dev/*)  [ -b "$1"      ] && echo "$1";;
@@ -3282,6 +4024,9 @@ cleanse_dev() {
     esac
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 general_device_error() {
     case $2 in
         uuid|label) label_error  "$@" ;;
@@ -3289,6 +4034,9 @@ general_device_error() {
     esac
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 label_error() {
     local find_type=$1  param=$2  name=$2  value=$3
     [ "$param" = label ] && param=lab
@@ -3321,6 +4069,9 @@ Label_Error
     esac
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 device_error() {
     local find_type=$1  type=$2  value=$3
     local valid_devs=$(echo $(most_block_devices) | sed "s/^/$white    /");
@@ -3331,6 +4082,9 @@ device_error() {
     fi
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 cp_file() {
     local src=$1  name=$2  dest=$3  file=$1/$2
     mkdir -p $dest
@@ -3366,6 +4120,9 @@ cp_rm_dest() {
     cp "$src" "$dest"
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 find_md5_files() {
     local dir=$1  ; shift
     local file
@@ -3375,13 +4132,18 @@ find_md5_files() {
     done
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 prog_copy_md5() {
     local dest=$1  src=$2 ; shift 2
     prog_copy $dest $(find_md5_files $src "$@")
 }
 
 #------------------------------------------------------------------------------
-#
+# prog_copy <dest> <src1> <src2> ...
+# Copy source files to destination directory and display a bar indicating the
+# progress.
 #------------------------------------------------------------------------------
 prog_copy() {
     local dest=$1 ; shift
@@ -3396,11 +4158,6 @@ prog_copy() {
     local final_size=$(du_size "$@")
     local base_size=$(du_size "$dest")
 
-    local cur_size=$base_size  last_x=0  cur_x
-
-    # Make progress bar 80% of screen width
-    local max_x=$((SCREEN_WIDTH * PROG_BAR_WIDTH / 100))
-
     local dirty_ratio dirty_bytes
     read dirty_ratio < /proc/sys/vm/dirty_ratio
     read dirty_bytes < /proc/sys/vm/dirty_bytes
@@ -3413,21 +4170,23 @@ prog_copy() {
 
     # Disable cursor
     printf "\e[?25l"
-    # Create end-points and save our location on the screen
-    printf "\e[s$green|$nc_co"
-    printf "\e[u\e[$((max_x + 1))C$green|$nc_co\e[u"
 
+    local cur_size=$base_size cur_pct last_pct=0
     while true; do
-        test -d /proc/$COPY_PID || break
-        sleep 0.2
+        if ! test -d /proc/$COPY_PID; then
+            echo 1000
+            break
+        fi
+        sleep 0.1
+
         cur_size=$(du_size $dest)
-        cur_x=$((max_x * cur_size / final_size))
-        [ $cur_x -ge $max_x ] && cur_x=$max_x
-        [ $cur_x -eq $last_x ] && continue
-        prog_bar $cur_x $last_x $max_x
-        [ $cur_x -ge $max_x ] && break
-        last_x=$cur_x
-    done
+        cur_pct=$((cur_size * 1000 / final_size))
+        [ $cur_pct -gt $last_pct ] || continue
+        echo $cur_pct
+        last_pct=$cur_pct
+
+    done | text_progress
+
     echo
 
     sync ; sync
@@ -3448,14 +4207,56 @@ prog_copy() {
 
     return 0
 }
+#------------------------------------------------------------------------------
+# This acts like an external program to draw a progress bar on the screen.
+# It expects integer percentages as input on stdin to move the bar.
+# Now using 1/10th percent steps which seems to reduce jitteriness/jaggedness.
+# Yes, because there was aliasing between 100 steps and width of screen.
+#------------------------------------------------------------------------------
+text_progress() {
+    local abs_max_x=$((SCREEN_WIDTH * PROG_BAR_WIDTH / 100))
 
-prog_bar() {
-    local x=$1  prev=$2  max=$3
-    local diff=$((x - prev))
-    local bar=$(printf "$cyan%${diff}s$yellow>$nc_co" "" | tr ' ' '=')
-    printf "\e[u\e[$((prev))C$bar\e[u\e[$((max + 1))C"
+    # length of ">100%" plus one = 6 (??)
+    max_x=$((abs_max_x - 7))
+
+    # Create end-points and save our location on the screen
+    printf "\e[s$from_co|$nc_co\e[u"
+    #printf "\e[u\e[$((max_x + 2))C$from_co|$nc_co\e[u"
+
+    local cur_x last_x=0
+    while read input; do
+        case $input in
+            [0-9]|[0-9][0-9]|[0-9][0-9][0-9]) ;;
+                        [0-9][0-9][0-9][0-9]) ;;
+            *) break;;
+        esac
+
+        [ $input -gt 1000 ] && input=1000
+        cur_x=$((max_x * input / 1000))
+        # Note we always draw entire bar to avoid problems when switching
+        # virtual terminals while the bar is being drawn
+
+        [ $cur_x -le $last_x ] && continue
+        # Draw the bar
+        printf "\e[u\e[0C$m_co%${cur_x}s$bold_co>$nc_co\e[u" | tr ' ' '='
+        # Show the percentage
+        printf "\e[$((max_x + 2))C%3s%%" "$((input / 10))"
+
+        last_x=$cur_x
+
+        [ $input -ge 1000 ] && break
+    done
 }
 
+#------------------------------------------------------------------------------
+# Draw progress arrow
+#------------------------------------------------------------------------------
+progbar_draw() {
+    local x=$1  prev=$2
+    local diff=$((x - prev))
+    local bar=$(printf "$m_co%${diff}s$bold_co>$nc_co" "" | tr ' ' '=')
+    printf "\e[u\e[$((prev))C$bar\e[u"
+}
 
 #------------------------------------------------------------------------------
 # Function: cp_dir <sorc> <dest>
@@ -3467,6 +4268,9 @@ cp_dir() {
     time_cmd cp -a $from/* $to
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 old_cp_dir() {
     mkdir -p "$2"
     echo -n $hi_co
@@ -3492,6 +4296,9 @@ file_usage_m() {
     du -scxm $list | tail -n 1 | cut -f1
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 copy_files_md5() {
     local f file sorc=$1  dest=$2
     shift 2
@@ -3505,6 +4312,9 @@ copy_files_md5() {
     return 0
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 copy_files() {
     local f file sorc=$1  dest=$2
     shift 2
@@ -3517,18 +4327,20 @@ copy_files() {
     return 0
 }
 
-all_space()      { $LIVE_BIN/df -m "$1" | awk '{size=$2}END{print size}' ;}
-used_space()     { $LIVE_BIN/df -m "$1" | awk '{size=$3}END{print size}' ;}
-avail_space()    { $LIVE_BIN/df -m "$1" | awk '{size=$4}END{print size}' ;}
+all_space()      { $LIVE_BIN/df -Pm "$1" | awk '{size=$2}END{print size}' ;}
+used_space()     { $LIVE_BIN/df -Pm "$1" | awk '{size=$3}END{print size}' ;}
+avail_space()    { $LIVE_BIN/df -Pm "$1" | awk '{size=$4}END{print size}' ;}
 du_size()        { du -scm "$@"         | tail -n1 | cut -f1             ;}
 get_mountpoint() { grep "^$1 " /proc/mounts | cut -d" " -f2              ;}
 
+#------------------------------------------------------------------------------
 # This compensates for sparse rootfs and homefs files one directory down from
 # the mountpoint.  This is far from perfect but I hope it is a reasonable
 # compromise that will work well for most people in most situations.
+#------------------------------------------------------------------------------
 free_space() {
     local mp=$1
-    local free=$($LIVE_BIN/df -m $mp | awk '{size=$4}END{print size}')
+    local free=$($LIVE_BIN/df -Pm $mp | awk '{size=$4}END{print size}')
     local sparse new_free
     for sparse in $mp/*/rootfs $mp/*/homefs; do
         test -e $sparse || continue
@@ -3542,12 +4354,15 @@ free_space() {
     echo $free
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 dir_has_param() {
     local dir=$1  want_param=$2
 
     [ -d "$dir" ] || return 1
 
-    local dev=$(df $dir | tail -n1 | cut -d" " -f1)
+    local dev=$(df -P $dir | tail -n1 | cut -d" " -f1)
     local params=$(grep "^$dev " /proc/mounts | cut -d" " -f4)
     case ,$params, in
         *,$want_param,*) return 0;;
@@ -3699,6 +4514,9 @@ check_md5()
     vmsg 2 $tbar
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 do_delay() {
     local cnt=$1; shift
     [ -z "$cnt" -o "$cnt" = "0" ] && return
@@ -3711,6 +4529,9 @@ do_delay() {
     msg
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 next_device() {
     local base=$(echo $1 | sed 's/[0-9]*$//')
     local num=$(echo $1 | sed 's/^[^0-9]*//')
@@ -3724,6 +4545,9 @@ next_device() {
     return 1
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 will_remaster() {
     [ -n "$NO_REMASTER" -o "$ROLLBACK" ] && return 1
 
@@ -3771,6 +4595,7 @@ do_remaster() {
         rm -rf $sqfile_path/xtra.bak $sqfile_path/xtra.bad
         for file in $SQFILE_NAME $MAKE_OLD; do
             full=$sqfile_path/$file
+            [ -e $full.bad -a -e $full.bak ] && log_cmd rm -rf $full.bak
             [ -e $full.bad ] && log_cmd mv -f $full.bad $full.bak
             [ -e $full     ] && log_cmd mv -f $full     $full.bad
             [ -e $full.old ] && log_cmd mv -f $full.old $full
@@ -3807,6 +4632,7 @@ do_remaster() {
     rm -rf $sqfile_path/xtra.old
     for file in $SQFILE_NAME $MAKE_OLD; do
         full=$sqfile_path/$file
+        [ -e $full -a -e $full.old ] && log_cmd rm -rf $full.old
         [ -e $full     ] && log_cmd mv -f $full $full.old
         [ -e $full.new ] && log_cmd mv -f $full.new $full
     done
@@ -3817,6 +4643,9 @@ do_remaster() {
     return 0
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 most_block_devices() { find /dev -type b | egrep -v "/ram|/loop|/fd" ; }
 
 #------------------------------------------------------------------------------
@@ -3920,7 +4749,7 @@ _copy_to_ram() {
         format="%s: ${num_co}%12d${m_co} bytes"
         vmsg 1  "$_Size_of_original_X_" $orig_bytes
         vmsg 1  "$_Size_of_copy_X_" $dest_bytes
-        vmsg_nc 1 "$(df -m | grep $toram_mp)"
+        vmsg_nc 1 "$(df -Pm | grep $toram_mp)"
         return 5
     fi
 
@@ -4023,6 +4852,9 @@ prepare_persistence() {
 
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 mount_persist_device() {
     local persist_files=$1  from_persist=$2
 
@@ -4031,8 +4863,8 @@ mount_persist_device() {
     # Set persist device to boot device if appropriate
     if [ -z "$from_persist" -a -z "$PERSIST_ID" ]; then
 
-        case $(stat -c %t $SQFILE_DEV) in
-         [38]|22|b3|103) ;;
+        case $(stat -c %t $(readlink -f $SQFILE_DEV)) in
+         [38]|22|b3|fe|103) ;;
             *) warn  "Can't use %s as a persistence device" $(pqw $SQFILE_DEV)
                return 20 ;;
         esac
@@ -4084,9 +4916,11 @@ mount_persist_device() {
 
         unset WANT_ROOTFS WANT_HOMEFS NEED_ROOTFS NEED_HOMEFS
     fi
-
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 create_persist_files() {
     local mp=$1 path=$2 dir=$1/$2 need_rootfs=$3  need_homefs=$4
     mount -o remount,rw $mp 2>/dev/null
@@ -4103,7 +4937,7 @@ create_persist_files() {
         local default_size rootfs_file=rootfs
         if [ "$WILL_REMASTER" ]; then
             default_size=$(stat -c %s $dir/rootfs 2>/dev/null)
-            msg 'default size: %s Meg' "$(nq $default_size)"
+            msg 'default size: %s MiB' "$(nq $default_size)"
             [ "$default_size" ] && default_size=$((default_size/1024/1024))
             rootfs_file=rootfs.new
         fi
@@ -4116,6 +4950,9 @@ create_persist_files() {
         && persist_makefs home $mp $dir homefs NEED_HOMEFS
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 persist_makefs() {
     local type=$1
     _persist_makefs "$@" && return
@@ -4140,26 +4977,26 @@ _persist_makefs() {
     local free=$(free_space $mp)
     local avail=$((free - MKFS_FREE_MARGIN))
 
-    vmsg 6 '      Free space: %s Meg' $(nq $free)
-    vmsg 6 ' Available space: %s Meg' $(nq $avail)
+    vmsg 6 '      Free space: %s MiB' $(nq $free)
+    vmsg 6 ' Available space: %s MiB' $(nq $avail)
 
     [ "$orig_def_size" ] && [ $orig_def_size -gt $avail ] \
-        && warn  "Not enough room on Live device to create %s file of size %s Meg" \
+        && warn  "$_Not_enough_room_on_Live_device_to_create_X_file_of_size_Y_MiB_" \
             $(fq $file) $(nq $orig_def_size)
 
     local base_file=${file%%.*}
     local default_size=$(default_makefs_size $avail ${base_file}_SIZE_PARAM $orig_def_size)
 
-    vmsg 6 '    Default size: %s Meg' $(nq $default_size)
+    vmsg 6 '    Default size: %s MiB' $(nq $default_size)
 
     : ${default_size:=-1}
 
 
     # Make sure we don't exceed max size of 4G - 1 on vfat file systems
     mkdir -p $dir
-    local part_fstype=$(mntpnt_fstype $dir) mkfs_sizes=$MKFS_SIZES vfat
+    local part_fstype=$(mntpnt_fstype $dir) mkfs_sizes=$MKFS_SIZES is_vfat
     case $part_fstype in
-        vfat) vfat=true ;;
+        vfat) is_vfat=true ;;
            *) mkfs_sizes="$mkfs_sizes $BIGGER_SIZES" ;;
     esac
 
@@ -4203,9 +5040,9 @@ _persist_makefs() {
     #[ "$needed" ] && quit=
 
     heading  "$_create_X_persistence_file_" "$(fq $file)"
-    vmsg 1  "$_Default_size_X_Meg_Filesystem_type_Y_" $(nq $default_size) $(pq ext4)
-    vmsg 1  "$_This_default_size_will_leave_X_Meg_free_" $(nq $((avail - default_size)))
-    [ "$vfat" ] &&  warn  "Warning: this can take several minutes per Gig on a %s file system" $(pqw $part_fstype)
+    vmsg 1  "$_Default_size_X_MiB_Filesystem_type_Y_" $(nq $default_size) $(pq ext4)
+    vmsg 1  "$_This_default_size_will_leave_X_MiB_free_" $(nq $((avail - default_size)))
+    [ "$is_vfat" ] &&  warn  "Warning: this can take several minutes per Gig on a %s file system" $(pqw $part_fstype)
 
     if [ "$AUTO_MAKE_FS" ]; then
         auto_mode=true
@@ -4226,11 +5063,22 @@ _persist_makefs() {
         local title=$(printf  "$_Please_select_size_of_X_file_" $(pqw $file))
 
         echo
-        vmsg 1  "$_There_is_X_Meg_available_on_the_device_" $(nq $avail)
-        my_select "$title" fs_size 4 "$default_cnt" $sizes "$quit"
+        vmsg 1  "$_There_is_X_MiB_available_on_the_device_" $(nq $avail)
+
+        # Add "G" and "M" suffixes
+        local size_menu=$(
+        for size in $sizes; do
+            meg_to_gig $size
+        done)
+
+        my_select "$title" fs_size 9 "$default_cnt" $size_menu "$quit"
         [ "$fs_size" =  "$_quit_" ] && return 1
 
-        vmsg 1  "$_Filesystem_size_X_Meg_" $(nq $fs_size)
+        # Remove "G" and "M" suffixes
+        [ -z "${fs_size%%*GiB}" ] && fs_size=$((${fs_size%GiB} * 1024))
+        fs_size=${fs_size%MiB}
+
+        vmsg 1  "$_Filesystem_size_X_MiB_" $(nq $fs_size)
 
         #title=$(printf "Please select file system for %s file" $(pqw $file))
         #echo
@@ -4238,7 +5086,8 @@ _persist_makefs() {
         #[ "$fs_type" = "quit" ] && return 1
         fs_type=ext4
     fi
-    vmsg 1  "$_Create_X_file_of_type_Y_and_size_Z_Meg_" "$(fq $file)" "$(pq $fs_type)" "$(nq $fs_size)"
+
+    vmsg 1  "$_Create_X_file_of_type_Y_and_size_Z_MiB_" "$(fq $file)" "$(pq $fs_type)" "$(nq $fs_size)"
 
     # Now do the actual work
 
@@ -4246,7 +5095,7 @@ _persist_makefs() {
 
     breakpoint m "before makefs"
 
-    [ "$vfat" ] &&  warn  "Warning: this can take several minutes per Gig on a %s file system" $(pqw $part_fstype)
+    [ "$is_vfat" ] &&  warn  "$_Warning_this_can_take_several_minutes_per_Gigabyte_on_a_X_file_system_" $(pqw $part_fstype)
     if ! time_cmd makefs $full_file $fs_type $fs_size $part_fstype; then
         err  "Failed to create filesystem.  Deleting %s file" $(pqe $file)
         rm -f $full_file
@@ -4261,6 +5110,9 @@ _persist_makefs() {
     return 0
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 makefs() {
     local file=$1  fstype=$2  size=$3  part_fstype=$4  dir=$(dirname $file)
     mkdir -p $dir                                                             || return 1
@@ -4276,6 +5128,9 @@ makefs() {
     return 0
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 default_makefs_size() {
     local avail=$1  size=$3  params
     eval params=\$$2
@@ -4289,14 +5144,15 @@ default_makefs_size() {
     return 0
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 select_persist_device() {
     local device label=$1
     warn
     warn  "Could not find a partition with label %s" "$(pqw $label)"
     warn
     msg  "$_Please_wait_while_existing_partitions_are_found_"
-
-    breakpoint x "before select device"
 
     select_device  "$_persistence_" device 100 || return 1
     local ret=$?
@@ -4308,6 +5164,9 @@ select_persist_device() {
     return $ret
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 fsck_persist_dev() {
     local persist_files=$1; shift
     [ "$persist_files" ] || return
@@ -4333,6 +5192,9 @@ _fsck_persist_dev() {
     return 1
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 mount_and_copy_rootfs() {
     if _mount_and_copy_rootfs "$@"; then
         PERSIST_ROOT=true
@@ -4384,7 +5246,7 @@ copy_persist_to_ram() {
         vmsg_nc 3 $tbar
         return 1
     fi
-    vmsg 5  "$_Copy_X_Megabytes_to_RAM_" "${num_co}$persist_used${m_co}"
+    vmsg 5  "$_Copy_X_MiB_to_RAM_" "${num_co}$persist_used${m_co}"
     if ! cp_dir $ROOTFS_MP $AUFS_RAM_MP 2>&1; then
          err  "Copy persistent root to RAM failed!  Will erase partial copy ..."
          rm -rf $AUFS_RAM_MP/*
@@ -4396,12 +5258,15 @@ copy_persist_to_ram() {
     vmsg 7 "$format" '              Persistence uses' $persist_used
     vmsg 6 "${hi_co}%s"  "Copy persistent root to RAM succeeded"
 
-    DF_ROOTFS=$(df -P -m $ROOTFS_MP | tail -n 1 | sed 's/ \+/ /g')
+    DF_ROOTFS=$(df -Pm $ROOTFS_MP | tail -n 1 | sed 's/ \+/ /g')
     sync
     log_cmd umount $ROOTFS_MP
     return 0
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 mount_persist_file() {
     local file=$1  mpnt=$2  type=$3  want=$4  need=$5
 
@@ -4502,6 +5367,9 @@ mount_homefs() {
     fi
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 offer_copy_home_dir() {
     local real=$1  temp=$2
 
@@ -4511,8 +5379,8 @@ offer_copy_home_dir() {
     local needed=$(du_size $real)
     local avail=$(avail_space $temp)
     local margin=$((avail - needed))
-    msg  "$_There_are_X_Meg_of_files_that_will_get_hidden_by_home_persistence_"  $(nq $needed)
-    msg  "$_There_are_X_Meg_free_on_the_home_persistence_device_"                $(nq $avail)
+    msg  "$_There_are_X_MiB_of_files_that_will_get_hidden_by_home_persistence_"  $(nq $needed)
+    msg  "$_There_are_X_MiB_free_on_the_home_persistence_device_"                $(nq $avail)
 
     if [ $margin -lt 50 ]; then
         msg  "$_Theres_not_enough_space_to_copy_all_the_files_"
@@ -4529,6 +5397,9 @@ offer_copy_home_dir() {
     # FIXME:  Then offer to erase if extra not in linuxfs?
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 empty_dir() {
     local dir=$1
     local cnt=$(ls "$dir" | grep -v "^lost+found$" | wc -l)
@@ -4567,7 +5438,7 @@ copy_homefs() {
     local need_meg=$(used_space $cur_home_mp)
     local have_meg=$(all_space $new_home_mp)
     need_meg=$((need_meg + 10))
-    vmsg 6  "Have %s Megabytes free.  Need %s" "$(nq $have_meg)" "$(nq $need_meg)"
+    vmsg 6  "$_Have_X_MiB_free_Need_Y_" "$(nq $have_meg)" "$(nq $need_meg)"
     if [ "$need_meg" -gt "$have_meg" ]; then
         err  "Not enough room to copy home filesystem"
         return 1
@@ -4598,6 +5469,9 @@ copy_homefs() {
     return 0
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 auto_login() {
     local dir file full prog=$1  terms=$2 root=$3
     [ -n "$prog" -a -n "$terms" ] || return
@@ -4622,7 +5496,6 @@ AutoLogin
 
     done
     return
-
 }
 
 #------------------------------------------------------------------------------
@@ -4634,6 +5507,9 @@ page_updown_keys() {
     sed -i "/history-search/ s/^#\s*//" $file
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 fancy_prompt() {
     local prompt=${1:-prompt-fancy}  dir=$2
     local bashrc=$dir/etc/skel/.bashrc  fp_prog=/usr/local/bin/fancy-prompts.bash
@@ -4645,10 +5521,10 @@ fancy_prompt() {
         db_msg 'fancy prompts were already enabled'
     else
         db_msg 'Enable fancy prompts and other goodies'
-
         cat << Fancy_Stuff >> $bashrc
 
 #----- Added by live initrd init script
+LESS="-R -i"
 [ -r $fp_prog ] && source $fp_prog
 [ -n "\$(alias $cmd)" ] && $prompt
 echo \$PATH | grep -q /live/bin || PATH=\$PATH:/etc/live/bin
@@ -4663,6 +5539,9 @@ Fancy_Stuff
     done
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 copy_xtra() {
     local dir bdir=$1 xtra_dir=$1/xtra tarball=$1/xtra.tgz
 
@@ -4682,8 +5561,16 @@ copy_xtra() {
         cp -a $xtra_dir/$dir $NEW_ROOT/
     done
     msg
+
+     # Create a symlink to the /antiX/xtra directory if it exists
+    local r_dir="$NEW_ROOT/root"
+    local x_dir="$DEFAULT_DIR/xtra"
+    test -d $r_dir && test -d $x_dir && log_cmd ln -s $x_dir $r_dir/xtra
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 delete_files() {
     local bdir=$1
     local dfile=$bdir/delete.list
@@ -4693,6 +5580,9 @@ delete_files() {
     rm -rf $(grep -v "^\s*#" $dfile | sed "s=^\s*/=$NEW_ROOT/=" | grep "/[a-z]")
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 ld_path_which() {
     local xdir prog=$1
     for xdir in /sbin /bin /usr/sbin /usr/bin /usr/local/bin; do
@@ -4703,6 +5593,9 @@ ld_path_which() {
     return 1
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 ld_path() {
     local xdir found prog=$1
 
@@ -4714,19 +5607,24 @@ ld_path() {
     fi
 
     shift
-    LD_LIBRARY_PATH=$LD_PATH $LD_ROOT_DIR$prog "$@"
+    LD_LIBRARY_PATH=$LD_PATH $SET_ARCH $LD_ROOT_DIR$prog "$@"
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 prep_ld_path() {
     local ld_path arch=$(uname -m)  dir=${1:-$SQFS_MP}
 
     LD_ROOT_DIR=$dir
 
+    SET_ARCH=
     case $arch in
-          x86_64) prep_lib64 $dir
-                  ld_path=$LIVE_X64_LD_PATH ;;
+          x86_64) ld_path=$LIVE_X64_LD_PATH
+                  SET_ARCH=linux64           ;;
 
-        i[3-8]86) ld_path=$LIVE_386_LD_PATH ;;
+        i[3-8]86) ld_path=$LIVE_386_LD_PATH
+                  SET_ARCH=linux32           ;;
 
                *) warn 'unknown architecture %s. Assuming %s' $(pqw $arch) $(pqw i686)
                   ld_path=$LIVE_386_LD_PATH;;
@@ -4737,6 +5635,9 @@ prep_ld_path() {
     vmsg 8 "LD_PATH: $LD_PATH"
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 prep_lib64() {
     local dir=$1
     mkdir -p /lib64
@@ -4748,6 +5649,9 @@ prep_lib64() {
     done
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 mountpoints_under() {
     local dev mp other ret=1 dir=$1
 
@@ -4762,6 +5666,9 @@ Read_Mounts
     return $ret
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 chroot_umount() {
     local mp list i  dir=${1:-$LD_ROOT_DIR}
 
@@ -4779,6 +5686,9 @@ chroot_umount() {
     return 1
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 confile() {
     local file dir=/live/config
     for file; do
@@ -4787,6 +5697,9 @@ confile() {
     return 1
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 write_output_files() {
     local dir=$1  out_file=$1/initrd.out
     mkdir -p $dir
@@ -4801,10 +5714,14 @@ write_output_files() {
 AUFS_MP="$AUFS_MP"
 AUFS_RAM_MP="$AUFS_RAM_MP"
 AUFS_VID_FILE="$AUFS_MP$VID_FILE"
+BIOS_DEV="$BIOS_DEV"
+BIOS_MP="$BIOS_MP"
+BIOS_UUID="$BIOS_UUID"
 BOOT_DEV="$SQFILE_DEV"
 BOOT_FSTYPE="$BOOT_FSTYPE"
 BOOT_MP="$ORIG_SQFILE_MP"
 BOOT_UUID="$BOOT_UUID"
+CRYPT_UUID="$CRYPT_UUID"
 DF_ROOTFS="$DF_ROOTFS"
 DID_REMASTER="$DID_REMASTER"
 DID_ROLLBACK="$DID_ROLLBACK"
@@ -4812,17 +5729,18 @@ DID_TORAM="$DID_TORAM"
 DISTRO="$DISTRO_NAME"
 DISTRO_CODENAME="$DISTRO_CODENAME"
 DISTRO_VERSION="$DISTRO_VERSION"
+ENCRYPTED="$ENCRYPTED"
 FULL_DISTRO="$DISTRO_NAME-$DISTRO_VERSION"
-INITRD_VERSION="$VERSION"
 INITRD_DATE="$VERSION_DATE"
+INITRD_VERSION="$VERSION"
 LIVE_DIR="$FINAL_DIR"
 PERSISTENCE="$PERSISTENCE"
 PERSIST_DEV="$PERSIST_DEVICE"
-PERSIST_UUID="$PERSIST_UUID"
 PERSIST_DIR="$PERSIST_FULL_PATH"
 PERSIST_FILE="$PERSIST_ROOT_FULL"
 PERSIST_MP="$PERSIST_MP"
 PERSIST_PATH="$PERSIST_PATH"
+PERSIST_UUID="$PERSIST_UUID"
 REMASTERABLE="$REMASTERABLE"
 ROOTFS_MP="$ROOTFS_MP"
 RW_MODE="$RW_MODE"
@@ -4834,8 +5752,9 @@ SQFS_MP="$SQFS_MP"
 SQFS_VID_FILE="$SQFS_VID_FILE"
 STATIC_ROOT="$STATIC_ROOT"
 TORAM_MP="$TORAM_MP"
-USER_UID="$USER_UID"
+TORAM_STORE="$TORAM_STORE"
 USER_GID="$USER_GID"
+USER_UID="$USER_UID"
 VID_ERROR="$VID_ERROR"
 VID_FILE="$VID_FILE"
 Initrd_Out
@@ -4844,6 +5763,7 @@ Initrd_Out
 
     [ -e /sys/firmare/efi ]                  && touch $dir/uefi
     [ "$DID_TORAM"    ]                      && touch $dir/did-toram
+    [ "$TORAM_STORE"  ]                      && touch $dir/toram-store
     [ "$REMASTERABLE" ]                      && touch $dir/remasterable
     [ "$PERSIST_ROOT" ]                      && touch $dir/persist-root
     [ "$PERSIST_ROOT" -a -z "$STATIC_ROOT" ] && touch $dir/save-persist
@@ -4856,6 +5776,7 @@ Initrd_Out
     [ "$DO_DEB"       ]                      && touch $dir/deb-install
     [ "$LOW_COLOR"    ]                      && touch $dir/low-color
     [ "$NO_COLOR"     ]                      && touch $dir/no-color
+    [ "$ENCRYPTED"    ]                      && touch $dir/encrypted
 
     echo "$DISTRO_NAME"                             > $dir/distro
 
@@ -4873,91 +5794,12 @@ Initrd_Out
     done
 }
 
-old_write_output_files() {
-    local dir=$1
-
-    mkdir -p $dir
-    [ true ] && cat > $dir/linuxrc.out <<Linuxrc_Out
-#$tbar
-#              file: $dir/linuxrc.out
-# auto-generated by: $ME script
-#   sometime around: $(date)
-#$tbar
-AUFS_MP="$AUFS_MP"
-AUFS_RAM_MP="$AUFS_RAM_MP"
-AUFS_VID_FILE="$AUFS_MP$VID_FILE"
-BOOT_DEV="$SQFILE_DEV"
-BOOT_MP="$ORIG_SQFILE_MP"
-BOOT_UUID="$BOOT_UUID"
-DF_ROOTFS="$DF_ROOTFS"
-DID_REMASTER="$DID_REMASTER"
-DID_ROLLBACK="$DID_ROLLBACK"
-DID_TORAM="$DID_TORAM"
-DISTRO="$DISTRO_NAME"
-DISTRO_CODENAME="$DISTRO_CODENAME"
-DISTRO_VERSION="$DISTRO_VERSION"
-FULL_DISTRO="$DISTRO_NAME-$DISTRO_VERSION"
-LINUXRC_VERSION="$VERSION"
-LINUXRC_DATE="$VERSION_DATE"
-PERSISTENCE="$PERSISTENCE"
-PERSIST_DEV="$PERSIST_DEVICE"
-PERSIST_DIR="$PERSIST_FULL_PATH"
-PERSIST_FILE="$PERSIST_ROOT_FULL"
-PERSIST_MP="$PERSIST_MP"
-PERSIST_PATH="$PERSIST_PATH"
-PERSIST_UUID="$PERSIST_UUID"
-REMASTERABLE="$REMASTERABLE"
-ROOTFS_MP="$ROOTFS_MP"
-RW_MODE="$RW_MODE"
-SQFILE_DIR="$ORIG_SQFILE_MP/$ORIG_SQFILE_DIR"
-SQFILE_FULL="$ORIG_SQFILE_MP/$ORIG_SQFILE_FULL"
-SQFILE_NAME="$SQFILE_NAME"
-SQFILE_PATH="$SQFILE_PATH"
-SQFS_MP="$SQFS_MP"
-SQFS_VID_FILE="$SQFS_VID_FILE"
-STATIC_ROOT="$STATIC_ROOT"
-TORAM_MP="$TORAM_MP"
-VID_ERROR="$VID_ERROR"
-VID_FILE="$VID_FILE"
-Linuxrc_Out
-
-    [ "$DID_TORAM" ] && cat > $dir/toram-eject.conf  <<Toram_Out
-BOOT_DEV="$SQFILE_DEV"
-Toram_Out
-
-    [ "$REMASTERABLE" ] && cat > $dir/remaster-live.conf  <<Remaster_Out
-AUFS_MP="$AUFS_MP"
-AUFS_RAM_MP="$AUFS_RAM_MP"
-AUFS_VID_FILE="$AUFS_MP$VID_FILE"
-BOOT_DEV="$SQFILE_DEV"
-BOOT_MP="$ORIG_SQFILE_MP"
-DID_REMASTER="$DID_REMASTER"
-DID_ROLLBACK="$DID_ROLLBACK"
-SQFILE_DIR="$ORIG_SQFILE_MP/$SQFILE_PATH"
-SQFILE_FULL="$ORIG_SQFILE_MP/$SQFILE_PATH/$SQFILE_NAME"
-SQFILE_NAME="$SQFILE_NAME"
-SQFILE_PATH="$SQFILE_PATH"
-SQFS_MP="$SQFS_MP"
-SQFS_VID_FILE="$SQFS_VID_FILE"
-VID_FILE="$VID_FILE"
-Remaster_Out
-
-    [ -n "$PERSIST_ROOT" -a -z "$STATIC_ROOT" ] && cat > $dir/persist-save.conf <<Persist_Out
-AUFS_MP="$AUFS_MP"
-AUFS_RAM_MP="$AUFS_RAM_MP"
-DF_ROOTFS="$DF_ROOTFS"
-PERSIST_DEV="$PERSIST_DEVICE"
-PERSIST_UUID="$PERSIST_UUID"
-PERSIST_FILE="$PERSIST_ROOT_FULL"
-PERSIST_MP="$PERSIST_MP"
-ROOTFS_MP="$ROOTFS_MP"
-SQFS_MP="$SQFS_MP"
-Persist_Out
-}
-
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 update_store_file() {
     local disable=$1  enable=$2
-    [ "$REMASTERABLE" ] || return
+    remasterable || return
 
     local no_store_file=$ORIG_SQFILE_MP/$ORIG_SQFILE_DIR/state/nostore
     if [ "$disable" ]; then
@@ -4970,13 +5812,30 @@ update_store_file() {
     fi
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 write_log_files() {
-    local my_log=$1 final_log=$2 e=$(printf "\e")
-    mkdir -p $(dirname $final_log)
-    sed -r "s/$e\[[0-9;]+[mK]//g" $my_log > $final_log
-    cp $my_log $final_log.color
+    local my_log=$1 color_log=$2.color
+    mkdir -p $(dirname $color_log)
+    cp $my_log $color_log
+    decolor_file $color_log
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+decolor_file() {
+    local file=$1  new=${1%.color}  e=$(printf "\e")
+
+    test -r $file || return
+    [ "$file" = "$new" ] && return
+    sed -r "s/$e\[[0-9;]+[mK]//g" $file > $new
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 find_init_prog() {
     local d prog  full_prog prog_var=$1  dir=$2
     eval prog=\$$prog_var
@@ -5001,6 +5860,9 @@ find_init_prog() {
     return 0
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 run_init_scripts() {
     local new_root=$1; shift
 
@@ -5010,7 +5872,7 @@ run_init_scripts() {
     for script; do
         full=/live/etc/init.d/$script
         test -x $new_root/$full || continue
-        chroot $new_root $full start
+        $SET_ARCH chroot $new_root $full start
         [ "$DB_PLUS" ] || continue
         now=$(get_time)
         vmsg 8 "%25s @ %s seconds" $script $(pq $(get_seconds $((now - last_time))))
@@ -5036,6 +5898,76 @@ update_file() {
     cp -a $src $dest
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+press_enter() {
+    local ans enter="Enter"
+    msg  "$_Press_X_to_continue_" "$(pq "$enter")"
+    read ans
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+detect_vga_menu() {
+    local cmd_code=$1
+    unset NEW_VGA_CODE
+
+    [ -z  "$cmd_code" ] && return
+
+    # Convert hex to decimal
+    [ -z "${cmd_code##0[xX]*}" ] && cmd_code=$(printf "%d" $cmd_code)
+
+    local cmd_res
+    case $cmd_code in
+        # Standard resolution codes
+            769|785|786) cmd_res=640,480   ;;
+            771|788|789) cmd_res=800,600   ;;
+            773|791|792) cmd_res=1024,768  ;;
+            775|794|795) cmd_res=1280,1024 ;;
+
+        # do nothing with non-standard resolution codes
+        [0-9][0-9][0-9]) return            ;;
+
+        # We will skip asking of they want to save if they used "ask"
+                    ask) cmd_res=ask       ;;
+
+        # Everything else is treated as "other" (which is not used)
+                      *) cmd_res=other     ;;
+    esac
+
+    local sdir="/sys/class/graphics"
+    local cur_res=$(cat $sdir/fb0/virtual_size 2>/dev/null)
+
+    [ -z "$cur_res" ]            && return
+    [ "$cmd_res" == "$cur_res" ] && return
+
+    warn  "$_It_appears_you_selected_VGA_resolution_X_" "$(pq $cur_res)"
+
+    remasterable                || return
+    [ "$cmd_res" == 'ask' ]     && return
+    [ -n "$GFX_SAVE" ]          && return
+
+    # We should only get here if saving makes sense, if they didn't didn't
+    # already tell us to save, if there is a framebuffer and if a standard
+    # resolution was specified but does not match the current resolution.
+    #
+    # NOTE: we only check for the "true" vga code when saving when either
+    # "vga=ask" or "vga=ask+save" was used.  Therefore we still miss the
+    # case where someone uses a non-standard vga=code and gets the VGA menu.
+    YES_no  "$_Would_you_like_to_save_this_resolution_for_subsequent_boots_" || return
+
+    sed -i -r "s/(^| )vga=[^ ]*/\1vga=ask+save/" /live/config/proc-cmdline
+    PROC_CMDLINE=$(cat /live/config/proc-cmdline)
+    GFX_SAVE=both
+    BOOT_SAVE=true
+    msg  "$_Will_save_the_new_VGA_setting_and_your_other_boot_parameters_"
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 detect_old_persist_scripts() {
     local root=$1
     local lib_file=$root/usr/local/lib/antiX/antiX-common.sh
@@ -5052,14 +5984,20 @@ detect_old_persist_scripts() {
     return 1
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 late_umount() {
     local dev=$1
-    [ "$dev" ] || return
+
+    [ "$dev" ]       || return
+    [ "$NO_UMOUNT" ] && return
 
     ## It does not suffice to only disable the liveCD (see below)
     #[ "$TO_RAM_EJECT" ] || return
 
     local dep
+    # Don't umount these devcies because they are actively used
     for dep in $HOMEFS_DEV $ROOTFS_DEV $LINUXFS_DEV; do
         [ "$dep" = "$dev" ] && return
     done
@@ -5067,22 +6005,27 @@ late_umount() {
     # Don't umount if not mounted
     cut -d" " -f1 /proc/mounts | grep -q "^$dev$" || return
 
-    # if [ -z "$TO_RAM_EJECT" ]; then
-    #     case $(stat -c %t $dev) in
-    #         b) msg 'Will not late umount cd/dvd device %s' $(pq $dev)
-    #            return ;;
-    #     esac
-    # fi
-
     msg  "$_umount_X_" $(pq $dev)
+    local success
     for i in $(seq 1 5); do
         log_cmd umount $dev 2>/dev/null
-        cut -d" " -f1 /proc/mounts | grep -q "^$dev$" || return
-        usleep 500000
+        if cut -d" " -f1 /proc/mounts | grep -q "^$dev$"; then
+            usleep 500000
+            continue
+        fi
+        success=true
+        break
     done
-    err  "$_umount_of_X_failed_" $(pqe $dev)
+    [ "$success" ] || err  "$_umount_of_X_failed_" $(pqe $dev)
+
+    # If this was the encrypted device then close the mapping
+    [ "$dev" = "$CRYPT_DEV" ] || return
+    log_cmd $SET_ARCH chroot /live/aufs /sbin/cryptsetup close "$LUKS_NAME"
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 write_ntfs_pids() {
     local file=$1  ntfs_pids=$(pgrep ntfs-3g)
     [ "$ntfs_pids" ] || return
@@ -5090,6 +6033,9 @@ write_ntfs_pids() {
     echo "$ntfs_pids" > $file
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 prepare_switch_root() {
     local new_root=$1  live_dir=$2  final_live=$3
     local new_live=$new_root${final_live:-$live_dir}
@@ -5112,8 +6058,13 @@ prepare_switch_root() {
 
     local f
     for f in README LICENSE; do
-        test -e /live/$f && cp /live/$f $new_live/
+        local from=/live/$f  to=$new_root/etc/live/$f
+        test -e $from || continue
+        test -e $to   && continue
+        cp $from $to
     done
+
+    breakpoint 0 before move
 
     # cp -a /bin/shutdown $new_live/
 
@@ -5132,8 +6083,10 @@ prepare_switch_root() {
         chmod 755 $new 2>/dev/null
     done
 
+    breakpoint 0 after move
+
     # Remove libs, modules, and programs we won't need to save a little RAM
-    rm -f $(find $root_dir/lib -type f -o -type l | egrep -v "/(live-init|ld|libc|libm)[.-][^/]*$")
+    rm -f $(find $root_dir/lib -type f -o -type l | egrep -v "/(x86_64-linux-gnu|live-init|ld|libc|libm)[.-][^/]*$")
 
     (cd $root_dir/bin && rm -rf fbcondecor_helper ntfs-3g)
     rm -rf /$root_dir/etc/splash
@@ -5143,9 +6096,10 @@ prepare_switch_root() {
     mountpoint $fbsys &>/dev/null && umount $fbsys
 
     local dir old new
-    for dir in bin config etc lib locale custom menus; do
+    for dir in bin config etc lib64 lib locale custom menus share; do
         old=$root_dir/$dir
         test -e $old || old=$live_dir/$dir
+        test -e $old || continue
         new=$new_live/$dir
         mkdir -p $new
         cp -a $old/* $new
@@ -5164,6 +6118,30 @@ prepare_switch_root() {
     (cd $new_root && mkdir -p sys proc dev/pts)
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+dummy_translate() {
+    msg 'default size: %s Meg' "$(nq $default_size)"
+    vmsg 6  "Have %s Megabytes free.  Need %s" "$(nq $have_meg)" "$(nq $need_meg)"
+    vmsg 1  "$_Default_size_X_Meg_Filesystem_type_Y_" $(nq $default_size) $(pq ext4)
+    vmsg 1  "$_This_default_size_will_leave_X_Meg_free_" $(nq $((avail - default_size)))
+    warn  "Warning: this can take several minutes per Gig on a %s file system" $(pqw $part_fstype)
+    vmsg 1  "$_There_is_X_Meg_available_on_the_device_" $(nq $avail)
+    vmsg 1  "$_Filesystem_size_X_Meg_" $(nq $fs_size)
+    vmsg 1  "$_Create_X_file_of_type_Y_and_size_Z_Meg_" "$(fq $file)" "$(pq $fs_type)" "$(nq $fs_size)"
+    vmsg 5  "$_Copy_X_Megabytes_to_RAM_" "${num_co}$persist_used${m_co}"
+    msg  "$_There_are_X_Meg_of_files_that_will_get_hidden_by_home_persistence_"  $(nq $needed)
+    msg  "$_There_are_X_Meg_free_on_the_home_persistence_device_"                $(nq $avail)
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+remasterable() { [ -n "$REMASTERABLE" ];  return $?; }
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 live_param_filter() { echo $*; }
 
 #==============================================================================

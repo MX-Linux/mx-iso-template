@@ -1,3 +1,9 @@
+mx-iso-template (17.11mx17) mx; urgency=medium
+
+  * template for beta 1
+
+ -- dolphin <dolphinoracle@gmail.com>  Sun, 05 Nov 2017 09:20:53 -0400
+
 mx-iso-template (17.10mx17+1) mx; urgency=medium
 
   * generalize template

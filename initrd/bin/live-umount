@@ -62,10 +62,12 @@ me=${0##*/}
    LOCALE_DIR=/locale
  CMDLINE_FILE=/live/config/cmdline
 HIJACKED_INIT=/hijacked-init
- PROTECT_LIST="^(/sbin/mount.ntfs|mount.ntfs|mount.fuse|mount.cifs|ntfs-3g|/sbin/mount.ntfs-3g|rpcbind)$"
+ PROTECT_LIST="^(/sbin/mount.ntfs|mount.ntfs|mount.fuse|mount.cifs|ntfs-3g|/sbin/mount.ntfs-3g|rpcbind|/sbin/wpa_supplicant)"
    TARDY_LIST="^(acpid)$"
 BOOT_DEV_FILE=/config/boot-device
+    OMIT_FILE="/run/sendsigs.omit.d/$me.pid"
 
+   KILL_PROGS="wpa_supplicant"
       V_LEVEL=6
  BREAK_POINTS=0
  SHOW_COMMAND=0
@@ -97,7 +99,7 @@ main() {
         --sendsigs) do_sendsigs   ;;
         --umountfs) do_umountfs   ;;
     --final-umount) final_umount  ;;
-                 *) err 'Expected --umountfs or --sendsigs'
+                 *) err 'Expected --umountfs --sendsigs --run-scripts or --final-umount'
     esac
 }
 
@@ -107,11 +109,15 @@ do_scripts() {
     export PATH
 
     breakpoint s1 "Before running scripts"
+
+    if test -e /live/config/remasterable; then
+        seed_file=$(cat /live/config/seed-file 2>/dev/null)
+        prep_seed_dev_random "$seed_file"
+    fi
+
     # Make sure we have a fresh line to print out on
     # echo
-
     #find_mounted_cd $BOOT_DEV_FILE
-
     local scripts=
     [ -e /live/config/remasterable ] && scripts="$scripts live-usb-save"
     [ -e /live/config/save-persist ] && scripts="$scripts persist-autosave"
@@ -123,6 +129,13 @@ do_scripts() {
     msg "${white}run-scripts"
 
     run_scripts $scripts
+
+    #local protect_pids=$(pgrep -f "$PROTECT_LIST")
+    if false && [ -n "$protect_pids" ]; then
+        mkdir -p $(dirname $OMIT_FILE)
+        echo "$protect_pids" > $OMIT_FILE
+        msg 'Protecting:\n%s' "$white$(pgrep -l "$PROTECT_LIST")"
+    fi
 
     breakpoint s2 "After running scripts"
 }
@@ -305,6 +318,8 @@ final_umount() {
 
     read_cmdline
 
+    [ -n "$DB_PLUS" ] && battery-status
+
     breakpoint 6 "Start final umount"
 
     [ -z "$NO_PROMPT" ] && find_mounted_cd $BOOT_DEV_FILE
@@ -314,6 +329,7 @@ final_umount() {
     breakpoint 7 "After killing processes"
 
     msg  "$_Unmount_most_filesystems_"
+    kill_specific_progs $KILL_PROGS
     umount_most
 
     breakpoint 8 "After unmounting most filesystems"
@@ -536,6 +552,25 @@ kill_procs_fast() {
 }
 
 #------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+kill_specific_progs() {
+    local prog
+    for prog; do
+        local pids=$(pgrep -l $prog)
+        [ -z "$pids" ] && continue
+
+        #msg 'pkill %s'  "$white$pids"
+        pkill $prog
+
+        sleep .01
+
+        msg 'pkill -9 %s'  "$white$pids"
+        pkill -9 $prog
+    done
+}
+
+#------------------------------------------------------------------------------
 # Function: mountpoint_list
 #
 # List mountpoints in reverse chronological order and exclude system mps that
@@ -648,7 +683,7 @@ eject_cd() {
     [ $V_LEVEL -ge 8 ] && verbose=-v
 
     vmsg 7 "eject$white $dev"
-    eject-orig -p $verbose $dev
+    eject -p $verbose $dev
 }
 
 #------------------------------------------------------------------------------
@@ -674,6 +709,13 @@ shutdown_or_reboot() {
                *) cmd_msg=$command           ;;
     esac
     msg  "$_Ready_to_X_" "$white$cmd_msg"
+
+    # Wait a minute for the user then shutdown/reboot no matter what
+    (   sleep 60;
+        # Disable kernel messages
+        echo 0 0 0 0  > /proc/sys/kernel/printk
+        exec $command -f -n
+    ) &
 
     if [ -n "$TO_EJECT" ]; then
         eject_cd $TO_EJECT
@@ -720,7 +762,7 @@ run_scripts() {
     done
 }
 
-get_time() { cut -d" " -f22 /proc/self/stat ;}
+get_time() { cut -d" " -f22 /proc/self/stat 2>/dev/null ;}
 
 get_seconds() {
     local dt=${1:-$(get_time)}
@@ -796,8 +838,23 @@ breakpoint() {
     echo "$green==>$cyan limited shell @ breakpoint [$red$1$cyan]$white $2"
     echo "$green    Use the$white exit$green command or hit$white Ctrl-d$green to continue"
     export PS1="${green}ubp $red$1$cyan>$nc "
-    OPATH=$PATH PATH=$BUSYBOX_BIN setsid cttyhack ash </dev/console >/dev/console 2>&1
+    OPATH=$PATH PATH=$BUSYBOX_BIN setsid cttyhack bash </dev/console >/dev/console 2>&1
     echo
+}
+
+
+#------------------------------------------------------------------------------
+# Fill a seed file with random numbers to have entropy on next boot
+#------------------------------------------------------------------------------
+prep_seed_dev_random() {
+    local i  file=$1  cnt=${2:-32}
+    [ -z "$file" ]   && return
+    test -e "$file"  || touch $file 2>/dev/null
+    test -w "$file"  || return
+    # A random seed is used to start the random number generator differently each boot
+    msg  "$_Saving_random_seed_"
+    dd if=/dev/urandom bs=1 count=512 2>/dev/null > $file
+    chmod 600 $file 2>/dev/null
 }
 
 #------------------------------------------------------------------------------

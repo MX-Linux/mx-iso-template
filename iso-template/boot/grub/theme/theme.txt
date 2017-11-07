@@ -47,7 +47,7 @@ terminal-box:   "inbox_*.png"
 
 + label {
     left  = 30%
-    top   = 75%
+    top   = 70%
     width = 70%
     text  = "Press 'e' to edit the selected entry"
     color = "#ffffff"
@@ -57,7 +57,7 @@ terminal-box:   "inbox_*.png"
 
 + label {
     left  = 30%
-    top   = 80%
+    top   = 75%
     width = 70%
     text  = "Press <Esc> to return to the main menu"
     color = "#ffffff"
@@ -69,7 +69,7 @@ terminal-box:   "inbox_*.png"
 + progress_bar {
     id              = "__timeout__"
     left            = 22%
-    top             = 90%
+    top             = 85%
     width           = 60%
     height          = 18
     bg_color        = "201, 0, 22"

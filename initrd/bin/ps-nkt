@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 PATH=/live/bin:/bin
 
 ps_no_kthreads() {

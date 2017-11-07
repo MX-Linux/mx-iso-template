@@ -9,7 +9,9 @@
    9)  hwclock=utc     Ρολόι σε UTC (Linux)
   10)  hwclock=local   Ρολόι σε τοπική ώρα (Windows)
   11)  password        Αλλαγή του κωδικού πρόσβασης πριν εκκίνηση
-  12)  nostore         Απενεργοποίηση του LiveUSB-αποθήκευσης (LiveUSB μόνο)
-  13)  dostore         Ενεργοποίηση του LiveUSB-αποθήκευσης (LiveUSB μόνο)
-  14)  savestate       Αποθήκευση κάποιων αρχείων σε επανεκκίνηση (LiveUSB μόνο)
-  15)  nosavestate     Μην αποθηκεύετε αρχεία σε επανεκκίνηση (LiveUSB μόνο)
+  12)  wicd            Enable wicd service on startup
+  13)  nowicd          Disable wicd service on startup
+  14)  nostore         Απενεργοποίηση του LiveUSB-αποθήκευσης (LiveUSB μόνο)
+  15)  dostore         Ενεργοποίηση του LiveUSB-αποθήκευσης (LiveUSB μόνο)
+  16)  savestate       Αποθήκευση κάποιων αρχείων σε επανεκκίνηση (LiveUSB μόνο)
+  17)  nosavestate     Μην αποθηκεύετε αρχεία σε επανεκκίνηση (LiveUSB μόνο)

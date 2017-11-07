@@ -32,7 +32,7 @@ main() {
     fi
 
     shift
-    LD_LIBRARY_PATH=$LD_PATH $LD_DIR$prog "$@"
+    LD_LIBRARY_PATH=$LD_PATH $set_arch $LD_DIR$prog "$@"
 
 }
 
@@ -47,8 +47,8 @@ prep() {
     arch=$(uname -m)
 
     case $arch in
-          x86_64) ld_path=$LIVE_X64_LD_PATH ;;
-        i[3-8]86) ld_path=$LIVE_386_LD_PATH ;;
+          x86_64) ld_path=$LIVE_X64_LD_PATH ; set_arch=linux64 ;;
+        i[3-8]86) ld_path=$LIVE_386_LD_PATH ; set_arch=linux32 ;;
                *) printf 'unknown architecture "%s". Assuming "%s"\n' $arch i686 >&2
                   ld_path=$LIVE_386_LD_PATH;;
     esac
