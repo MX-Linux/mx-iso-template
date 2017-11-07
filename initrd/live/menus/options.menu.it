@@ -9,7 +9,9 @@
    9)  hwclock=utc     L'orologio Hardware usa UTC (su sistemi esclusivamente Linux)
   10)  hwclock=local   L'orologio Hardware usa l'ora locale (su sistemi Windows)
   11)  password        Cambiare le passwords prima di avviare il boot
-  12)  nostore         Disabilita la funzione LiveUSB con capacità di memorizzare dati (solo per LiveUSB)
-  13)  dostore         Abilita la funzione LiveUSB con capacità di memorizzare dati (solo per LiveUSB)
-  14)  savestate       Salvare le modifiche di alcuni file anche dopo il reboot (solo per LiveUSB)
-  15)  nosavestate     Non salvare le modifiche di alcuni file anche dopo il reboot (solo per LiveUSB)
+  12)  wicd            Attiva il servizio, di connessione rete, wicd all'avvio
+  13)  nowicd          Non abilitare il servizio wicd all'avvio
+  14)  nostore         Disabilita la funzione LiveUSB con capacità di memorizzare dati (solo per LiveUSB)
+  15)  dostore         Abilita la funzione LiveUSB con capacità di memorizzare dati (solo per LiveUSB)
+  16)  savestate       Salvare le modifiche di alcuni file anche dopo il reboot (solo per LiveUSB)
+  17)  nosavestate     Non salvare le modifiche di alcuni file anche dopo il reboot (solo per LiveUSB)

@@ -8,11 +8,11 @@
 # Default-Start:     3 4 5
 # Default-Stop:      0 1 6
 # Short-Description:
-# Description:       Create symlink to storage space directly on LiveUSB
+# Description:       Create symlink to storage space directly on live-usb
 ### END INIT INFO
 
-STORAGE_BIND=LiveUSB-Storage
- STORAGE_DIR=LiveUSB-Storage
+STORAGE_BIND=Live-usb-storage
+ STORAGE_DIR=Live-usb-storage
 
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
 
@@ -41,13 +41,14 @@ do_start() {
         root_dir=$bdir
         break
     done
-    [ "$root_dir" ] || exit 0
+    [ "$root_dir" ] || DISABLE=true
 
     read_cmdline
 
-    [ -e $root_dir/state/nostore -a -z "$DISABLE" ] && return
+    test -e $root_dir/state/nostore && DISABLE=true
+    [ -n "$DID_TORAM" -a -z "$TORAM_STORE" ] && DISABLE=true
 
-    echo_script "$_Configure_LiveUSB_Storage_" $0
+    echo_script "$_Configure_Live_usb_storage_" $0
 
     DEF_USER=$(find_def_user)
 
@@ -59,7 +60,7 @@ do_start() {
     fi
 
     if [ "$DISABLE" ]; then
-        echo_live "$_Disabling_LiveUSB_storage_"
+        echo_live "$_Disabling_live_usb_storage_"
         rmdir /root/$STORAGE_BIND $USER_HOME/$STORAGE_BIND 2>/dev/null
         return
     fi
@@ -73,7 +74,7 @@ do_stop() {
 
     test -e /live/config/remasterable || exit 0
 
-    echo_script "$_Disable_LiveUSB_Storage_" $0
+    echo_script "$_Disabling_live_usb_storage_" $0
 
     read_cmdline
 
@@ -117,7 +118,7 @@ create_storage() {
     fi
 
     if [ "$BOOT_FSTYPE" = vfat -a $uid -ne 0 -a $uid -ne $USER_UID ]; then
-        echo_live "$_Can_only_use_X_storage_with_UID_of_Y_" "$(pquote vfat LiveUSB)" "$(pquote $USER_UID)"
+        echo_live "$_Can_only_use_X_storage_with_UID_of_Y_" "$(pquote vfat live-usb)" "$(pquote $USER_UID)"
         return
     fi
 
@@ -139,7 +140,7 @@ create_storage() {
         echo_live "$_Directory_X_is_already_a_mountpoint_" "$(pquote $from_dir)"
         return
     fi
-    echo_live "$_Enable_LiveUSB_storage_at_X_" "$(pquote $from_dir)"
+    echo_live "$_Enable_live_usb_storage_at_X_" "$(pquote $from_dir)"
     mount --bind $store_dir $from_dir
 }
 

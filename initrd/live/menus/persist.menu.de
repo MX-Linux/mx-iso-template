@@ -1,0 +1,10 @@
+   1)  Voreinstellung
+   2)  persist_all     Schnell. /home und / ("root") speichern (Zwischenspeichern im RAM, Permanentspeichern vor dem Runterfahren)
+   3)  persist_root    Schnell. nur / ("root") speichern (Zwischenspeichern im RAM, Permanentspeichern vor dem Runterfahren)
+   4)  persist_static  Langsamer. /home und / ("root") speichern (kein Zwischenspeichern im RAM sondern laufend direkt Permanentspeichern)
+   5)  persist_home    Nur Home-Persistenz (kein /)
+   6)  frugal_persist  Frugal mit Root- und Home-Persistenz
+   7)  frugal_root     Frugal mit nur Root-Persistenz
+   8)  frugal_static   Frugal mit Home- und statischer Root-Persistenz
+   9)  frugal_home     Frugal mit nur Home-Persistenz
+  10)  frugal_only     Frugal ohne Persistenz

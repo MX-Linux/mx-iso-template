@@ -1,10 +1,10 @@
    1)  Pré-definição
-   2)  persist_all     Rápido. Guarda a raíz [root] e a 'home' (usa a RAM, guarda ao encerrar)
-   3)  persist_root    Rápido. Guarda apenas a raíz [root] (usa a RAM, guarda ao encerrar)
-   4)  persist_static  Lento. Guarda a raíz [root] e a 'home' (não usa a RAM, guarda em contínuo)
+   2)  persist_all     Rápido. Guarda a root e a home (usa a RAM, guarda ao encerrar)
+   3)  persist_root    Rápido. Guarda apenas a root (usa a RAM, guarda ao encerrar)
+   4)  persist_static  Lento. Guarda a root e a home (não usa a RAM, guarda continuamente)
    5)  persist_home    Persistência apenas em home
-   6)  frugal_persist  Frugal com persistência na raíz (root) e em home
-   7)  frugal_root     Frugal com persistência apenas na raíz (root)
-   8)  frugal_static   Frugal com persistência em home e na raíz (root) estática
+   6)  frugal_persist  Frugal com persistência em root e em home
+   7)  frugal_root     Frugal com persistência apenas da root
+   8)  frugal_static   Frugal com persistência em home e na root estática
    9)  frugal_home     Frugal com persistência apenas em home
   10)  frugal_only     Apenas frugal, sem persistência

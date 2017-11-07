@@ -1,21 +1,13 @@
 #!/live/bin/sh
 
-### BEGIN INIT INFO
-# Provides:          live-bootsave
-# Required-Start:
-# Required-Stop:
-# Should-Start:
-# Default-Start:
-# Default-Stop:      0 1 6
-# Short-Description:
-# Description:       save live boot options
-### END INIT INFO
-
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin:/live/bin
 
-. /live/lib/live-init-utils.sh
-start_init_logging
+BIOS_UUID_FNAME="bios-dev-uuid"
+UEFI_UUID_FNAME="esp-uuid"
 
+. /live/lib/live-init-utils.sh
+
+start_init_logging
 
 main() {
     case $1 in
@@ -23,21 +15,33 @@ main() {
          stop)                               ;;
             *) echo "Usage: $0 {start|stop}" ;;
     esac
+
+    [ -n "$ROOT_MP" ] && umount $ROOT_MP
+
     exit 0
 }
 
 do_start() {
 
     : ${CMDLINE:=$(cat /live/config/proc-cmdline /live/config/cmdline)}
-    local gfx_cmd boot_save
+    local gfx_cmd boot_save  vga_cmd  vga_ask
     for param in $CMDLINE; do
+        local value=${param#*=}
         case $param in
-            gfxsave=*) gfx_cmd=${param#*=} ;;
+            gfxsave=*) gfx_cmd=$value      ;;
+                vga=*) vga_cmd=$value      ;;
               gfxsave) gfx_cmd=both        ;;
-             bootsave) boot_save=true     ;;
+             bootsave) boot_save=true      ;;
         esac
     done
+
+    case $vga_cmd in
+        ask+save) gfx_cmd=both ; vga_ask=true ;;
+             ask)                vga_ask=true ;;
+    esac
+
     echo_script "Possibly saving boot parameters" $0
+    get_real_vga_code "$vga_ask" "$gfx_cmd"
 
     [ -n "$gfx_cmd"   ] && do_gfxsave
     [ -n "$boot_save" ] && do_boot_save
@@ -48,20 +52,31 @@ do_gfxsave() {
     export CMDLINE
     export GFX_LOG_FILE=/var/log/live/gfxsave.log
 
-    local dir=/live/boot-dev/boot
+    . $INITRD_OUT
+
+    local bios_uuid_file="$SQFILE_DIR/$BIOS_UUID_FNAME"
+
+    local dir=$BIOS_MP/boot
+
+    if test -r $bios_uuid_file; then
+        local bios_uuid=$(cat $bios_uuid_file | head -n1 2>/dev/null)
+        [ -n "$bios_uuid" ] && mount_boot_dev "$bios_uuid" $BIOS_MP
+        dir=$ROOT_MP/boot
+    fi
+
+    test -d $dir || dir=$BOOT_MP/boot
+    test -d $dir || return
+
+    local dev=$(df -P $dir | tail -n1 | cut -d" " -f1)
+    echo_live "bootloader device: $(pquote $dev)"
+
+    mount -o remount,rw ${dir%/boot}
+
     local script=/live/bin/gfxsave
 
     if ! [ -e /live/config/remasterable ]; then
-        if [ -e /live/config/db+ ]; then
-            local tdir=/live/test
-            mkdir -p $tdir
-            echo_live "Use $tdir to test %s" $(pquote $script)
-            cp -r $dir/syslinux $tdir
-            dir=$tdir
-        else
-            echo_live "Can't update %s on read-only boot media" "$(pquote gfxboot)"
-            return
-        fi
+        echo_live "Can't update %s on read-only boot media" "$(pquote gfxboot)"
+        return
     fi
 
     $script $dir $gfx_cmd
@@ -74,10 +89,10 @@ do_boot_save() {
         grub2-save $BOOT_MP
     fi
 
-    local uuid dir uuid_file file=esp-uuid
+    local uuid dir uuid_file name=$UEFI_UUID_FNAME
     for dir in $SQFILE_DIR $BOOT_MP; do
-        test -r $dir/$file || continue
-        uuid_file=$dir/$file
+        test -r $dir/$name || continue
+        uuid_file=$dir/$name
     done
     test -r $uuid_file || return
     read uuid 2>/dev/null <$uuid_file
@@ -92,6 +107,144 @@ do_boot_save() {
     umount $esp_mp
 }
 
+#------------------------------------------------------------------------------
+# Use hwinfo --framebuffer to get a list of vga codes and their resolution and
+# depth.  Find the current resolution and depth in that list to find the current
+# vga code we actually want to save as a boot parameter.
+
+# NOTE: we only check for the "true" vga code when saving when either "vga=ask"
+# or "vga=ask+save" was used.  Therefore we still miss the case where someone
+# uses a non-standard vga=code and gets the VGA menu.  Perhaps we should always
+# run this code?
+#------------------------------------------------------------------------------
+get_real_vga_code() {
+    local vga_ask=$1  gfx_save=$2 local
+    hwinfo=/usr/sbin/hwinfo
+
+    test -x $hwinfo    || return
+    [ -n "$vga_ask" ]  || return
+    [ -n "$gfx_save" ] || return
+
+    local sdir=/sys/class/graphics/fb0
+    test -d $sdir || return 1
+
+    local cur_res=$(cat $sdir/virtual_size   2>/dev/null)
+    local cur_bpp=$(cat $sdir/bits_per_pixel 2>/dev/null)
+    cur_res=${cur_res/,/x}
+
+    [ -z "$cur_res" -o -z "$cur_bpp" ] && return 1
+
+    echo_live "Probing to find selected vga code.  Please be patient ..."
+    echo_live "current resolution %s" "$(pquote "$cur_res @ $cur_bpp")"
+
+    local depth
+    case $cur_bpp in
+        32) cur_bpp=24 ;;
+    esac
+
+    local all_modes=$($hwinfo --framebuffer | sed -n "s/^\s*Mode //p")
+    if [ -z "$all_modes" ]; then
+        echo_live "No vga modes were found"
+        return 1
+    fi
+
+    local mode_line=$(echo "$all_modes" | grep " $cur_res .* $cur_bpp bits")
+    if [ -z "$mode_line" ]; then
+        echo_live "Could not find mode with depth %s" "$(pquote $cur_bpp)"
+        mode_line=$(echo "$all_modes" | grep " $cur_res " | tail -n1)
+    fi
+
+    if [ -z "$mode_line" ]; then
+        echo_live "Could not find a vga mod with resolution %s" "$(pquote $cur_res)"
+        return 1
+    fi
+    local hex_code=$(echo "$mode_line" | cut -d: -f1)
+    if [ -z "$hex_code" ]; then
+        echo_live "Could not extract the hex vga mode"
+        return 1
+    fi
+
+    echo_live "Found hex code %s" "$(pquote $hex_code)"
+
+    local dec_code=$((hex_code))
+
+    echo_live "Using boot parameter %s" "$(pquote vga=$dec_code)"
+    local p_cmdline=/live/config/proc-cmdline
+    sed -r "s/(^| )(vga=)[^ ]*/\1\2$dec_code/" $p_cmdline > $p_cmdline.2
+    CMDLINE=$(cat $p_cmdline.2 /live/config/cmdline 2>/dev/null)
+
+    return 0
+}
+
+#------------------------------------------------------------------------------
+# This gets the current vga code directly using "hwinfo --vbe" but it can
+# take 20 seconds or longer to run so we replaced it with the less direct
+# method above.
+#------------------------------------------------------------------------------
+old_get_real_vga_code() {
+    local vga_ask=$1  gfx_save=$2
+    local hwinfo=/usr/sbin/hwinfo
+    test -x $hwinfo    || return
+    [ -n "$vga_ask" ]  || return
+    [ -n "$gfx_save" ] || return
+
+    echo_live "Probing to find selected vga code.  Please be patient ..."
+    local vga_hex=$($hwinfo --vbe | sed -n "s/^\s*Current VESA Mode:\s*//p")
+    if [ -z "$vga_hex" ]; then
+        echo_live "No vga code was found!"
+        return
+    fi
+    echo_live "Found hex code %s" "$(pquote $vga_hex)"
+    local vga_dec=$(($vga_hex % 0x1000 + 0x200))
+    echo_live "Using boot parameters %s" "$(pquote vga=$vga_dec)"
+    local p_cmdline=/live/config/proc-cmdline
+    sed -r "s/(^| )(vga=)[^ ]*/\1\2$vga_dec/" $p_cmdline > $p_cmdline.2
+    CMDLINE=$(cat $p_cmdline.2 /live/config/cmdline 2>/dev/null)
+}
+
+
+#------------------------------------------------------------------------------
+# Mount boot device for case of frugal install
+#------------------------------------------------------------------------------
+mount_boot_dev() {
+    uuid=$1  mp=$2
+    ROOT_MP=
+
+    debug "uuid=$uuid  mp=$mp"
+
+    if [ -z "$uuid" ]; then
+        echo_live "Could not find UUID of boot device for remounting"
+        return 1
+    fi
+
+    local boot_dev=$(blkid -U $uuid)
+    debug "boot_dev: $boot_dev"
+    if [ -z "$boot_dev" ]; then
+        echo_live "Could not find boot device for remounting"
+        return 1
+    fi
+
+    local existing_mp=$(grep "^$boot_dev " /proc/mounts | cut -d" " -f2)
+    debug "existing_mp=$existing_mp"
+    if [ "$existing_mp" ]; then
+        ROOT_MP=$existing_mp
+        return 0
+    fi
+
+    echo_cmd mkdir -p $mp
+    echo_cmd mount UUID=$uuid $mp
+    if ! grep -q "^$boot_dev $mp " /proc/mounts; then
+        echo_live "Could not remount boot device"
+        return 1
+    fi
+
+    ROOT_MP=$mp
+    return 0
+}
+
+debug() { return; echo "db: $*"; }
+
+echo_cmd() { echo " > $*" >/dev/null ; "$@" ; }
 main "$@" 2>&1 | tee -a $INIT_LOG_FILE
 
 exit 0

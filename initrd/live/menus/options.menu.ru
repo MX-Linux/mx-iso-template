@@ -9,7 +9,9 @@
    9)  hwclock=utc     Аппаратные часы используют UTC (только для Linux)
   10)  hwclock=local   Аппаратные часы используют местное время (Windows)
   11)  password        Изменить пароль перед загрузкой
-  12)  nostore         Отключить функцию сохранения LiveUSB (только LiveUSB)
-  13)  dostore         Включить функцию сохранения LiveUSB (только LiveUSB)
-  14)  savestate       Сохранить некоторые файлы после перезагрузки (только Live USB)
-  15)  nosavestate     Не сохранять файлы после перезагрузки (только LiveUSB)
+  12)  wicd            Enable wicd service on startup
+  13)  nowicd          Disable wicd service on startup
+  14)  nostore         Отключить функцию сохранения LiveUSB (только LiveUSB)
+  15)  dostore         Включить функцию сохранения LiveUSB (только LiveUSB)
+  16)  savestate       Сохранить некоторые файлы после перезагрузки (только Live USB)
+  17)  nosavestate     Не сохранять файлы после перезагрузки (только LiveUSB)

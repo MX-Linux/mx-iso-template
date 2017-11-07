@@ -137,6 +137,15 @@ for param in $(cat /proc/cmdline); do
         udpi=*|sdpi=*) ;;
         fontsize=*) ;;
         norepo|norepo=*) ;;
+        conwidth=*);;
+        noautomount) ;;
+        vga=ask+save) ;;
+
+        skylakeflicker)  ;;
+        i915powersave) ;;
+
+        aufs|overlayfs) ;;
+        wicd|nowicd) ;;
 
         *) printf "$param "
     esac
