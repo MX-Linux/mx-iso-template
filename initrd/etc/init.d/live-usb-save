@@ -17,6 +17,7 @@ MSTATE_FILES="# File: machine-state-files
 # Machine specific files to be saved across reboots
 
 /etc/adjtime
+/etc/bcm.chk
 /etc/default/acpi-support
 /etc/default/acpid
 /etc/default/bluetooth

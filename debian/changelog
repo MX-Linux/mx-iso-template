@@ -1,3 +1,15 @@
+mx-iso-template (17.11.03mx17) mx; urgency=medium
+
+  * beta 2
+  
+ -- dolphin <dolphinoracle@gmail.com>  Wed, 15 Nov 2017 19:34:47 -0400
+
+mx-iso-template (17.11.02mx17) mx; urgency=medium
+
+  * revised snapshot template
+  
+ -- dolphin <dolphinoracle@gmail.com>  Fri, 10 Nov 2017 18:46:17 -0400
+
 mx-iso-template (17.11.01mx17) mx; urgency=medium
 
   * fixing b1 template
