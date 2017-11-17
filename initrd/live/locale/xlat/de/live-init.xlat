@@ -36,3 +36,4 @@ _Setting_console_blanking_timeout_to_X_minute_s_="Konsolen Timeout (Bildschirmsc
 _Setting_desktop_delay_to_X_="setze Desktop Verzögerung %s"
 _Setting_desktop_theme_to_X_="Einrichtung des Desktop-Themas (Optik) zu %s"
 _Unknown_menu_localization_language_X_="Unbekannte Lokalisierung der Menü-Sprache %s"
+_Using_X_to_make_xorg_conf_="Verwende X um xorg.conf zu erstellen"
