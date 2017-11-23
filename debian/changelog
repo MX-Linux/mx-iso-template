@@ -1,3 +1,9 @@
+mx-iso-template (17.11.04mx17) mx; urgency=medium
+
+  * update to new default bootloader graphics
+  
+ -- dolphin <dolphinoracle@gmail.com>  Wed, 22 Nov 2017 11:30:53 -0400
+
 mx-iso-template (17.11.03mx17) mx; urgency=medium
 
   * beta 2
