@@ -45,6 +45,7 @@ AUTOMOUNT_CMD="/usr/local/bin/automount-antix"
 NETWORK_IF_FILE="/etc/network/interfaces"
 
 LIVE_MNT_DIR="/media"
+SPLASH_PROGRAMS="/sbin/splash-all /sbin/splash-term /usr/local/bin/splash-select /etc/udev/rules.d/*-fbcondecor.rules"
 
 #-jbb For debugging
 : ${CMDLINE:=$(cat /live/config/proc-cmdline /live/config/cmdline /live/config/cmdline2)}
@@ -83,7 +84,7 @@ automount=off|amnt=off)                          AUTOMOUNT_OFF=true ;;
                 norepo)       NO_REPO=true                          ;;
               norepo=*)   IGNORE_REPO=$value                        ;;
            deskdelay=*) DESKTOP_DELAY=$value                        ;;
-             nomodeset)    NO_MODESET=true                          ;;
+             nomodeset)    NO_MODESET=true    ; VBOX_DECOR=true     ;;
             fontsize=*)     FONT_SIZE=$value                        ;;
              vtblank=*)      VT_BLANK=$value                        ;;
         skylakeflicker)   FIX_SKYLAKE=true                          ;;
@@ -155,11 +156,11 @@ do_start() {
     set_utc_local $CMD_CLOCK
 
     test -e /live/config/virtualbox && : ${VT_BLANK:=0}
-    [ ${#VT_BLANK} -gt 0 ] && set_console_blanking $VT_BLANK
+    #[ ${#VT_BLANK} -gt 0 ] && set_console_blanking $VT_BLANK
 
     if [ -e /live/config/virtualbox -a -z "$VBOX_DECOR" ]; then
         echo_live "$_Disabling_splash_fbcondecor_inside_of_Virtual_Box_"
-        rm -f /sbin/splash-all /sbin/splash-term /etc/udev/rules.d/*-fbcondecor.rules
+        rm -f $SPLASH_PROGRAMS
     fi
 
     if ! test -e $NETWORK_IF_FILE && test -e /live$NETWORK_IF_FILE; then
