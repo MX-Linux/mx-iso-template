@@ -25,8 +25,8 @@
 # that you don't want users to be able to adjust.
 
                      ME="initrd init"
-                VERSION="8.12.03"
-           VERSION_DATE="Mon Nov 13 10:43:26 MST 2017"
+                VERSION="8.12.06"
+           VERSION_DATE="Tue Nov 28 10:49:02 MST 2017"
               DEVELOPER="BitJam"
          BUG_REPORT_URL="liveboot@antixlinux.org"
 
@@ -238,6 +238,8 @@ main_wrapper() {
 
     breakpoint 8      "before running live init.d scripts"
     breakpoint b8     "Bash shell before running live init.d scripts"
+
+    remove_from_runlevel lightdm 3
 
     # Try running live-usb-save first so it can restore an xorg.conf machine-state file
     confile remasterable && LIVE_SCRIPTS="live-usb-save $LIVE_SCRIPTS"
@@ -1060,39 +1062,6 @@ set_console_width() {
     # allow conwidth=aa,bb
     width=${width%%,*}
 
-    case $width in
-        [1-9][0-9]|[1-9][0-9][0-9]) ;;
-        off) return ;;
-        *) warn  "$_Invalid_X_value_Y_" "$(pqw conwidth)" "$(pqw $width)"
-           return ;;
-      esac
-
-    # Setting these fonts only makes sense on a framebuffer
-    test -e /dev/fb0 || return
-
-    # Make sure we have at least 80 chars per line
-    local min_width=${MIN_SCREEN_WIDTH:-80}
-    [ $width -lt $min_width ] && width=$min_width
-
-    local pixel_width=$(get_fbcondecor_width)
-    local cmd_size=$((pixel_width / width))
-
-    vmsg 6 'Width of screen in pixels %s'  "$(pq $pixel_width)"
-    vmsg 6 'Try to set line length to %s'  "$(pq $width)"
-    vmsg 6 'Using size %s'                 "$(pq $cmd_size)"
-
-    local size
-    case $cmd_size in
-              [1-7]) size=12x6                ;;
-               [89]) size=16                  ;;
-                 10) size=20x10               ;;
-                 11) size=22x11               ;;
-              1[23]) size=24x12               ;;
-              1[45]) size=28x14               ;;
-            1[6789]) size=32x16               ;;
-       [23456][0-9]) size=32x16               ;;
-    esac
-
     local code
     case ${lang%%_*} in
                      kk|ky|tj) code='CyrAsia'  ;;
@@ -1106,19 +1075,64 @@ set_console_width() {
                             *) code='Uni2'     ;;
     esac
 
-    local try  font  f_size  f_face file
-    for f_size in $size $def_size; do
-        for f_face in ${name}Bold VGA $name; do
-            try=$code-$f_face$f_size
-            file=$dir/$try$ext
-            test -e $file || continue
-            font=$try
-            break
+    local font file
+    # This loop only runs at most once.  Use "break" for control flow
+    while true; do
+        test -e /dev/fb0 || break
+
+        case $width in
+            [1-9][0-9]|[1-9][0-9][0-9]) ;;
+            off) break ;;
+              *) warn  "$_Invalid_X_value_Y_" "$(pqw conwidth)" "$(pqw $width)"
+                 break ;;
+          esac
+
+        # Make sure we have at least 80 chars per line
+        local min_width=${MIN_SCREEN_WIDTH:-80}
+        [ $width -lt $min_width ] && width=$min_width
+
+        local pixel_width=$(get_fbcondecor_width)
+        [ -z "$pixel_width" ] && break
+        local cmd_size=$((pixel_width / width))
+
+        vmsg 6 'Width of screen in pixels %s'  "$(pq $pixel_width)"
+        vmsg 6 'Try to set line length to %s'  "$(pq $width)"
+        vmsg 6 'Using size %s'                 "$(pq $cmd_size)"
+
+        local size
+        case $cmd_size in
+                  [1-7]) size=12x6                ;;
+                   [89]) size=16                  ;;
+                     10) size=20x10               ;;
+                     11) size=22x11               ;;
+                  1[23]) size=24x12               ;;
+                  1[45]) size=28x14               ;;
+                1[6789]) size=32x16               ;;
+           [23456][0-9]) size=32x16               ;;
+        esac
+
+        local try  f_size  f_face
+        for f_size in $size $def_size; do
+            for f_face in ${name}Bold VGA $name; do
+                try=$code-$f_face$f_size
+                file=$dir/$try$ext
+                test -e $file || continue
+                font=$try
+                break
+            done
+            [ "$font" ] && break
         done
-        [ "$font" ] && break
+
+        break
     done
 
-    [ "$font" ] || return 2
+    # If we didn't find a font, fall back to VGA16 so we still
+    # get the right unicode chars for the chosen language
+    if [ -z "$font" ]; then
+        font=$code-VGA16
+        file=$dir/$font$ext
+        test -e $file || return 2
+    fi
 
     [ "$NO_CLEAR" ] || clear
     vmsg 5  "$_Set_font_to_X_" "$(pq $font)"
@@ -1270,15 +1284,14 @@ disable_hcd() {
 #------------------------------------------------------------------------------
 get_fbcondecor_width() {
     local theme=${1:-default}  res
-    local fbsize_file=/sys/class/graphics/fb0/virtual_size
-    read res 2>/dev/null <$fbsize_file
+    local res=$(cat /sys/class/graphics/fb0/virtual_size 2>/dev/null)
     [ -z "$res" ] && return
     if test -e /dev/fbcondecor; then
         local file=/etc/splash/$theme/${res/,/x}.cfg
         test -r $file || return
         sed -rn "s/^\s*tw=([0-9]+).*/\1/p" $file | tail -n1
     else
-        cut -d, -f1 $fbsize_file
+        echo ${res%%,*}
     fi
 }
 
@@ -5565,6 +5578,8 @@ copy_xtra() {
      # Create a symlink to the /antiX/xtra directory if it exists
     local r_dir="$NEW_ROOT/root"
     local x_dir="$DEFAULT_DIR/xtra"
+
+    test -e $r_dir/xtra && return
     test -d $r_dir && test -d $x_dir && log_cmd ln -s $x_dir $r_dir/xtra
 }
 
@@ -6116,6 +6131,19 @@ prepare_switch_root() {
     PATH=$new_live/bin:$PATH
 
     (cd $new_root && mkdir -p sys proc dev/pts)
+}
+
+remove_from_runlevel() {
+    local prog=$1  level=${2:-3}  root=${3:-/live/aufs}
+    test -d $root || root=
+    local file=$root/etc/init.d/$prog
+    msg "file: $file"
+    test -e $file || return
+    local links=$(ls $root/etc/rc$level.d/S*$prog)
+    msg "links: $links"
+    test -z "$links" && return
+    sed -r -i "/^#\s+Default-Start:/ s/\<$level\>//" $file
+    rm -f $links
 }
 
 #------------------------------------------------------------------------------
