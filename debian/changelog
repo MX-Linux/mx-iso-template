@@ -1,3 +1,9 @@
+mx-iso-template (17.11.05mx17) UNRELEASED; urgency=medium
+
+  * added translations to initrd 
+
+ -- dolphin <dolphin@littlebyte>  Tue, 28 Nov 2017 19:05:24 -0500
+
 mx-iso-template (17.11.04mx17) mx; urgency=medium
 
   * update to new default bootloader graphics

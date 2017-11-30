@@ -34,7 +34,7 @@ LOG_FILE="/live/config/font"
 PATH=/sbin:/bin:/usr/sbin:/usr/bin:/usr/local/bin
 
 set_console_font() {
-    local cmd_width  lang AUTO  label
+    local cmd_width  lang  AUTO  label
 
     # Get parameters from "cmdline"
     if [ "$1" = "--auto" ]; then
@@ -52,67 +52,10 @@ set_console_font() {
         cmd_width=$1
         lang=$2
     fi
-    # allow "conwidth=aa,bb" and we get the "bb".  This allows a different
-    # conwidth for the initrd ("aa") and for the booted system ("bb").
-    local width=${cmd_width##*,}
-    : ${width:=$DEF_SCREEN_WIDTH}
-
-    # Silently give up on bad input
-    case $width in
-        [1-9][0-9]|[1-9][0-9][0-9]) ;;
-        off) return ;;
-        *) error "bad conwidth parameter %s" $cmd_width ;;
-    esac
-
-    test -e /dev/fb0 || error "frame buffer is not enabled"
-
-    local name=Terminus
-
-    # The two font dirs and the extension stuff below allows the same code
-    # to work early in the initrd and late while the real system is booting.
-    # The busybox "setfont" doesn't like gzipped fonts so they are not
-    # gzipped in the initrd.  This actually makes the initrd.gz *smaller*.
-    local dir fdir
-    for dir in $FONT_DIRS; do
-        test -d $dir || continue
-        fdir=$dir
-        break
-    done
-    [ -n "$fdir" ] || error "could not find a font directory"
-
-    local ext=.psf.gz
-    case $fdir in
-        /live/*) ext=.psf ;;
-    esac
-
-    local pixel_width=$(get_fbcondecor_width --tty=1)
-
-    # Make sure we have at least 80 chars per line
-    local min_width=${MIN_SCREEN_WIDTH:-80}
-    [ $width -lt $min_width ] && width=$min_width
-
-    local cmd_size=$((pixel_width / width))
-
-    say " req. width: $width"
-    say "pixel width: $pixel_width"
-    say " font width: $cmd_size"
-
-    # Convert font parameters to parts of the font name
-
-        local size
-        case $cmd_size in
-              [1-7]) size=12x6                ;;
-               [89]) size=16                  ;;
-                 10) size=20x10               ;;
-                 11) size=22x11               ;;
-              1[23]) size=24x12               ;;
-              1[45]) size=28x14               ;;
-            1[6789]) size=32x16               ;;
-       [23456][0-9]) size=32x16               ;;
-    esac
 
     local code
     case ${lang%%_*} in
+                     kk|ky|tj) code='CyrAsia'  ;;
                      kk|ky|tj) code='CyrAsia'  ;;
                         ru|uk) code='CyrKoi'   ;;
                   bg|mk|ru|sr) code='CyrSlav'  ;;
@@ -124,20 +67,96 @@ set_console_font() {
                             *) code='Uni2'     ;;
     esac
 
-    # Now try to find an existing font file that matches what we want
+    # allow "conwidth=aa,bb" and we get the "bb".  This allows a different
+    # conwidth for the initrd ("aa") and for the booted system ("bb").
+    local width=${cmd_width##*,}
+    : ${width:=$DEF_SCREEN_WIDTH}
 
-    local try font face font_file
-    for face in ${name}Bold VGA $name; do
-        #say $face$size
-        try=$code-$face$size
-        font_file=$fdir/$try$ext
-        #say $font_file
-        test -e $font_file || continue
-        font=$try
+    local dir fdir
+    for dir in $FONT_DIRS; do
+        test -d $dir || continue
+        fdir=$dir
+        break
+    done
+    [ -n "$fdir" ] || error "could not find a font directory"
+
+    # The two font dirs and the extension stuff below allows the same code
+    # to work early in the initrd and late while the real system is booting.
+    # The busybox "setfont" doesn't like gzipped fonts so they are not
+    # gzipped in the initrd.  This actually makes the initrd.gz *smaller*.
+    local ext=.psf.gz
+    case $fdir in
+        /live/*) ext=.psf ;;
+    esac
+
+
+
+    local file font face size
+    while true; do
+        # Silently give up on bad input
+        case $width in
+            [1-9][0-9]|[1-9][0-9][0-9]) ;;
+            off) break ;;
+              *) error "bad conwidth parameter %s" $cmd_width
+                break ;;
+        esac
+
+        test -e /dev/fb0 || break
+
+        local name=Terminus
+
+        local pixel_width=$(get_fbcondecor_width --tty=1)
+
+        [ -z "$pixel_width" ] && break
+
+        # Make sure we have at least 80 chars per line
+        local min_width=${MIN_SCREEN_WIDTH:-80}
+        [ $width -lt $min_width ] && width=$min_width
+
+        local cmd_size=$((pixel_width / width))
+
+        say " req. width: $width"
+        say "pixel width: $pixel_width"
+        say " font width: $cmd_size"
+
+        # Convert font parameters to parts of the font name
+
+        case $cmd_size in
+                            [1-7]) size=12x6       ;;
+                             [89]) size=16         ;;
+                               10) size=20x10      ;;
+                               11) size=22x11      ;;
+                            1[23]) size=24x12      ;;
+                            1[45]) size=28x14      ;;
+                          1[6789]) size=32x16      ;;
+                     [23456][0-9]) size=32x16      ;;
+        esac
+
+        # Now try to find an existing font file that matches what we want
+
+        local try font_file
+        for face in ${name}Bold VGA $name; do
+            #say $face$size
+            try=$code-$face$size
+            font_file=$fdir/$try$ext
+            #say $font_file
+            test -e $font_file || continue
+            font=$try
+            break
+        done
+
         break
     done
 
-    [ "$font" ] || return
+    # If we didn't find a font, fall back to VGA16 so we still
+    # get the right unicode chars for the chosen language
+    if [ -z "$font" ]; then
+        font=$code-VGA16
+        file=$fdir/$font$ext
+        face="VGA"
+        size="8x16"
+        test -e $file || return 2
+    fi
 
     say "       font: $font"
 
@@ -198,28 +217,8 @@ get_fbcondecor_width() {
         width=$($prog $tty_arg -c getcfg 2>/dev/null | sed -nr "s/^twidth:\s+//p")
         break
     done
-    [ ${width:-0} -eq 0 ] && width=$(echo "$res" | cut -d, -f1)
+    [ ${width:-0} -eq 0 ] && width=${res%%,*}
     printf "%s\n" "$width"
-}
-
-#------------------------------------------------------------------------------
-# Get the width of the current text area of the console in pixels.  This
-# version assumes the theme is always the "default" them since we are not
-# set up to change the theme in the initrd (I think).  The unused code below
-# can read the theme from boot parameters.
-#------------------------------------------------------------------------------
-old_get_fbcondecor_width() {
-    local theme=${1:-default}  res
-    local fbsize_file=/sys/class/graphics/fb0/virtual_size
-    read res 2>/dev/null <$fbsize_file
-    [ -z "$res" ] && return
-    if test -e /dev/fbcondecor; then
-        local file=/etc/splash/$theme/${res/,/x}.cfg
-        test -r $file || return
-        sed -rn "s/^\s*tw=([0-9]+).*/\1/p" $file | tail -n1
-    else
-        cut -d, -f1 $fbsize_file
-    fi
 }
 
 # NOT USED NOW since setting theme via boot param is not enabled
