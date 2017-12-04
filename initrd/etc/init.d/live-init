@@ -80,6 +80,7 @@ automount=off|amnt=off)                          AUTOMOUNT_OFF=true ;;
     automount=*|amnt=*)     CMD_MOUNT=$value ;       AUTOMOUNT=true ;;
                mount=*)     CMD_MOUNT=$value                        ;;
                fstab=*)     CMD_FSTAB=$value                        ;;
+               nofstab)      NO_FSTAB=true                          ;;
            desktheme=*)    DESK_THEME=$value                        ;;
                 norepo)       NO_REPO=true                          ;;
               norepo=*)   IGNORE_REPO=$value                        ;;
@@ -139,7 +140,7 @@ do_start() {
     local user_automount
     [ -n "$HAVE_X" -a -e $AUTOMOUNT_CMD -a -z "$CMD_FSTAB" ] && user_automount=true
 
-    create_fstab "$DISTRO" "$user_automount"  "$CMD_FSTAB" "$CMD_MOUNT"
+    [ "$NO_FSTAB" ] || create_fstab "$DISTRO" "$user_automount"  "$CMD_FSTAB" "$CMD_MOUNT"
 
     #-jbb: for debugging
     unset COUNTRY WM_LANG KEYBOARDS KEYTABLE LANG MIRROR TZ XKBLAYOUT CONSOLE_FONT
