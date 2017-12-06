@@ -1,3 +1,9 @@
+mx-iso-template (17.12.01mx17) UNRELEASED; urgency=medium
+
+  * mx17 
+
+ -- dolphin <dolphin@littlebyte>  Tue, 05 Dec 2017 20:04:35 -0500
+
 mx-iso-template (17.12mx17) mx; urgency=medium
 
   * added translations to initrd  
