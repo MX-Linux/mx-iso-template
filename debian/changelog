@@ -1,3 +1,9 @@
+mx-iso-template (18.01.01mx17) mx; urgency=medium
+
+  * fix bug in grub.cfg
+
+ -- dolphin <dolphinoracle@gmail.com>  Sun, 14 Jan 2018 18:10:51 -0500
+
 mx-iso-template (17.12.02mx17) mx; urgency=medium
 
   * mx17 mark2 
