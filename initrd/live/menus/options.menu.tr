@@ -1,17 +1,17 @@
    1)  Öntanımlı
    2)  checkmd5        Canlı ortamın doğruluğu denetleniyor
-   3)  checkfs         Check LiveUSB and persistence ext2/3/4 file systems
+   3)  checkfs         LiveUSB ve kalıcı ext2/3/4 dosya sistemlerini kontrol et
    4)  toram           Sıkıştırılmış dosya sistemi RAM'a kopyalanıyor
    5)  from=usb        LiveUSB'den yükleme bitti
    6)  from=hd         Sabit sürücüden önyükleme bitti
-   7)  nousb2          Disable all usb-2 devices while booting
-   8)  hwclock=ask     Have the system help determine the clock setting
-   9)  hwclock=utc     Hardware clock uses UTC (Linux-only systems)
-  10)  hwclock=local   Hardware clock uses local time (Windows systems)
-  11)  password        Change passwords before booting
-  12)  wicd            Enable wicd service on startup
-  13)  nowicd          Disable wicd service on startup
-  14)  nostore         Disable LiveUSB-Storage feature (LiveUSB only)
-  15)  dostore         Enable LiveUSB-Storage feature (LiveUSB only)
+   7)  nousb2          Önyükleme yaparken tüm usb-2 aygıtlarını devre dışı bırak
+   8)  hwclock=ask     Sistemin saat ayarını belirlemesine yardımcı olun
+   9)  hwclock=utc     Donanım saati UTC kullanıyor (Yalnızca linux sistemler)
+  10)  hwclock=local   Donanım saati yerel zaman kullanıyor (Windows sistemler)
+  11)  password        Önyüklemeden önce parolaları değiştir
+  12)  wicd            wicd hizmetini başlangıçta etkinleştir
+  13)  nowicd          Başlangıçta wicd hizmetini devre dışı bırak
+  14)  nostore         LiveUSB Depolama özelliğini devre dışı bırak (Sadece LiveUSB)
+  15)  dostore         LiveUSB Depolama özelliğini etkinleştir (sadece LiveUSB)
   16)  savestate       Save some files across reboots (LiveUSB only)
   17)  nosavestate     Don't save files across reboots (LiveUSB only)

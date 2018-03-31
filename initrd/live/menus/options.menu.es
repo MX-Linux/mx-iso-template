@@ -9,8 +9,8 @@
    9)  hwclock=utc     El reloj del hardware usa UTC (sólo sistemas Linux)
   10)  hwclock=local   El reloj del hardwaree usa la hora local (sistemas Windows)
   11)  password        Cambiar las contraseñas antes de iniciar
-  12)  wicd            Enable wicd service on startup
-  13)  nowicd          Disable wicd service on startup
+  12)  wicd            Habilitar servicio wicd al iniciar
+  13)  nowicd          Deshabilitar servicio wicd al iniciar
   14)  nostore         Deshabilitar la capacidad de almacenamiento LiveUSB (solamente para LiveUSB)
   15)  dostore         Habilitar la capacidad de almacenamiento LiveUSB (solamente para LiveUSB)
   16)  savestate       Guardar algunos archivos entre reinicios (sólo LiveUSB)

@@ -122,6 +122,7 @@ do_start() {
     for param in $CMDLINE; do
         val=${param#*=}
         case "$param" in
+             disable=OFF)    exit 0                                 ;;
                disable=*)    disable_param=$val    ;  must_run=true ;;
                     lean)             LEAN=true    ;  must_run=true ;;
                     mean)             MEAN=true    ;  must_run=true ;;
@@ -195,7 +196,8 @@ do_start() {
     [ "$ENABLE_NTPD" ] || disable_services "ntpd disable by default" ntp
     [ "$ENABLE_PAM" ]  || disable_pam_login
 
-    [ -n "$must_run" -o -n "$DISABLE_NFS" ] || exit 0
+    # only exit early if "disable=OFF" is given (see above)
+    # [ -n "$must_run" -o -n "$DISABLE_NFS" ] || exit 0
 
     if [ "$LEAN" ]; then
 

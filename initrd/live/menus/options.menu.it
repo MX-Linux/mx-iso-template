@@ -1,4 +1,4 @@
-   1)  Default
+   1)  Predefinito
    2)  checkmd5        Controlla l'integrità dell'unità live
    3)  checkfs         Controlla il filesystems ext2/3/4 della LiveUSB e della persistenza
    4)  toram           Copia il file system compresso sulla RAM

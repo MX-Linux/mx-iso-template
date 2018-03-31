@@ -1,4 +1,4 @@
-   1)  Default
+   1)  Predefinito
    2)  persist_all     Veloce. Salva root e la home (usa la RAM, salva allo spegnimento)
    3)  persist_root    Veloce. Salva solo root (usa la RAM, salva allo spegnimento)
    4)  persist_static  Lento. Salva root e la home (non usa la RAM, salva costantemente)
