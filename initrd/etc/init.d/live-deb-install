@@ -48,6 +48,9 @@ do_start() {
         echo_live "Installing %s" "$(pquote $deb)"
         /usr/bin/dpkg -i $full
     done
+
+    echo_live "Configuring unconfigured packages"
+    /usr/bin/dpkg --configure -a
 }
 
 main "$@" 2>&1 | tee -a $INIT_LOG_FILE

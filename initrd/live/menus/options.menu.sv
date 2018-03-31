@@ -9,8 +9,8 @@
    9)  hwclock=utc     Hårdvaru-klockan använder UTC (Endast Linuxsystem)
   10)  hwclock=local   Hårdvaru-klocka använder lokal tid (Windows system)
   11)  password        Ändra lösenord före start
-  12)  wicd            Enable wicd service on startup
-  13)  nowicd          Disable wicd service on startup
+  12)  wicd            Aktivera wicd service vid start
+  13)  nowicd          Stäng av wicd service vid start
   14)  nostore         Stäng av LiveUSB-lagringsfunktionen (Endast LiveUSB)
   15)  dostore         Använd LiveUSB-lagringsfunktionen (Endast LiveUSB)
   16)  savestate       Spara en del filer vid omstarter (Endast LiveUSB)

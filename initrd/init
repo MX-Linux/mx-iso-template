@@ -25,8 +25,8 @@
 # that you don't want users to be able to adjust.
 
                      ME="initrd init"
-                VERSION="8.12.07"
-           VERSION_DATE="Wed Nov 29 19:19:45 MST 2017"
+                VERSION="8.12.09"
+           VERSION_DATE="Mon Mar 26 10:45:57 MDT 2018"
               DEVELOPER="BitJam"
          BUG_REPORT_URL="liveboot@antixlinux.org"
 
@@ -2744,7 +2744,7 @@ try_mount() {
     [ "$type" ] || return 1
     local opts=$rw,noatime
     local winopts=umask=000,dmask=002,fmask=113
-    local ntfsopts=force,rw,$winopts
+    local ntfsopts=force,rw,$winopts,uid=$USER_UID,gid=$USER_GID
     local fatopts=$winopts,shortname=winnt,uid=$USER_UID,gid=$USER_GID
 
     case $type in
