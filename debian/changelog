@@ -1,3 +1,9 @@
+mx-iso-template (18.03.01mx17) mx; urgency=medium
+
+  * fix for live-usb-storage mount on ntfs systems included (upstream antix) 
+
+ -- dolphin <dolphin@mx>  Sat, 31 Mar 2018 15:12:27 -0400
+
 mx-iso-template (18.01.01mx17) mx; urgency=medium
 
   * fix bug in grub.cfg
