@@ -1,3 +1,9 @@
+mx-iso-template (18.05.01mx17) mx; urgency=medium
+
+  * minor change to grub text for UEFI boots 
+
+ -- dolphin <dolphin@mx>  Wed, 30 May 2018 19:45:19 -0400
+
 mx-iso-template (18.03.01mx17) mx; urgency=medium
 
   * fix for live-usb-storage mount on ntfs systems included (upstream antix) 
