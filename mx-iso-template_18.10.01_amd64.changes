@@ -1,0 +1,31 @@
+Format: 1.8
+Date: Tue, 16 Oct 2018 18:52:23 -0400
+Source: mx-iso-template
+Binary: mx-iso-template
+Architecture: source all
+Version: 18.10.01
+Distribution: mx
+Urgency: medium
+Maintainer: Adrian <adrian@mxlinux.org>
+Changed-By: dolphin <dolphin@littlebyte>
+Description:
+ mx-iso-template - MX ISO template
+Changes:
+ mx-iso-template (18.10.01) mx; urgency=medium
+ .
+   * remove beta language from theme files
+Checksums-Sha1:
+ 6fd7d8978ae408da94173ff1cd882cbfa20042c4 621 mx-iso-template_18.10.01.dsc
+ 46926130ceed1715c609f6a631a2aeff29b58e34 3126324 mx-iso-template_18.10.01.tar.xz
+ 0e37c7fba201fec9352686da713516af6c0a13d3 6135852 mx-iso-template_18.10.01_all.deb
+ 21a8b626b89541551573a0f87d261c0ce4c63918 4993 mx-iso-template_18.10.01_amd64.buildinfo
+Checksums-Sha256:
+ 331603cbc5d776ab939afcdbdc6d1262ec1602e53f8221799bc6261328437691 621 mx-iso-template_18.10.01.dsc
+ 47578544c3b5c43655140e942d6a912c78b1d98fceb1ba9df620ffa02526ddf6 3126324 mx-iso-template_18.10.01.tar.xz
+ 1754d6a0a73e1343b1a9cac32509ec3193c757250be4a5195fac0b14287acfb9 6135852 mx-iso-template_18.10.01_all.deb
+ de557be23aff93fc2e40f4ff5f3667997f7517338ece606229f2c065f3e8f810 4993 mx-iso-template_18.10.01_amd64.buildinfo
+Files:
+ a18a04207688e9e5d85f7c443dbbbc6d 621 admin optional mx-iso-template_18.10.01.dsc
+ 2fa09b1d9e48cb5308ea239ad81a34c0 3126324 admin optional mx-iso-template_18.10.01.tar.xz
+ ad63b6c094c768fcda81f9495078a431 6135852 admin optional mx-iso-template_18.10.01_all.deb
+ 0c265103799463093349a6203da56fd2 4993 admin optional mx-iso-template_18.10.01_amd64.buildinfo
