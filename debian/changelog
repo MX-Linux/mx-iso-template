@@ -1,3 +1,9 @@
+mx-iso-template (18.05.01mx17+nmu1) mx; urgency=medium
+
+  * remove beta language from theme files 
+
+ -- dolphin <dolphin@littlebyte>  Tue, 16 Oct 2018 18:52:23 -0400
+
 mx-iso-template (18.05.01mx17) mx; urgency=medium
 
   * minor change to grub text for UEFI boots 
