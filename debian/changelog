@@ -1,3 +1,9 @@
+mx-iso-template (18.11.01) mx; urgency=medium
+
+  * remove lightdm-disable from init 
+
+ -- dolphin <dolphin@littlebyte>  Thu, 15 Nov 2018 19:08:14 -0500
+
 mx-iso-template (18.10.01) mx; urgency=medium
 
   * remove beta language from theme files 

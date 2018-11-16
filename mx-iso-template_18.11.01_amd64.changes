@@ -1,0 +1,31 @@
+Format: 1.8
+Date: Thu, 15 Nov 2018 19:08:14 -0500
+Source: mx-iso-template
+Binary: mx-iso-template
+Architecture: source all
+Version: 18.11.01
+Distribution: mx
+Urgency: medium
+Maintainer: Adrian <adrian@mxlinux.org>
+Changed-By: dolphin <dolphin@littlebyte>
+Description:
+ mx-iso-template - MX ISO template
+Changes:
+ mx-iso-template (18.11.01) mx; urgency=medium
+ .
+   * remove lightdm-disable from init
+Checksums-Sha1:
+ de3d84ae5ec60522a782bd340a2b183507bc3f28 621 mx-iso-template_18.11.01.dsc
+ aa198bdbaa452704266a68add591c5ab7f98e695 3126824 mx-iso-template_18.11.01.tar.xz
+ 8211ef2e09afa537b4e98e1bd97295560d60f3b9 6131736 mx-iso-template_18.11.01_all.deb
+ 4574b4b0e6b7ce592fd55c9884bac9c97e7f2169 4986 mx-iso-template_18.11.01_amd64.buildinfo
+Checksums-Sha256:
+ 1d0321a27aeba42f9f399d111c6f286e8b3c39b2843a3886861a2e61e995c24a 621 mx-iso-template_18.11.01.dsc
+ bf9627c5aa685c86fa06e7189097a11362a11b6a7d72edc3a55159bc69fcf1c6 3126824 mx-iso-template_18.11.01.tar.xz
+ 087f3dce848f14031d2e3ba0821ef69563198b00f95bfa52280220ac119d451a 6131736 mx-iso-template_18.11.01_all.deb
+ 035580b20bd3fe84aa31b9bf687f7db6dbf031142dcee9aa16852d39a3e96957 4986 mx-iso-template_18.11.01_amd64.buildinfo
+Files:
+ a0e746fb2595a36a2743e729b3822c36 621 admin optional mx-iso-template_18.11.01.dsc
+ 12d49991a2ac9fdf1a09803048da53aa 3126824 admin optional mx-iso-template_18.11.01.tar.xz
+ 4bba7d07aab751d7e9136a018d63c4d5 6131736 admin optional mx-iso-template_18.11.01_all.deb
+ 805990cebca1e319c3ad64877030ea08 4986 admin optional mx-iso-template_18.11.01_amd64.buildinfo
