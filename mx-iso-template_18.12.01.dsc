@@ -2,7 +2,7 @@ Format: 3.0 (native)
 Source: mx-iso-template
 Binary: mx-iso-template
 Architecture: all
-Version: 18.11.01
+Version: 18.12.01
 Maintainer: Adrian <adrian@mxlinux.org>
 Standards-Version: 3.9.5
 Vcs-Git: git://github.com/mx-linux/mx-iso-template
@@ -10,8 +10,8 @@ Build-Depends: debhelper (>= 7.0.50~)
 Package-List:
  mx-iso-template deb admin optional arch=all
 Checksums-Sha1:
- aa198bdbaa452704266a68add591c5ab7f98e695 3126824 mx-iso-template_18.11.01.tar.xz
+ e134a30b0d68cd7110feafff11cd80f9b9875b6e 3127360 mx-iso-template_18.12.01.tar.xz
 Checksums-Sha256:
- bf9627c5aa685c86fa06e7189097a11362a11b6a7d72edc3a55159bc69fcf1c6 3126824 mx-iso-template_18.11.01.tar.xz
+ c2f70c84e3718fc533bf04ca6d30999dd21274dda639af323f18608b7f2b2ddd 3127360 mx-iso-template_18.12.01.tar.xz
 Files:
- 12d49991a2ac9fdf1a09803048da53aa 3126824 mx-iso-template_18.11.01.tar.xz
+ 0f0b4cd38d02b9bbf2372f173f42a917 3127360 mx-iso-template_18.12.01.tar.xz

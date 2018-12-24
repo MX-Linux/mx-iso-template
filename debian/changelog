@@ -1,3 +1,9 @@
+mx-iso-template (18.12.01) mx; urgency=medium
+
+  * minor edit to grub text 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 24 Dec 2018 11:05:00 -0500
+
 mx-iso-template (18.11.01) mx; urgency=medium
 
   * remove lightdm-disable from init 
