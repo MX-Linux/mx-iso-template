@@ -1,3 +1,9 @@
+mx-iso-template (19.02.01) mx; urgency=medium
+
+  * additional uefi grub fixes 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Wed, 06 Feb 2019 19:47:46 -0500
+
 mx-iso-template (19.1.01) mx; urgency=medium
 
   * update for uefi grub boots 
