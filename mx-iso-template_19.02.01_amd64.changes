@@ -15,17 +15,17 @@ Changes:
  .
    * additional uefi grub fixes
 Checksums-Sha1:
- bcf95ec8e4d34cb98c386f9b5a268ac9ea361460 621 mx-iso-template_19.02.01.dsc
- 295de741aad2abc6fbeb59cb075319dfc0657241 3293804 mx-iso-template_19.02.01.tar.xz
- b4ac0787dfc8d563cd5472d356eae91857bd64c5 6508406 mx-iso-template_19.02.01_all.deb
- f665640b4f260fbd42d151a0a34c2fef69ec0413 5031 mx-iso-template_19.02.01_amd64.buildinfo
+ 9f71dbe2c025b515eb476153afc1857d15b7ae3a 621 mx-iso-template_19.02.01.dsc
+ 28447abb35f61b8e9f0b8b95b1f3c808e6537f64 3207784 mx-iso-template_19.02.01.tar.xz
+ 5ee3699331bf950678c3457d27a6ba883233897f 6444418 mx-iso-template_19.02.01_all.deb
+ 5a0b514c473405a1e07f701479d487c5a2793602 5031 mx-iso-template_19.02.01_amd64.buildinfo
 Checksums-Sha256:
- 9b32778c25e33c6d491991aa1c4864b9e2dddef3d2fede90da11c546f4d4e76b 621 mx-iso-template_19.02.01.dsc
- 6f9a498a445767e133d229668f7137fc37dc0cc404832dea518d05cc77fcca3f 3293804 mx-iso-template_19.02.01.tar.xz
- ca30f24aa08ec24e0779a5914f76951177ac2bcc149758bddbec227d0d4be3c7 6508406 mx-iso-template_19.02.01_all.deb
- 7e78ca44954942f9677465b3539a0e0f8032a701ae2d1c8f9a498bc3c7e91a1b 5031 mx-iso-template_19.02.01_amd64.buildinfo
+ cd8221ddefded5f392a5989cbbb11c4c336530158013e11a38ebbc5e4bf0d77f 621 mx-iso-template_19.02.01.dsc
+ 2befcd5998d57c33d866ffb64c242933ef1a309f96869021c79c0673ddc85b91 3207784 mx-iso-template_19.02.01.tar.xz
+ 26737f0d335436e92dff4fdc0081fc0c7ed3a387648fd3b9006eb501e10f3c07 6444418 mx-iso-template_19.02.01_all.deb
+ b4004b2541c7a20ed7dcc3385e2ad644467880518a9806221b0ad9655b6b7cb5 5031 mx-iso-template_19.02.01_amd64.buildinfo
 Files:
- afd7c2995706d599c697700966fe70fc 621 admin optional mx-iso-template_19.02.01.dsc
- ba15703a98fc4fd1ae906f19fbb214da 3293804 admin optional mx-iso-template_19.02.01.tar.xz
- 860db88b55d41eb8e28f2d390533fd3e 6508406 admin optional mx-iso-template_19.02.01_all.deb
- 2187b5e41db6e223d7d05d8fc2083e83 5031 admin optional mx-iso-template_19.02.01_amd64.buildinfo
+ 58471297393b2051c54655fcf1bed1e3 621 admin optional mx-iso-template_19.02.01.dsc
+ 70e5a1792ed2cba996a91d4b35bead58 3207784 admin optional mx-iso-template_19.02.01.tar.xz
+ 5c6f644df56aebbd4006dd0847f2077f 6444418 admin optional mx-iso-template_19.02.01_all.deb
+ 5d5b612be2bfbe516f511cdc8044aa3c 5031 admin optional mx-iso-template_19.02.01_amd64.buildinfo
