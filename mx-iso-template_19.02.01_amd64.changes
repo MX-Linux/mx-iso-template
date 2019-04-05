@@ -1,0 +1,31 @@
+Format: 1.8
+Date: Wed, 06 Feb 2019 19:47:46 -0500
+Source: mx-iso-template
+Binary: mx-iso-template
+Architecture: source all
+Version: 19.02.01
+Distribution: mx
+Urgency: medium
+Maintainer: Adrian <adrian@mxlinux.org>
+Changed-By: Dolphin Oracle <dolphinoracle@gmail.com>
+Description:
+ mx-iso-template - MX ISO template
+Changes:
+ mx-iso-template (19.02.01) mx; urgency=medium
+ .
+   * additional uefi grub fixes
+Checksums-Sha1:
+ 000b22dc88722c1f2ae1cd7995703e35aa80afa8 621 mx-iso-template_19.02.01.dsc
+ 3b740927a91c05ebfc472944c65985fa8a479672 3206632 mx-iso-template_19.02.01.tar.xz
+ 774f6b95b170b06476be9b2b91fc80f986a5a4bd 6408210 mx-iso-template_19.02.01_all.deb
+ 890ac16bf2533d37bc65acf374c889c94d14de0c 5031 mx-iso-template_19.02.01_amd64.buildinfo
+Checksums-Sha256:
+ 8506c2743debe4cf8da230d5af92195d02a199238872dce344902549b035f7b9 621 mx-iso-template_19.02.01.dsc
+ 8b2049e1e5fbfc270726308095a27b13f53dbeb331f167476916302e24edc7e8 3206632 mx-iso-template_19.02.01.tar.xz
+ fb6547db1639f7747408fec3e4d6ffa98d96228e9a497ec511b9378936c4e9ce 6408210 mx-iso-template_19.02.01_all.deb
+ 1541bc09e3fd0c3c143654e15e8f6f62edfb84d810135bc9546a52cf835a6d40 5031 mx-iso-template_19.02.01_amd64.buildinfo
+Files:
+ 8cb1a1946ab0e2bd85a020df7b293f86 621 admin optional mx-iso-template_19.02.01.dsc
+ 2433eb41934264382b840319a97740ce 3206632 admin optional mx-iso-template_19.02.01.tar.xz
+ 4bf5cd6cb4a387e0922fa5ca20dd7cb4 6408210 admin optional mx-iso-template_19.02.01_all.deb
+ 56364505d67bab61f2a737ffed13deee 5031 admin optional mx-iso-template_19.02.01_amd64.buildinfo
