@@ -98,6 +98,11 @@ Expected$cheat_co menus custom both$err_co or$cheat_co reset"
         esac
 
         case $gfx_cmd in
+            reset) remove_custom_entry $XXX_LINUX_CFG ;;
+        esac
+
+
+        case $gfx_cmd in
             menus|both) update_gfxmenus $MENU_DIR;;
         esac
 
@@ -246,7 +251,6 @@ reset_one_dir() {
 
     [ -n "$dir" ] || return
 
-    bold
     bold "Reset bootloader menu defaults"
 
     local fcnt=0
@@ -538,6 +542,15 @@ Config_File
     DEFAULT_LABEL=custom
 }
 
+
+#------------------------------------------------------------------------------
+# Remove the custom entry (if it exists)
+#------------------------------------------------------------------------------
+remove_custom_entry() {
+    local file=$1
+    sed -i "/^LABEL custom/,/^$/d" "$file"
+}
+
 #------------------------------------------------------------------------------
 # Only echo cmdline params that *don't* match any of the names in menu_params.
 # Equal signs and values after equal signs are ignored.
@@ -559,6 +572,8 @@ extra_cmdline_params() {
                     hwclock=*) continue ;;
                     desktop=*) continue ;;
             nouveau.modeset=0) continue ;;
+                 mk_swap_file) continue ;;
+               mk_swap_file=*) continue ;;
         esac
         case " $ALL_MENU_PARAMS " in
             *" ${param%%=*} "*) ;;

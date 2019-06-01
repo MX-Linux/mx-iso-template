@@ -1,0 +1,31 @@
+Format: 1.8
+Date: Sat, 01 Jun 2019 16:27:52 -0400
+Source: mx-iso-template
+Binary: mx-iso-template
+Architecture: source all
+Version: 19.06.01
+Distribution: mx
+Urgency: medium
+Maintainer: Adrian <adrian@mxlinux.org>
+Changed-By: Dolphin Oracle <dolphinoracle@gmail.com>
+Description:
+ mx-iso-template - MX ISO template
+Changes:
+ mx-iso-template (19.06.01) mx; urgency=medium
+ .
+   * buster initial build (for testing)
+Checksums-Sha1:
+ c02a8c6259ccef9edccbc27fcc2a5ed252d9226f 621 mx-iso-template_19.06.01.dsc
+ b53347f5f451589f58ecdec15c1e9622ff09cfbb 5445076 mx-iso-template_19.06.01.tar.xz
+ 2b0c6fbecd15533dca86a058afb46075590c702f 9061636 mx-iso-template_19.06.01_all.deb
+ 498c2766d8e52104657f9fef646efda6b635d184 5068 mx-iso-template_19.06.01_amd64.buildinfo
+Checksums-Sha256:
+ a66e212f54529d82d6dfc943227a4f524176e02fed545094970d1f2b6edd15c0 621 mx-iso-template_19.06.01.dsc
+ e71fe92872e7a8439ecd2852c92749ebc61289c79640d0f7248f9309a91ed356 5445076 mx-iso-template_19.06.01.tar.xz
+ 0a153eb6e06626c1d85689ab18581343f6b3bc913b8634ddd8bb50bc957a07de 9061636 mx-iso-template_19.06.01_all.deb
+ 463fd100e0a587a4791df502a3f6e8f8c24fa450377963395b6126ff97829a63 5068 mx-iso-template_19.06.01_amd64.buildinfo
+Files:
+ 63f8b56e48fa8b4bbb19f6a0b6855a0f 621 admin optional mx-iso-template_19.06.01.dsc
+ a159017bffa497fde64417da7f025f28 5445076 admin optional mx-iso-template_19.06.01.tar.xz
+ 9f79993d45acab7bddc96b6e9508076f 9061636 admin optional mx-iso-template_19.06.01_all.deb
+ 611ad1202b3d95ea9d8ae6c2710c8af5 5068 admin optional mx-iso-template_19.06.01_amd64.buildinfo
