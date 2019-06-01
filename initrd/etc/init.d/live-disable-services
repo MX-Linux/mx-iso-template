@@ -136,7 +136,7 @@ do_start() {
 
     if test -x /etc/init.d/nfs-kernel-server; then
         DISABLE_NFS=true
-        NFS_REASON="no exports"
+        NFS_REASON='no exports'
 
         local file export_files="/etc/exports"
         for file in /etc/exports.d/*.exports ; do
@@ -149,22 +149,26 @@ do_start() {
     if [ -n "$disable_param" ]; then
 
         # If the ## expression matches then the resulting string length is zero
-        [ -z "${disable_param##*[a]*}" ] && DISABLE_ACPID=true
-        [ -z "${disable_param##*[A]*}" ] &&  ENABLE_ACPID=true
-        [ -z "${disable_param##*[d]*}" ] &&       NO_DBUS=true
-        [ -z "${disable_param##*[g]*}" ] &&   DISABLE_GPM=true
-        [ -z "${disable_param##*[i]*}" ] && DISABLE_IFPLUGD=true
-        [ -z "${disable_param##*[l]*}" ] &&          LEAN=true
-        [ -z "${disable_param##*[L]*}" ] && ENABLE_SYSLOG=true
-        [ -z "${disable_param##*[m]*}" ] &&          MEAN=true
-        [ -z "${disable_param##*[n]*}" ] &&   DISABLE_NFS=true
-        [ -z "${disable_param##*[n]*}" ] &&    NFS_REASON=n
-        [ -z "${disable_param##*[N]*}" ] &&   ENABLE_NTPD=true
-        [ -z "${disable_param##*[P]*}" ] &&    ENABLE_PAM=true
-        [ -z "${disable_param##*[v]*}" ] &&  DISABLE_VBOX=true
-        [ -z "${disable_param##*[w]*}" ] &&          WICD=no
-        [ -z "${disable_param##*[W]*}" ] &&          WICD=yes
-        [ -z "${disable_param##*[x]*}" ] &&     XTRA_LEAN=true
+        [ -z "${disable_param##*[a]*}" ] &&    DISABLE_ACPID=true
+        [ -z "${disable_param##*[A]*}" ] &&     ENABLE_ACPID=true
+        [ -z "${disable_param##*[B]*}" ] && ENABLE_BOOTCLEAN=true
+        [ -z "${disable_param##*[c]*}" ] &&  DISABLE_CONNMAN=true
+        [ -z "${disable_param##*[d]*}" ] &&          NO_DBUS=true
+        [ -z "${disable_param##*[g]*}" ] &&      DISABLE_GPM=true
+        [ -z "${disable_param##*[i]*}" ] &&  DISABLE_IFPLUGD=true
+        [ -z "${disable_param##*[l]*}" ] &&             LEAN=true
+        [ -z "${disable_param##*[L]*}" ] &&    ENABLE_SYSLOG=true
+        [ -z "${disable_param##*[m]*}" ] &&             MEAN=true
+        [ -z "${disable_param##*[n]*}" ] &&      DISABLE_NFS=true
+        [ -z "${disable_param##*[n]*}" ] &&       NFS_REASON=n
+        [ -z "${disable_param##*[N]*}" ] &&      ENABLE_NTPD=true
+        [ -z "${disable_param##*[P]*}" ] &&       ENABLE_PAM=true
+        [ -z "${disable_param##*[S]*}" ] &&  ENABLE_PLYMOUTH=true
+        [ -z "${disable_param##*[v]*}" ] &&     DISABLE_VBOX=true
+        [ -z "${disable_param##*[V]*}" ] &&     ENABLE_FBDEV=true
+        [ -z "${disable_param##*[w]*}" ] &&             WICD=no
+        [ -z "${disable_param##*[W]*}" ] &&             WICD=yes
+        [ -z "${disable_param##*[x]*}" ] &&        XTRA_LEAN=true
     fi
 
     #[ -n "$LEAN" -o -n "$MEAN" ] && : ${WICD:=no}
@@ -172,6 +176,7 @@ do_start() {
     # Prevent other messages stepping on ours
     # sleep 2
     echo_script "$_Customizing_services_" $0
+
 
     case ${CMD_WICD:-$WICD} in
         yes) echo_live "$_Enabling_X_service_" "$(pquote wicd)"
@@ -183,18 +188,21 @@ do_start() {
 
     if test -e /etc/init.d/virtualbox-guest-utils; then
         if test -e /live/config/virtualbox; then
-            echo_live "$_Enabling_X_services_" "$(pquote Virtual Box)"
+            echo_live "$_Enabling_X_service_" "$(pquote Virtual Box)"
             update-rc.d virtualbox-guest-utils defaults
             test -e /etc/init.d/virtualbox-guest-x11 && update-rc.d virtualbox-guest-x11 defaults
         else
-            echo_live "$_Disabling_X_services_" "$(pquote Virtual Box)"
+            echo_live "$_Disabling_X_service_" "$(pquote Virtual Box)"
             update-rc.d virtualbox-guest-utils remove
             test -e /etc/init.d/virtualbox-guest-x11 && update-rc.d virtualbox-guest-x11 remove
         fi
     fi
 
-    [ "$ENABLE_NTPD" ] || disable_services "ntpd disable by default" ntp
-    [ "$ENABLE_PAM" ]  || disable_pam_login
+    [ "$ENABLE_BOOTCLEAN" ] || disable_services 'checkroot-bootclean disable by default' 'checkroot-bootclean.sh'
+    [ "$ENABLE_NTPD"      ] || disable_services "ntpd disable by default" ntp
+    [ "$ENABLE_PAM"       ] || disable_pam_login
+    [ "$ENABLE_PLYMOUTH"  ] || disable_services 'plymouth' plymouth
+    [ "$ENABLE_FBDEV"     ] || disable_fbdev
 
     # only exit early if "disable=OFF" is given (see above)
     # [ -n "$must_run" -o -n "$DISABLE_NFS" ] || exit 0
@@ -205,47 +213,52 @@ do_start() {
         [ "$ENABLE_ACPID" ]  || LEAN_SERVICES="$LEAN_SERVICES acpid"
 
         echo_live "$_Disabling_some_services_X_" "$(paren L, lean)"
-        disable_services "lean (l)" "$LEAN_SERVICES"
+        disable_services 'lean (l)' "$LEAN_SERVICES"
     fi
 
     if [ "$DISABLE_IFPLUGD" ]; then
         echo_live "$_Disabling_X_services_Y_" "$(pquote ifplugd)" $(paren i)
-        disable_services "ifplugd (i)" "ifplugd"
+        disable_services 'ifplugd (i)' 'ifplugd'
     fi
 
     if [ "$DISABLE_ACPID" ]; then
         echo_live "$_Disabling_X_services_Y_" "$(pquote acpid)" $(paren a)
-        disable_services "acpid (a)" "$ACPID_SERVICES"
+        disable_services 'acpid (a)' "$ACPID_SERVICES"
     fi
 
     if [ "$MEAN" ]; then
         echo_live "$_Disabling_network_services_X_" "$(paren M, mean)"
-        disable_services "mean (m)" "$MEAN_SERVICES"
+        disable_services 'mean (m)' "$MEAN_SERVICES"
     fi
 
     if [ "$XTRA_LEAN" ]; then
         echo_live "$_Disabling_more_services_X_" "$(paren X, Xtralean)"
-        disable_services "Xtralean (x)" "$XTRA_LEAN_SERVICES"
+        disable_services 'Xtralean (x)' "$XTRA_LEAN_SERVICES"
     fi
 
     if [ "$NO_DBUS" ]; then
-        echo_live "$_Disabling_X_services_Y_" "debus" "$(paren D, nodbus)"
-        disable_services "nodbus (d)" "$NO_DBUS_SERVICES"
+        echo_live "$_Disabling_X_services_Y_" 'debus' "$(paren D, nodbus)"
+        disable_services 'nodbus (d)' "$NO_DBUS_SERVICES"
     fi
 
     if [ "$DISABLE_VBOX" ]; then
-        echo_live "$_Disabling_X_services_Y_" "Virtual Box" "$(paren v)"
-        disable_services "vbox (v)" "$VBOX_SERVICES"
+        echo_live "$_Disabling_X_services_Y_" 'Virtual Box' "$(paren v)"
+        disable_services 'vbox (v)' "$VBOX_SERVICES"
     fi
 
     if [ "$DISABLE_NFS" ]; then
         echo_live "$_Disabling_NFS_server_X_" "$(paren $NFS_REASON)"
-        disable_services "nfs (n)" "$NFS_SERVICES"
+        disable_services 'nfs (n)' "$NFS_SERVICES"
     fi
 
     if [ "$DISABLE_GPM" ]; then
         echo_live "$_Disabling_X_services_Y_" $(pquote gpm) $(paren g)
-        disable_services "gpm (g)" "$GPM_SERVICES"
+        disable_services 'gpm (g)' "$GPM_SERVICES"
+    fi
+
+    if [ "$DISABLE_CONNMAN" ]; then
+        echo_live "$_Disabling_X_services_Y_" $(pquote connman) $(paren c)
+        disable_services 'connman (c)' 'connman'
     fi
 
     [ "$OUT" ] && echo "$OUT" | tr "," "\n" > $OUT_FILE
@@ -337,6 +350,16 @@ do_stop() {
         -e 's/^\s*(session\s+[^\s]+\s+pam_lastlog.so).*/\1/'     \
         -e '/session\s+[^\s]+\s+pam_(exec|motd).so/ s/^#-*\s*//' \
         $ROOT$PAM_FILE
+}
+
+#------------------------------------------------------------------------------
+# Create a file in tmpfs to blackist nvidiafb and rivafb
+# and others as well.
+#------------------------------------------------------------------------------
+disable_fbdev() {
+    local dir=/run/modprobe.d  file=live-fbdev-blacklist.conf
+    mkdir -p "$dir"
+    cp /live/etc/modprobe.d/$file "$dir"
 }
 
 config_wicd() {

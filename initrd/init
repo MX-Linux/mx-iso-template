@@ -1,8 +1,9 @@
-#!/bin/sh
+#!/bin/bash
 
 #==============================================================================
-# LiveCD/USB/HD init script
-# (C) 2009-2017 Paul Banham <antiX@operamail.com>
+# LiveCD/USB/HD init script for antiX/MX
+#
+# (C) 2009-2019 Paul Banham <antiX@operamail.com>
 # Inspired by the work of Klaus Knopper
 #
 # License: GPLv3 or later
@@ -25,8 +26,8 @@
 # that you don't want users to be able to adjust.
 
                      ME="initrd init"
-                VERSION="8.12.09"
-           VERSION_DATE="Mon Mar 26 10:45:57 MDT 2018"
+                VERSION="8.20.07"
+           VERSION_DATE="Fri 31 May 2019 06:23:15 PM MDT"
               DEVELOPER="BitJam"
          BUG_REPORT_URL="liveboot@antixlinux.org"
 
@@ -37,7 +38,7 @@
     FAILSAFE_BOOT_RETRY=30
 
     #DISABLE_SERVICES_OPTS="(c[0-9]+(\.[0-9]*)?|c\.[0-9]+|[ADLMPSWXacdgklmnNrsvwx])+"
-    DISABLE_SERVICES_OPTS="[aAdgkilLmnNPrsSvVwWx]+"
+    DISABLE_SERVICES_OPTS="[aABcdgkilLmnNPrsSvVwWx]+"
 
            RW_MODE="ro"
        #DISTRO_NAME="Linux"
@@ -101,20 +102,25 @@
         SEED_FNAME=random-seed
 
         BLACK_LIST=
-   BLACK_LIST_FILE=/etc/modprobe.d/live-initrd-blacklist.conf
- KMS_VIDEO_MODULES="ast,bochs-drm,cirrus,emgd,gma500_gfx,i915,mgag200,nouveau,qxl,radeon,udl,vmwgfx"
+   BLACK_LIST_FILE=/etc/modprobe.d/live-blacklist.conf
+KMS_VIDEO_MODULES="amdgpu,analogix-anx78xx,ast,bochs-drm,ch7006,cirrus,gma500_gfx,hibmc-drm,i915,mgag200,nvidia,nouveau,qxl,radeon,tda998x,udl,vboxvideo,virtio-gpu,vkms,vmwgfx"
+
     DEFAULT_SQFILE=/antiX/linuxfs
   DEFAULT_ISO_FILE=/antiX/antiX.iso
 
   LIVE_X64_LD_PATH="/lib:/lib/x86_64-linux-gnu:/usr/lib"
   LIVE_386_LD_PATH="/lib:/lib/i386-linux-gnu:/usr/lib"
 
-MKFS_FREE_MARGIN=10
-  rootfs_SIZE_PARAM="min_size=250 mid_size=100 max_size=4096 factor=50"
-  homefs_SIZE_PARAM="min_size=10 mid_size=100 max_size=8192 factor=25"
-         MKFS_SIZES="250 375 500 750 1024 1500 2048 2500 3072 4096"
-       BIGGER_SIZES="5120 6144 8192 10240 12288 15360 20480"
-      SMALLER_SIZES="10 100 175"
+   MKFS_FREE_MARGIN=10
+  rootfs_SIZE_PARAM="min_size=250 mid_size=100 max_size=8192  factor=50"
+  homefs_SIZE_PARAM="min_size=10  mid_size=100 max_size=10240 factor=25"
+        MKFS_SIZES="5 10 50 100 150 200 250 300 400 500 750 1024 1536 2048 2560 3072 4096
+                    5120 6144 8192 10240 12288 14336 16384 18432 20480 25600 30720 35840 40960
+                    46080  51200 61440 71680 81920 102400  128000 153600 179200 204800 256000
+                    307200 358400 409600 460800 512000"
+
+   MAX_ROOTFS_SIZE="40960"  # 40 GiB
+   MIN_ROOTFS_SIZE="100"
 
       LIVE_SCRIPTS="live-L10n live-init"
       LAST_BP_TIME=0
@@ -126,8 +132,20 @@ MKFS_FREE_MARGIN=10
       MADE_BY_FILE="made-by-live-usb-maker"
     PROG_BAR_WIDTH=100
 
-   MIN_SCREEN_WIDTH=80
-   DEF_SCREEN_WIDTH=120
+  MIN_SCREEN_WIDTH=80
+  DEF_SCREEN_WIDTH=120
+         CON_WIDTH=120
+
+      DID_EFI_FILE="boot/grub/config/did-efi-grub"
+     EFI_GRUB_CONF="boot/grub/config/efi-grub.cfg"
+    UEFI_UUID_FILE="antiX/esp-uuid"
+         SWAP_FILE="/live/boot-dev/swap-file"
+   USB_DIRTY_BYTES=20000000
+
+     LIVE_LOGS_DIR="live-logs"
+
+       TSPLASH_TTY=10
+            MY_TTY=1
 
     #           HUP INT QUIT SEGV TERM
     SIGNAL_LIST="1   2   3    11   15"
@@ -158,6 +176,9 @@ set_live_dirs() {
 
 hbar="======================================================================"
 tbar="----------------------------------------------------------------------"
+rbar=">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>"
+lbar="<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
+
 
 main_wrapper() {
 
@@ -194,13 +215,18 @@ main_wrapper() {
     read_cmdline_params
     select_breakpoints
 
+    start_tsplash
+
     FREE_MEM=$(mem_info MemFree)
 
     #[ -z "$NO_MODESET" -a -z "$LOW_COLOR" -a -z "$HIGH_COLOR" ] && NO_COLOR=true
     set_colors "$NO_COLOR" "$LOW_COLOR"
 
+    echo "$LANG" > $OUTPUT_DIR/lang
     read_xlat init $LANG
-    set_console_width "$CON_WIDTH" "$LANG"
+    set_console_width "$CON_WIDTH" "$LANG" 6
+
+    [ "$TSPLASH_ERROR" ] && non_fatal  "$_The_X_feature_requires_the_Y_boot_parameter_" 'tsplash' 'console=tty1'
 
     # disable console screen blanking
     printf "\e[9;0]\e[14;0]"
@@ -236,10 +262,13 @@ main_wrapper() {
 
     # Need to run persist-password outside of our error catching
 
+    tsplash_progress scripts-start
+
     breakpoint 8      "before running live init.d scripts"
     breakpoint b8     "Bash shell before running live init.d scripts"
 
-    #remove_from_runlevel lightdm 3
+    # I hope this is no longer needed
+    # remove_from_runlevel lightdm 3
 
     # Try running live-usb-save first so it can restore an xorg.conf machine-state file
     confile remasterable && LIVE_SCRIPTS="live-usb-save $LIVE_SCRIPTS"
@@ -264,13 +293,15 @@ main_wrapper() {
     prep_seed_dev_random "$SEED_FILE"
     late_umount $PERSIST_DEVICE
 
-     [ -z "$TORAM_STORE" ] && late_umount $SQFILE_DEV
+    [ -z "$TORAM_STORE" ] && late_umount $SQFILE_DEV
 
     late_umount $BIOS_DEV
 
+    tsplash_progress scripts-end
+
     if [ -z "$DISABLE_STORE" ]; then
         if detect_old_persist_scripts $NEW_ROOT; then
-            warn  "$_X_disabled_due_to_outdated_persistence_scripts_and_libs_" "$(pqw LiveUSB-Storage)"
+            warn  "$_X_disabled_due_to_outdated_persistence_scripts_and_libs_" "$(pqw Live-usb-storage)"
         else
             confile remasterable && run_init_scripts $NEW_ROOT live-usb-storage
 
@@ -297,13 +328,16 @@ main_wrapper() {
     done
     rm -f $rm_list
 
-    rm -f $NEW_ROOT$BLACK_LIST_FILE
-    [ -e $BLACK_LIST_FILE ] && cp $BLACK_LIST_FILE $NEW_ROOT$BLACK_LIST_FILE
+    if [ -e $BLACK_LIST_FILE ]; then
+        local modprobe_d=$NEW_ROOT/etc/modprobe.d
+        mkdir -p $modprobe_d
+        cp $BLACK_LIST_FILE $modprobe_d
+    fi
 
     dmesg > $NEW_ROOT/live/config/dmesg.out
 
-    breakpoint bash  "Bash shell right before starting init"
-    breakpoint b9    "Bash shell right before starting init"
+    [ "$DO_TSPLASH" ] && openvt -w -c $TSPLASH_TTY /live/bin/tsplash progress init
+
     breakpoint 9     "right before starting init"
 
     stop_hotplug
@@ -314,8 +348,16 @@ main_wrapper() {
     vmsg 5  "$_The_X_program_took_Y_seconds_" "$ME" $(nq $(get_seconds $dt))
     vmsg 6 $hbar
 
+    #tsplash_progress init
+
+    copy_tsplash $NEW_ROOT
+
     write_log_files $MY_LOG $NEW_ROOT/$LOG_FILE
     MY_LOG=$NEW_ROOT/$LOG_FILE.color
+    [ "$NO_SAVE_LOGS" ] || copy_live_logs "$NEW_ROOT" "$LOG_DIR"
+
+    breakpoint b9    "Bash shell right before starting init"
+    breakpoint bash  "Bash shell right before starting init"
 
     #free -m >> $MY_LOG
     echo 3 > /proc/sys/vm/drop_caches
@@ -340,7 +382,7 @@ main_wrapper() {
         vmsg 6  "Start %s process" $(pq $INIT_COMMAND)
 
         [ "$NO_CLEAR" ] || [ "$NO_MODESET" ] || clear
-        exec $LIVE_BIN/switch_root -c /dev/console $NEW_ROOT $INIT_COMMAND "$@"
+        exec $LIVE_BIN/switch_root -c /dev/tty1 $NEW_ROOT $INIT_COMMAND "$@"
     fi
 }
 
@@ -415,6 +457,7 @@ main_core() {
 
     #[ "$SET_CRYPT" -a -z "$NO_CRYPT" ] && setup_crypt "$CRYPT_ID" "$BOOT_DIR/$CRYPT_FNAME" "$BOOT_MP"
 
+    tsplash_progress search
     breakpoint 3 "before looking for linuxfs file"
 
     RW_MODE=ro
@@ -444,6 +487,8 @@ main_core() {
     SEED_FULL=$(dirname "$SQFILE_FULL")/$SEED_FNAME
     seed_dev_random "$SEED_FULL"
 
+    tsplash_progress boot-dev
+
     breakpoint 4 "after mounting boot device"
     mount -o remount,rw $SQFILE_DEV 2>/dev/null
     dir_has_param "$SQFILE_MP" rw || REMASTERABLE=
@@ -457,6 +502,8 @@ main_core() {
     fi
 
     mount_linuxfs "$SQFS_MP" "$SQFILE_FULL" "$WRAP_FILE_MP"
+
+    fix_old_lum "$BOOT_MP" "${BIOS_UUID:-$BOOT_UUID}"
 
     if [ "$LOAD_ALL_MODULES" ]; then
         debug_cmd find /sys/devices -name uevent -exec sed -n 's/^MODALIAS=//p' '{}' + 2>/dev/null | sort -u
@@ -480,6 +527,8 @@ main_core() {
 
     # Check for ehci warning
     dmesg | grep 'Warning.*ehci' >&2
+
+    make_swap_file "$SWAP_FILE"  "$SWAP_FILE_SIZE"
 
     breakpoint 5 "after mounting persistence device"
 
@@ -539,6 +588,9 @@ main_core() {
     PROC_CMDLINE=$(cat /live/config/proc-cmdline)
     [ "$DO_MENUS" ] && do_late_menus
     echo "$PROC_CMDLINE" > /live/config/proc-cmdline
+
+    # In case it got turned off while doing menus
+    tsplash_on
 
     write_output_files $OUTPUT_DIR
     update_store_file "$NO_STORE" "$DO_STORE"
@@ -659,19 +711,25 @@ read_late_cmdline_params() {
                     toram_store) TO_RAM=true ; TORAM_STORE=true       ;;
 
         # Convenience short cuts from our menus
-                    persist_all) PERSIST='root!,home'                 ;;
+                    persist_all) PERSIST='root!,home!'                ;;
                    persist_root) PERSIST='root!'                      ;;
-                 persist_static) PERSIST='root!,home,static'          ;;
+                 persist_static) PERSIST='root!,home!,static'         ;;
+            persist_static_root) PERSIST='root!,static'               ;;
+                  p_static_root) PERSIST='root!,static'               ;;
                    persist_home) PERSIST='home!'                      ;;
 
-                 frugal_persist) set_frugal 'root!,home'              ;;
+                 frugal_persist) set_frugal 'root!,home!'             ;;
                     frugal_root) set_frugal 'root!'                   ;;
-                  frugal_static) set_frugal 'root!,home,static'       ;;
+                  frugal_static) set_frugal 'root!,home!,static'      ;;
+             frugal_static_root) set_frugal 'root!,home!,static'      ;;
+                  f_static_root) set_frugal 'root!,home!,static'      ;;
                     frugal_home) set_frugal 'home!'                   ;;
                     frugal_only) set_frugal                           ;;
 
                         nostore) NO_STORE=true                        ;;
                         dostore) DO_STORE=true                        ;;
+
+                 mk_swap_file=*) SWAP_FILE_SIZE=$value                ;;
         esac
     done
 }
@@ -705,6 +763,11 @@ read_cmdline_params()
             rootdelay=*|delay=*) small_int COLDPLUG_DELAY $param                 ;;
                          splash) SPLASH_PARAM=v                                  ;;
                        splash=*) SPLASH_PARAM=$value                             ;;
+                        splasht) DO_TSPLASH=Z                                    ;;
+                      splasht=*) DO_TSPLASH=$value                               ;;
+                       st_tty=*) TSPLASH_TTY=$value                              ;;
+                      console=*) CMD_MY_TTY=${value#tty}                         ;;
+                      CONSOLE=*) CMD_MY_TTY=${value#tty}                         ;;
                        poweroff) poweroff -f -n                                  ;;
                          reboot) reboot -f -n                                    ;;
                          fdir=*) FRUGAL_DIR=$value                               ;;
@@ -823,6 +886,8 @@ read_cmdline_params()
                       nomodeset) NO_MODESET=true                                 ;;
             noumount|noumnt|noU) NO_UMOUNT=true                                  ;;
                           [1-6]) RUN_LEVEL=$val                                  ;;
+                     nosavelogs) NO_SAVE_LOGS=true                               ;;
+                       notmptmp) $NO_TMP_TMP=true                                ;;
 
         #----- These get interpreted late but we don't want them to be unknown
                 hwclock=*|hwc=*)  ;;
@@ -839,14 +904,20 @@ read_cmdline_params()
                           toram)  ;;
                     toram_store)  ;;
 
+                 mk_swap_file=*)  ;;
+
         # Convenience short cuts from our menus
                     persist_all)  ;;
                    persist_root)  ;;
                  persist_static)  ;;
+            persist_static_root)  ;;
+                  p_static_root)  ;;
                    persist_home)  ;;
                  frugal_persist)  ;;
                     frugal_root)  ;;
                   frugal_static)  ;;
+             frugal_static_root)  ;;
+                  f_static_root)  ;;
                     frugal_home)  ;;
                     frugal_only)  ;;
                         nostore)  ;;
@@ -873,6 +944,8 @@ read_cmdline_params()
      FRUGAL_RETRY=${CMD_FRUGAL_RETRY:-$FRUGAL_RETRY}
     PERSIST_RETRY=${CMD_PERSIST_RETRY:-$PERSIST_RETRY}
 
+    MY_TTY=${CMD_MY_TTY:-$MY_TTY}
+
     if [ "$DISABLE_STORE" ]; then
         USER_UID=0
         USER_GID=0
@@ -881,6 +954,13 @@ read_cmdline_params()
     case $CMD_VGA in
         ask+save) GFX_SAVE=both ; BOOT_SAVE=true ;;
     esac
+
+    local p
+    for p in ${SPLASH_PARAM//,/ }; do
+        case $p in
+            x|tx) DO_TSPLASH=true ;;
+        esac
+    done
 }
 
 #------------------------------------------------------------------------------
@@ -1056,7 +1136,7 @@ read_xlat() {
 #
 #------------------------------------------------------------------------------
 set_console_width() {
-    local width=${1:-$DEF_SCREEN_WIDTH}  lang=$2  dir=${3:-$LOCALE_DIR/fonts}
+    local width=${1:-$DEF_SCREEN_WIDTH}  lang=$2  verb=${3:-5} dir=${4:-$LOCALE_DIR/fonts}
     local def_size=8  name=Terminus  ext=.psf
 
     # allow conwidth=aa,bb
@@ -1135,7 +1215,7 @@ set_console_width() {
     fi
 
     [ "$NO_CLEAR" ] || clear
-    vmsg 5  "$_Set_font_to_X_" "$(pq $font)"
+    vmsg $verb  "$_Set_font_to_X_" "$(pq $font)"
 
     log_cmd setfont $file -C $(tty)
 
@@ -1530,14 +1610,9 @@ from_filter() {
         case $(stat -c %t $dev) in
 
             b) cd_devs="$cd_devs $dev" ;;
-           b3) mmc_devs="$mmc_devs $dev"
-               if is_removable $dev; then
-                    usb_devs="$usb_devs $dev"
-                else
-                    hd_devs="$hd_devs $dev"
-                fi ;;
 
-   3|8|22|103) if is_usb_or_removable $dev; then
+            3|8|16|b3|ca|fe|103)
+                if is_usb_or_removable $dev; then
                     usb_devs="$usb_devs $dev"
                 else
                     hd_devs="$hd_devs $dev"
@@ -1835,6 +1910,9 @@ _find_files() {
                     create_persist_files "$mntpnt" "$PERSIST_PATH" "$NEED_ROOTFS" "$NEED_HOMEFS"
                 fi
             fi
+
+            # After possibly running persist_makefs
+            tsplash_on
 
             for fname in $files; do
                 [ -f "$mntpnt/$fname" ] || continue
@@ -2169,7 +2247,7 @@ find_linuxfs_file() {
         mkdir -p $ISO_FILE_MP
         mount -t iso9660 -o loop,ro $iso_full $ISO_FILE_MP \
             || mount -t udf -o loop,ro $iso_full $ISO_FILE_MP \
-            || fatal  "$_Could_not_mount_X_as_a_Y_file_" "$(pqh $iso_full)" 'iso'
+            || fatal_dmesg  "$_Could_not_mount_X_as_a_Y_file_" "$(pqh $iso_full)" 'iso'
 
         # Find the linuxfs file
         SQFILE_FULL="$ISO_FILE_MP/$SQFILE_FILE"
@@ -2205,7 +2283,7 @@ find_linuxfs_file() {
 #------------------------------------------------------------------------------
 validate_encryption_mode() {
 
-    : ${ENCRYPT_MODE=$(head -n1 $ENCRYPT_MODE_FILE 2>/dev/null)}
+    : ${ENCRYPT_MODE:=$(head -n1 $ENCRYPT_MODE_FILE 2>/dev/null)}
 
     # Default to enable or disabled depending on existence of cryptsetup program
     if [ -z "$ENCRYPT_MODE" ]; then
@@ -2245,7 +2323,7 @@ find_crypt_or_linuxfs() {
            $ENCRYPT_BOTH) files="$crypt_full $SQFILE_FILE"  ;;
            $ENCRYPT_ONLY) files="$crypt_full"               ;;
                   uuid=*) CRYPT_UUID=${ENCRYPT_MODE#uuid=}  ;;
-                       *) fatal 'Unknown encyption mode %s' "$ENCRYPT_MODE" ;;
+                       *) fatal 'Unknown encryption mode %s' "$ENCRYPT_MODE" ;;
     esac
 
     local crypt_dev
@@ -2256,7 +2334,7 @@ find_crypt_or_linuxfs() {
         msg  "$_Looking_for_encrypted_device_with_uuid_X_" "$(pq "$CRYPT_UUID")"
         for try in $(seq 1 $BOOT_RETRY); do
 
-            devs=$(uuid_to_dev $CRYPT_UUID  "$_TYPE_crypto_LUKS_")
+            devs=$(uuid_to_dev $CRYPT_UUID 'TYPE=.crypto_LUKS')
             [ -n "$devs" ] && break
             echo -n "."
             sleep 1
@@ -2316,7 +2394,7 @@ find_crypt_or_linuxfs() {
     cttyhack cryptsetup open --type luks $crypt_dev $LUKS_NAME || fatal  "$_Could_not_open_LUKS_device_X_" $crypt_dev
     local mapper_dev=/dev/mapper/$LUKS_NAME
     msg  "$_Opened_encrypted_device_X_at_Y_" "$crypt_dev" "$mapper_dev"
-    try_mount "$mapper_dev" "$BOOT_MP" || fatal  "$_Could_not_mount_encrypted_device_"
+    try_mount "$mapper_dev" "$BOOT_MP" || fatal_dmesg  "$_Could_not_mount_encrypted_device_"
     test -e "$BOOT_MP/$SQFILE_FILE" || fatal  "$_Could_not_find_file_X_on_encrypted_partition_" "$SQFILE_FILE"
     BOOT_FSTYPE=$(mntpnt_fstype $BOOT_MP)
     ENCRYPTED=true
@@ -2545,7 +2623,7 @@ mount_linuxfs() {
     vmsg 6  "Mount file %s at %s" "$(fq $sqfile_full)" "$(fq $sqfs_mp)"
     #. Could not mount <file name> as a <type> filesystem
     log_cmd mount -t squashfs -o loop,ro $sqfile_full $sqfs_mp \
-        || fatal  "$_Could_not_mount_X_as_a_Y_filesystem_" $sqfile_full squashfs
+        || fatal_dmesg  "$_Could_not_mount_X_as_a_Y_filesystem_" $sqfile_full squashfs
 
     if [ -n "$wrap_mp" -a -e "$sqfs_mp/$SQFILE_NAME" -a ! -d "$sqfs_mp/usr" ]; then
         msg 'Found wrapped filesystem. Move wrapper ...'
@@ -2553,7 +2631,7 @@ mount_linuxfs() {
         mount --move $sqfs_mp $wrap_mp
 
         try_file_mount  $wrap_mp/$SQFILE_NAME $sqfs_mp ro \
-            || fatal  "$_Could_not_mount_X_as_a_Y_file_" $sqfile_full 'filesystem'
+            || fatal_dmesg  "$_Could_not_mount_X_as_a_Y_file_" $sqfile_full 'filesystem'
     fi
 
     LINUXFS_DEV=$(df -P $sqfile_full | tail -n1 | cut -d" " -f1)
@@ -2701,7 +2779,7 @@ mount_overlayfs() {
     vmsg 6 'Mount %s at %s' 'overlayfs' "$(fq $aufs_mp)"
 
     log_cmd mount -t overlay overlay -o "lowerdir=$sqfs_mp,upperdir=$upper,workdir=$work" $aufs_mp \
-        || fatal  "$_Could_not_mount_X_" overlayfs
+        || fatal_dmesg  "$_Could_not_mount_X_" overlayfs
 }
 
 
@@ -2715,7 +2793,7 @@ mount_aufs() {
     vmsg 5  "Mount %s at %s" 'aufs' "$(fq $aufs_mp)"
 
     log_cmd mount -t aufs -o "$aufs_arg",noatime $aufs_mp $aufs_mp \
-        || fatal  "$_Could_not_mount_X_" aufs
+        || fatal_dmesg  "$_Could_not_mount_X_" aufs
 }
 
 #------------------------------------------------------------------------------
@@ -3014,8 +3092,10 @@ breakpoint() {
 
     should_break_at $bp || return
 
+    tsplash_off
+
     case $bp in
-        bash*|b[1-9]) do_bash_chroot $bp ; return ;;
+        bash*|b[1-9]) do_bash_chroot $bp ; tsplash_on; return ;;
     esac
 
     echo "$green$tbar$nc_co"
@@ -3025,12 +3105,16 @@ breakpoint() {
 
     local bp_time_1=$(get_time)
 
+    sync
+
     trap - $SIGNAL_LIST
 
     env PS1="${green}bp $red$bp$cyan>$nc_co " BP=$bp PATH=$LIVE_BIN:$PATH \
         setsid cttyhack sh 17>/dev/null
 
     trap "" $SIGNAL_LIST
+
+    tsplash_on
 
     bp_time_2=$(get_time)
 
@@ -3265,9 +3349,13 @@ log_cmd() {
     return $?
 }
 
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
 _error() {
     local type=$1  cmsg1=$2  cmsg2=$3  msg=$4
     shift 3
+    tsplash_clear
 
     local match="$(echo $NO_ERROR | sed 's/_/ /g')"
     if [ "$NO_ERROR" -a -z ${msg##$match*} ]; then
@@ -3293,6 +3381,7 @@ _error() {
 
     local prompt="${green}Select ${yellow}$cmsg1 p$green or$yellow r$green then press <enter>"
 
+
     local fmt="    $yellow%s$cyan =$white %s$nc_co\n"
     local reply
     while [ true ]; do
@@ -3315,7 +3404,10 @@ _error() {
                 safe_shutdown reboot;;
 
              c*|C*)
-                 [ "$cmsg1" ] && return;;
+                 if [ "$cmsg1" ]; then
+                     tsplash_on
+                     return
+                 fi ;;
         esac
         printf "\n${m_co} %s: >>$yellow$reply$m_co<<. %s:$nc_co\n" \
              "$_Unknown_command_"  "$_Please_try_again_"
@@ -3397,6 +3489,22 @@ _fatal()     { _error  "$_Fatal_Error_"     ""  ""          "$@" ;}
 _non_fatal() { _error  "$_Non_Fatal_Error_" "c"  "$_continue_"  "$@" ;}
 fatal()      { _fatal     "$(printf "$@")"                   ;}
 non_fatal()  { _non_fatal "$(printf "$@")"                   ;}
+
+
+#------------------------------------------------------------------------------
+# Show last 10 lines of dmesg before the error message
+#------------------------------------------------------------------------------
+fatal_dmesg() {
+    tsplash_clear
+    local lines=10
+    printf 'Last %s lines of the dmesg output:\n' "$lines"
+    printf "%s\n" "$rbar"
+    dmesg | tail -n$lines
+    printf "%s\n" "$lbar"
+    printf 'Kernel: %s\n' "$(uname -r)"
+
+    fatal "$@"
+}
 
 YES_no() {  _yes_no 0  "$_yes_" "$@" ;}
 yes_NO() {  _yes_no 1  "$_no_"  "$@" ;}
@@ -3525,6 +3633,8 @@ my_select_menu() {
     local title=$1  blurb=$2  cheat=$3  dfile=$dir/$4.data mfile=$dir/$4.menu  label=$5  fields=$6
 
     [ -z "${do_menu##*$cheat*}" ] || return
+
+    tsplash_clear
 
     local def_label
     local data=$(cat $dfile)
@@ -3709,9 +3819,11 @@ do_early_menus() {
     case $MENU_VALUE in
         lang=*) LANG=${MENU_VALUE#lang=}
                 need_font=true
+                echo "$LANG" > $OUTPUT_DIR/lang
                 read_xlat init $LANG       ;;
     esac
 
+    vmsg 1  "$_Console_columns_is_currently_set_to_X_" "$(pq $CON_WIDTH)"
     my_select_menu  "$_Select_number_of_console_columns_"   "$_Wider_means_a_smaller_font_"    w conwidth  "$_Console_columns_"  'conwidth=*'
 
     case $MENU_VALUE in
@@ -3759,44 +3871,43 @@ do_late_menus() {
     [ ${#cmdline} -gt 0 ] && echo "$cmdline" >> /live/config/cmdline
 }
 
-#------------------------------------------------------------------------------
-#
-#------------------------------------------------------------------------------
-size_label_m() { _size_label $1   "M G T" ;}
-size_label_k() { _size_label $1 "K M G T" ;}
 
-_size_label() {
-    local unit frac  size=$1  units=$2
-    for unit in $units; do
-        if [ $size -lt 1000 ]; then
-            if [ "$frac" -a $size -lt 10 ]; then
-                echo "$size.$frac$unit"
-            else
-                echo "$size$unit"
-            fi
-            return
-        fi
-        frac=$(( 10 * ($size % 1024) / 1024 ))
-        size=$(( size / 1024))
+#------------------------------------------------------------------------------
+# Label sizes given in Megs (MiB)
+#------------------------------------------------------------------------------
+label_meg() { label_any_size "$1" " " MiB GiB TiB PiB EiB; }
+
+#------------------------------------------------------------------------------
+# More compact horizontally, for tables
+#------------------------------------------------------------------------------
+size_label_m() { label_any_size "$1" "" M G T P E; }
+
+#------------------------------------------------------------------------------
+# Bite the bullet and do it "right"
+#------------------------------------------------------------------------------
+label_any_size() {
+    local size=$1  sep=$2  u0=$3  unit=$4  meg=$((1024 * 1024))  new_unit ; shift 4
+
+    for new_unit; do
+        [ $size -lt $meg ] && break
+        size=$((size / 1024))
+        unit=$new_unit
     done
-    echo "$size$unit"
-}
 
-#------------------------------------------------------------------------------
-#
-#------------------------------------------------------------------------------
-meg_to_gig() {
-    local meg=$1
-    local gig=$((meg / 1024))
-    if [ $((meg - gig * 1024)) -eq 0 ]; then
-        echo "${gig}GiB"
+    if [ $size -ge 102400 ]; then
+        awk "BEGIN {printf \"%d$sep$unit\n\", $size / 1024}"
+    elif [ $size -ge 10240 ]; then
+        awk "BEGIN {printf \"%0.1f$sep$unit\n\", $size / 1024}"
+    elif [ $size -ge 1024 ]; then
+        awk "BEGIN {printf \"%0.2f$sep$unit\n\", $size / 1024}"
     else
-        echo "${meg}MiB"
+        awk "BEGIN {printf \"%d$sep$u0\n\", $size}"
     fi
 }
 
+nq_label_meg() { nq $(label_meg $1); }
 #------------------------------------------------------------------------------
-#
+#  Allow user to select a partition from a menu of choices
 #------------------------------------------------------------------------------
 select_device() {
     local title_type=$1  var=$2  min_size=${3:-0} not_mounted=$4
@@ -4220,6 +4331,115 @@ prog_copy() {
 
     return 0
 }
+
+#------------------------------------------------------------------------------
+# Show a progress arrow while doing "dd" command
+#------------------------------------------------------------------------------
+prog_dd() {
+    local dest=$1  cnt=$2  src=${3:-/dev/zero}  bs=${4:-1M}
+
+    local err_file=/dd-copy-failed
+    # TEST directories or fatal error
+
+    mkdir -p "$(dirname "$dest")"
+    if [ "$NO_PROGRESS" ]; then
+        dd if=$src of=$dest bs=$bs count=$cnt status=none
+        return $?
+    fi
+
+    rm -f "$file"
+    local final_size=$cnt  base_size=0
+
+    local dirty_ratio dirty_bytes
+    read dirty_ratio < /proc/sys/vm/dirty_ratio
+    read dirty_bytes < /proc/sys/vm/dirty_bytes
+    echo $USB_DIRTY_BYTES > /proc/sys/vm/dirty_bytes
+
+    rm -f $err_file
+    (dd if=$src of=$dest bs=$bs count=$cnt status=none || echo $? > $err_file)  &
+    COPY_PID=$!
+    #echo "copy pid: $COPY_PID" >> $LOG_FILE
+
+    # Disable cursor
+    printf "\e[?25l"
+
+    local cur_size=$base_size cur_pct last_pct=0
+    while true; do
+        if ! test -d /proc/$COPY_PID; then
+            echo 1000
+            break
+        fi
+        sleep 0.1
+
+        cur_size=$(du_size $dest)
+        cur_pct=$((cur_size * 1000 / final_size))
+        [ $cur_pct -gt $last_pct ] || continue
+        echo $cur_pct
+        last_pct=$cur_pct
+
+    done | text_progress
+
+    echo
+
+    sync ; sync
+
+    # Enable cursor
+    printf "\e[?25h"
+
+    echo $dirty_bytes >> /proc/sys/vm/dirty_bytes
+    echo $dirty_ratio >> /proc/sys/vm/dirty_ratio
+
+    # Use err_file as a semaphore from (...)& process
+    if test -e $err_file; then
+        rm -f $err_file
+        return 2
+    fi
+
+    test -d /proc/$COPY_PID && wait $COPY_PID
+
+    return 0
+}
+
+#------------------------------------------------------------------------------
+# chreat a zeroed out swap file, if it doesn't exist and if a size is given
+# and the size is reasonable.  We let live-init run the mkswap command if
+# if needed since it is aleady in a chroot.
+#------------------------------------------------------------------------------
+make_swap_file() {
+    local file=$1  size=$(echo $2 | tr 'mg' 'MG')  raw_size=$2
+    [ -z "$size" ]  && return
+    if test -e "$file"; then
+        warn  "$_Swap_file_X_already_exists_" "$(pqw $file)"
+    fi
+
+    local dir=$(dirname "$file")
+    local free_space=$(free_space "$dir")
+    local megs  factor=
+    case $size in
+        [0-9]*[0-9]) megs=${size%M} ; factor=1    ;;
+                 *M) megs=${size%M} ; factor=1    ;;
+                 *G) megs=${size%G} ; factor=1024 ;;
+    esac
+
+    msg "Freespace: $free_space"
+
+    if [ -z "$factor" ] || ! echo "$megs" | grep -q "^[0-9]\+$"; then
+        warn  "$_Invalid_X_option_Y_" 'mk_swap_file=' "$(pqw $raw_size)"
+        return
+    fi
+    megs=$((megs * factor))
+
+    msg "Megs: $megs"
+
+    if [ $((free_space - megs)) -lt 10 ]; then
+        non_fatal  "$_Not_enough_space_to_create_a_X_swap_file_" "$(pqw $raw_size)"
+        return
+    fi
+
+    msg  "$_Creating_X_swap_file_at_Y_Please_be_patient_" "$(pq $raw_size)" "$(pq $file)"
+    prog_dd "$file" "$megs"
+}
+
 #------------------------------------------------------------------------------
 # This acts like an external program to draw a progress bar on the screen.
 # It expects integer percentages as input on stdin to move the bar.
@@ -4343,8 +4563,8 @@ copy_files() {
 all_space()      { $LIVE_BIN/df -Pm "$1" | awk '{size=$2}END{print size}' ;}
 used_space()     { $LIVE_BIN/df -Pm "$1" | awk '{size=$3}END{print size}' ;}
 avail_space()    { $LIVE_BIN/df -Pm "$1" | awk '{size=$4}END{print size}' ;}
-du_size()        { du -scm "$@"         | tail -n1 | cut -f1             ;}
-get_mountpoint() { grep "^$1 " /proc/mounts | cut -d" " -f2              ;}
+du_size()        { du -scm "$@"          | tail -n1 | cut -f1             ;}
+get_mountpoint() { grep "^$1 " /proc/mounts | cut -d" " -f2               ;}
 
 #------------------------------------------------------------------------------
 # This compensates for sparse rootfs and homefs files one directory down from
@@ -4950,8 +5170,10 @@ create_persist_files() {
         local default_size rootfs_file=rootfs
         if [ "$WILL_REMASTER" ]; then
             default_size=$(stat -c %s $dir/rootfs 2>/dev/null)
-            msg 'default size: %s MiB' "$(nq $default_size)"
-            [ "$default_size" ] && default_size=$((default_size/1024/1024))
+            if [ -n "$default_size" ]; then
+                default_size=$((default_size / 1024 / 1024))
+                msg 'default size: %s' "$(nq_label_meg $default_size)"
+            fi
             rootfs_file=rootfs.new
         fi
 
@@ -4968,9 +5190,11 @@ create_persist_files() {
 #------------------------------------------------------------------------------
 persist_makefs() {
     local type=$1
+    tsplash_clear
     _persist_makefs "$@" && return
 
     warn  "Disable %s persistence" $(pqw $type)
+
 }
 
 _persist_makefs() {
@@ -4990,51 +5214,45 @@ _persist_makefs() {
     local free=$(free_space $mp)
     local avail=$((free - MKFS_FREE_MARGIN))
 
-    vmsg 6 '      Free space: %s MiB' $(nq $free)
-    vmsg 6 ' Available space: %s MiB' $(nq $avail)
+    vmsg 6 '      Free space: %s' "$(nq_label_meg $free)"
+    vmsg 6 ' Available space: %s' "$(nq_label_meg $avail)"
+
 
     [ "$orig_def_size" ] && [ $orig_def_size -gt $avail ] \
-        && warn  "$_Not_enough_room_on_Live_device_to_create_X_file_of_size_Y_MiB_" \
-            $(fq $file) $(nq $orig_def_size)
+        && warn  "$_Not_enough_room_on_Live_device_to_create_X_file_of_size_Y_" \
+            $(fq $file) "$(nq_label_meg $orig_def_size)"
 
     local base_file=${file%%.*}
     local default_size=$(default_makefs_size $avail ${base_file}_SIZE_PARAM $orig_def_size)
 
-    vmsg 6 '    Default size: %s MiB' $(nq $default_size)
+    vmsg 6 '    Default size: %s' "$(nq_label_meg $default_size)"
 
     : ${default_size:=-1}
 
-
+    mkfs_size=
     # Make sure we don't exceed max size of 4G - 1 on vfat file systems
     mkdir -p $dir
-    local part_fstype=$(mntpnt_fstype $dir) mkfs_sizes=$MKFS_SIZES is_vfat
+    local part_fstype=$(mntpnt_fstype $dir)  is_vfat
+
     case $part_fstype in
         vfat) is_vfat=true ;;
-           *) mkfs_sizes="$mkfs_sizes $BIGGER_SIZES" ;;
     esac
 
-    [ "$base_file" = homefs ] && mkfs_sizes="$SMALLER_SIZES $mkfs_sizes"
+    # Set the maximum size for this menu
+    local max_size=$avail  min_size=0
+    [ -n "$is_vfat" -a "$max_size" -gt 4095 ] && max_size=4095
+    if [ "$base_file" = rootfs ]; then
+        [ "$max_size" -gt "$MAX_ROOTFS_SIZE" ] && max_size=$MAX_ROOTFS_SIZE
+        min_size=$MIN_ROOTFS_SIZE
+    fi
 
-    local max_mkfs_size=${mkfs_sizes##* }
-
-    # Create a menu of sizes.  Include the default size
-    local size sizes default_cnt cnt=1
-    for size in $mkfs_sizes; do
-        if [ -z "$default_cnt" -a $default_size -gt 0 -a $size -ge $default_size ]; then
-            sizes="$sizes $default_size"
-            default_cnt=$cnt
-        fi
-        cnt=$((cnt + 1))
-        [ $size -gt $avail ] && break
-        [ $size -eq $default_size ] && continue
+    # Create a menu of sizes, stop when the sizes are too big
+    local size sizes
+    for size in $MKFS_SIZES; do
+        [ $size -gt $max_size ] && break
+        [ $size -lt $min_size ] && continue
         sizes="$sizes $size"
     done
-
-    # Include default size at end of menu if needed
-    if [ -z "$default_cnt" -a $default_size -gt 0 ]; then
-        sizes="$sizes $default_size"
-        default_cnt=$cnt
-    fi
 
     if [ -z "$sizes" -o "$default_size" = -1 ]; then
         if [ "$needed" ]; then
@@ -5045,16 +5263,15 @@ _persist_makefs() {
         return 1
     fi
 
-   # Include all available in menu if it is appropriate
+   # Include all available space as last entry in menu if it is appropriate
     local max=$(echo "$sizes" | sed 's/.* //')
-    [ $max -lt $avail -a $avail -lt $max_mkfs_size ] && sizes="$sizes $avail"
+    [ $max -lt $max_size ] && sizes="$sizes $max_size"
 
     local fs_type fs_size auto_mode create_mode quit=$(printf  "$_quit_")
-    #[ "$needed" ] && quit=
 
     heading  "$_create_X_persistence_file_" "$(fq $file)"
-    vmsg 1  "$_Default_size_X_MiB_Filesystem_type_Y_" $(nq $default_size) $(pq ext4)
-    vmsg 1  "$_This_default_size_will_leave_X_MiB_free_" $(nq $((avail - default_size)))
+    vmsg 1  "$_Default_size_X_Filesystem_type_Y_" "$(nq_label_meg $default_size)" "$(pq ext4)"
+    vmsg 1  "$_This_default_size_will_leave_X_free_" "$(nq_label_meg $((avail - default_size)))"
     [ "$is_vfat" ] &&  warn  "Warning: this can take several minutes per Gig on a %s file system" $(pqw $part_fstype)
 
     if [ "$AUTO_MAKE_FS" ]; then
@@ -5063,8 +5280,8 @@ _persist_makefs() {
         local title=$(printf  "$_Create_X_file_manually_or_automatically_" $(fq $file))
         my_select "$title" create_mode 0 1  "$_create_automatically_"  "$_create_custom_" "$quit"
         case $create_mode in
-                             "$_quit_") return 1;;
-             "$_create_automatically_") auto_mode=true;;
+                             "$_quit_") return 1 ;;
+             "$_create_automatically_") auto_mode=true ;;
         esac
     fi
 
@@ -5076,31 +5293,16 @@ _persist_makefs() {
         local title=$(printf  "$_Please_select_size_of_X_file_" $(pqw $file))
 
         echo
-        vmsg 1  "$_There_is_X_MiB_available_on_the_device_" $(nq $avail)
+        vmsg 1  "$_There_is_X_available_on_the_device_" "$(nq_label_meg $avail)"
 
-        # Add "G" and "M" suffixes
-        local size_menu=$(
-        for size in $sizes; do
-            meg_to_gig $size
-        done)
-
-        my_select "$title" fs_size 9 "$default_cnt" $size_menu "$quit"
+        size_menu fs_size "$title" "" $sizes
         [ "$fs_size" =  "$_quit_" ] && return 1
 
-        # Remove "G" and "M" suffixes
-        [ -z "${fs_size%%*GiB}" ] && fs_size=$((${fs_size%GiB} * 1024))
-        fs_size=${fs_size%MiB}
-
-        vmsg 1  "$_Filesystem_size_X_MiB_" $(nq $fs_size)
-
-        #title=$(printf "Please select file system for %s file" $(pqw $file))
-        #echo
-        #my_select "$title" fs_type 0 2 ext2 ext3 ext4 "$quit"
-        #[ "$fs_type" = "quit" ] && return 1
+        vmsg 1  "$_Filesystem_size_X_" "$(nq_label_meg $fs_size)"
         fs_type=ext4
     fi
 
-    vmsg 1  "$_Create_X_file_of_type_Y_and_size_Z_MiB_" "$(fq $file)" "$(pq $fs_type)" "$(nq $fs_size)"
+    vmsg 1  "$_Create_X_file_of_type_Y_and_size_Z_" "$(fq $file)" "$(pq $fs_type)" "$(nq_label_meg $fs_size)"
 
     # Now do the actual work
 
@@ -5153,9 +5355,61 @@ default_makefs_size() {
     [ $size -gt $max_size ] && size=$max_size
     [ $size -gt $avail    ] && size=$avail
     [ $size -lt $min_size ] && return 1
+
+    # Round
+    if [ $size -gt $((3 * 1024)) ]; then
+        size=$(((size/1024) * 1024))
+    elif [ $size -gt 500 ]; then
+        size=$(((size/100) * 100))
+    fi
+
     echo $size
     return 0
 }
+
+#------------------------------------------------------------------------------
+# Let user select from a wide range of sizes
+#------------------------------------------------------------------------------
+size_menu() {
+    local var=$1 title=$2  max_s=${3:-12} ; shift 3
+
+    # create a variable for each row
+    local i
+    for i in $(seq 1 $max_s); do
+        eval local s_$i
+    done
+
+    # Fill the rows with  "cnt) label"
+    local cnt=0  scnt=0  size  data label  s
+    for size in $* quit ; do
+        cnt=$((cnt + 1))
+        scnt=$((scnt + 1))
+
+        case $size in
+                quit) label=$(bq  "$_quit_")       ;;
+            *[^0-9]*) label=$(bq "$size")      ;;
+                   *) label=$(label_meg $size) ;;
+        esac
+
+        data="$data$cnt:$size\n"
+        eval s=\$s_$scnt
+        s="$s$(printf "%3s) %-12s" "$cnt" "$label")"
+        eval s_$scnt=\$s
+        [ $scnt -ge $max_s ] && scnt=0
+    done
+    [ $cnt -lt $max_s ] && max_s=$cnt
+
+    local display
+    for cnt in $(seq 1 $max_s); do
+        eval s=\$s_$cnt
+        display="$display$s\n"
+    done
+
+    display=$(echo -e "$display" | sed -r -e "s/( [0-9]+)(\))/ $green\1$white\2$cyan/g" -e "s/$/$nc_co/")
+
+    my_select_2 "$title"  $var  "" "$data" "$display"
+}
+
 
 #------------------------------------------------------------------------------
 #
@@ -5259,7 +5513,7 @@ copy_persist_to_ram() {
         vmsg_nc 3 $tbar
         return 1
     fi
-    vmsg 5  "$_Copy_X_MiB_to_RAM_" "${num_co}$persist_used${m_co}"
+    vmsg 5  "$_Copy_X_to_RAM_" "$(nq_label_meg $persist_used)"
     if ! cp_dir $ROOTFS_MP $AUFS_RAM_MP 2>&1; then
          err  "Copy persistent root to RAM failed!  Will erase partial copy ..."
          rm -rf $AUFS_RAM_MP/*
@@ -5544,6 +5798,8 @@ echo \$PATH | grep -q /live/bin || PATH=\$PATH:/etc/live/bin
 Fancy_Stuff
 
     fi
+
+    sync
 
     local file full_file
     for file in .bashrc .profile; do
@@ -5838,6 +6094,27 @@ write_log_files() {
 }
 
 #------------------------------------------------------------------------------
+# Make a copy of /var/log/live/ at /root/Live-usb-storage/live-logs
+# Backup the previous version with a .old extension.
+#------------------------------------------------------------------------------
+copy_live_logs() {
+    local new_root=$1  log_dir=$2
+    local targ_dir=$new_root/root/Live-usb-storage
+    test -d $targ_dir || return
+    local targ_live=$targ_dir/$LIVE_LOGS_DIR
+    local targ_old=$targ_live.old
+
+    # Make room for new .old directory
+    [ -e $targ_live -a -e $targ_old ] && rm -rf $targ_old
+
+    # Save current to .old
+    [ -e $targ_live ] && mv $targ_live $targ_old
+
+    cp -r $new_root$log_dir $targ_live
+    [ "$DB_PLUS" ] && cp -r $new_root/live/config $targ_live/
+}
+
+#------------------------------------------------------------------------------
 #
 #------------------------------------------------------------------------------
 decolor_file() {
@@ -6048,6 +6325,128 @@ write_ntfs_pids() {
     echo "$ntfs_pids" > $file
 }
 
+
+#------------------------------------------------------------------------------
+# This makes old live-usb-maker acting on a new iso just like the new LUM.
+#------------------------------------------------------------------------------
+fix_old_lum() {
+    boot_mp=$1  bios_uuid=$2
+
+    test -e $boot_mp/$DID_EFI_FILE  && return 0
+    test -e $boot_mp/$EFI_GRUB_CONF || return 0
+
+    msg  "$_Updating_grub_config_to_X_" "$(pq 2.0)"
+
+    vmsg 7 'Using BIOS UUID: %s' "$(pq $bios_uuid)"
+
+    [ -z "$bios_uuid" ] && return 1
+
+    local efi_uuid efi_uuid_file=$boot_mp/$UEFI_UUID_FILE
+    test -r $efi_uuid_file || return 1
+    read efi_uuid 2>/dev/null <$efi_uuid_file
+
+    vmsg 7 'EFI UUID: %s' "$efi_uuid"
+    [ ${#efi_uuid} -gt 0 ] || return 1
+
+    local efi_mp=/live/efi
+    mkdir -p $efi_mp
+    local dev=$(uuid_to_dev $efi_uuid)
+    vmsg 7 'EFI device; %s'  "$dev"
+    test -b "$dev" || return 1
+
+    log_cmd mount "$dev" "$efi_mp"
+    mountpoint -q $efi_mp || return 1
+
+    local efi_grub_dir="$efi_mp/boot/grub"
+    log_cmd rm -rf   "$efi_grub_dir"
+    log_cmd mkdir -p "$efi_grub_dir"
+
+    local efi_grub_cfg="$efi_grub_dir/grub.cfg"
+    log_cmd cp $boot_mp/$EFI_GRUB_CONF $efi_grub_cfg
+
+    sed -i "/^\s*#/! s/%UUID%/$bios_uuid/" $efi_grub_cfg
+
+    if grep -q "^[^#]*%ID_FILE%" $efi_grub_cfg ; then
+        local rand_file=/boot/grub/config/$(random_string).id
+        log_cmd touch $boot_mp$rand_file
+        sed -i "/^\s*#/! s|%ID_FILE%|$rand_file|" $efi_grub_cfg
+    fi
+
+    sync
+
+    breakpoint F "After updating grub config from old LUM"
+
+    umount $efi_mp
+
+    touch $boot_mp/$DID_EFI_FILE
+    return 0
+}
+
+#------------------------------------------------------------------------------
+# Create a random hex string $cnt * 2 chars long
+#------------------------------------------------------------------------------
+random_string() {
+    local cnt=${1:-16}
+    dd if=/dev/urandom status=none bs=1 count=$cnt | od -An -x | tr -d " "
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+start_tsplash() {
+    tsplash_enabled || return
+
+    case $CMD_MY_TTY in
+        [1-9]|1[0-2]) ;;
+        *) DO_TSPLASH= ; TSPLASH_ERROR=true ; return ;;
+  esac
+
+    sed -r -i "s/^(tty)=.*/\1=$TSPLASH_TTY/" /bin/tell-tsplash
+    sed -r -i "s/tty[0-9]+/tty$TSPLASH_TTY/" /bin/clear-tsplash
+
+    openvt -s -c $TSPLASH_TTY tsplash start "$DO_TSPLASH"
+}
+
+tsplash_enabled()  { [ -n "$DO_TSPLASH" ]; return $?        ; }
+tsplash_off()      { chvt $MY_TTY                           ; }
+tsplash_progress() { [ "$DO_TSPLASH" ] && /live/bin/tell-tsplash progress "$*" ; }
+
+#------------------------------------------------------------------------------
+# Go back to the tsplash screen and reset the TSPLASH_CLEARED flag
+#------------------------------------------------------------------------------
+tsplash_on() {
+    tsplash_enabled || return
+    chvt $TSPLASH_TTY
+    unset TSPLASH_CLEARED
+}
+
+#------------------------------------------------------------------------------
+# Clear screen, wait briefly and then chvt back here.
+# Will only clear the screen once until we move back to the tsplash screen.
+#------------------------------------------------------------------------------
+tsplash_clear() {
+    tsplash_enabled || return
+    if [ -z "$TSPLASH_CLEARED" ]; then
+        clear
+        sleep .2
+        TSPLASH_CLEARED=true
+    fi
+    chvt $MY_TTY
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+copy_tsplash() {
+    tsplash_enabled || return
+    local new_dir=$1
+
+    local f  dir=/live/config/tsplash
+    for f in progress tsplash.log; do
+        log_cmd cp $dir/$f $new_dir$dir/$f
+    done
+}
+
 #------------------------------------------------------------------------------
 #
 #------------------------------------------------------------------------------
@@ -6069,6 +6468,13 @@ prepare_switch_root() {
     mount_tmpfs $new_root/run    10 /run        mode=755,nodev
     mount_tmpfs $new_live        10 $live_dir   mode=755
 
+    mkdir -p -m 777 $new_root/run/lock
+
+    rm -f $new_root/etc/resolv.conf
+    ln -s ../run/resolvconf/resolv.conf $new_root/etc/resolv.conf
+
+    [ -z "$NO_TMP_TMP" ] && $LIVE_BIN/mount -t tmpfs -o noatime tmpfs $new_root/tmp
+
     ln -s . $new_live/live
 
     local f
@@ -6082,6 +6488,8 @@ prepare_switch_root() {
     breakpoint 0 before move
 
     # cp -a /bin/shutdown $new_live/
+
+    cp /init $new_live
 
     mkdir -p $new_live/oldroot
 
@@ -6105,6 +6513,8 @@ prepare_switch_root() {
 
     (cd $root_dir/bin && rm -rf fbcondecor_helper ntfs-3g)
     rm -rf /$root_dir/etc/splash
+
+    #tsplash_enabled && cp /etc/udev/rules.d/*-tsplash.rules $new_root/etc/udev/rules.d/
 
     # Work around a bug in fbcondecor_helper
     local fbsys=$root_dir/lib/splash/sys
@@ -6133,6 +6543,10 @@ prepare_switch_root() {
     (cd $new_root && mkdir -p sys proc dev/pts)
 }
 
+#------------------------------------------------------------------------------
+# Removes service symlinks from a given runlevel.  Used to get lightdm out of
+# runlevel 3.
+#------------------------------------------------------------------------------
 remove_from_runlevel() {
     local prog=$1  level=${2:-3}  root=${3:-/live/aufs}
     test -d $root || root=
@@ -6144,23 +6558,6 @@ remove_from_runlevel() {
     test -z "$links" && return
     sed -r -i "/^#\s+Default-Start:/ s/\<$level\>//" $file
     rm -f $links
-}
-
-#------------------------------------------------------------------------------
-#
-#------------------------------------------------------------------------------
-dummy_translate() {
-    msg 'default size: %s Meg' "$(nq $default_size)"
-    vmsg 6  "Have %s Megabytes free.  Need %s" "$(nq $have_meg)" "$(nq $need_meg)"
-    vmsg 1  "$_Default_size_X_Meg_Filesystem_type_Y_" $(nq $default_size) $(pq ext4)
-    vmsg 1  "$_This_default_size_will_leave_X_Meg_free_" $(nq $((avail - default_size)))
-    warn  "Warning: this can take several minutes per Gig on a %s file system" $(pqw $part_fstype)
-    vmsg 1  "$_There_is_X_Meg_available_on_the_device_" $(nq $avail)
-    vmsg 1  "$_Filesystem_size_X_Meg_" $(nq $fs_size)
-    vmsg 1  "$_Create_X_file_of_type_Y_and_size_Z_Meg_" "$(fq $file)" "$(pq $fs_type)" "$(nq $fs_size)"
-    vmsg 5  "$_Copy_X_Megabytes_to_RAM_" "${num_co}$persist_used${m_co}"
-    msg  "$_There_are_X_Meg_of_files_that_will_get_hidden_by_home_persistence_"  $(nq $needed)
-    msg  "$_There_are_X_Meg_free_on_the_home_persistence_device_"                $(nq $avail)
 }
 
 #------------------------------------------------------------------------------

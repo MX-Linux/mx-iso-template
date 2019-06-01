@@ -1,3 +1,9 @@
+mx-iso-template (19.06.01) mx; urgency=medium
+
+  * buster initial build (for testing) 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 01 Jun 2019 16:27:52 -0400
+
 mx-iso-template (19.02.01) mx; urgency=medium
 
   * additional uefi grub fixes 

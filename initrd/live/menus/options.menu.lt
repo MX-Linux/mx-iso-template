@@ -1,7 +1,7 @@
-   1)  Default
+   1)  Numatyta
    2)  checkmd5        Check integrity of the live media
    3)  checkfs         Check LiveUSB and persistence ext2/3/4 file systems
-   4)  toram           Copy the compressed file system to RAM
+   4)  toram           Kopijuoti suglaudintą failų sistemą į RAM
    5)  from=usb        Finish booting from a LiveUSB
    6)  from=hd         Finish booting from a hard drive
    7)  nousb2          Disable all usb-2 devices while booting

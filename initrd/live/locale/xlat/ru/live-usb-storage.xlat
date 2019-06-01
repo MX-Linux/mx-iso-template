@@ -3,5 +3,4 @@ _Could_not_find_UID_or_GUID_for_user_X_="Не удалось найти UID ил
 _Directory_X_is_already_a_mountpoint_="Директория %s уже является точкой монтирования"
 _Found_non_numeric_UID_or_GUID_for_user_X_Y_="Найден не числовой UID или GUID пользователя %s: %s"
 _Home_directory_for_user_X_not_found_="Домашний каталог пользователя %s не найден"
-_No_default_user_X_found_on_the_system_="Не найден пользователь по умолчанию %s в системе."
 _The_file_X_is_not_a_directory_="Файл %s не является каталогом"

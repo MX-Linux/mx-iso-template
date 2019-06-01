@@ -1,10 +1,12 @@
    1)  Per omissió
-   2)  persist_all     Ràpid. Desa root i home (usa la RAM, desa a l'aturada)
-   3)  persist_root    Ràpid. Només desa root (usa la RAM, desa a l'aturada)
-   4)  persist_static  Lent. Desa root i home (no usa la RAM, desa continuament)
-   5)  persist_home    Persistència només d'usuari
-   6)  frugal_persist  Frugal, amb persistència d'arrel i usuari
-   7)  frugal_root     Frugal, amb persistència només d'arrel
-   8)  frugal_static   Frugal, amb persistència d'usuari i arrel estàtica
-   9)  frugal_home     Frugal, només amb persistència d'usuari
-  10)  frugal_only     Només Frugal, sense persistència
+   2)  persist_all     Save root in RAM, save home on disk (save root at shutdown)
+   3)  persist_root    Save root and home in RAM then saved at shutdown
+   4)  persist_static  Save root and home on disk with home separate on disk
+   5)  p_static_root   Save root and home on disk together
+   6)  persist_home    Persistència només d'usuari
+   7)  frugal_persist  Frugal with root in RAM and home on disk
+   8)  frugal_root     Frugal with root and home in RAM then saved at shutdown
+   9)  frugal_static   Frugal with root on disk and home separate on disk
+  10)  f_static_root   Frugal with root and home on disk together
+  11)  frugal_home     Frugal, només amb persistència d'usuari
+  12)  frugal_only     Només Frugal, sense persistència

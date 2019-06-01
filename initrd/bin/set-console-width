@@ -56,7 +56,6 @@ set_console_font() {
     local code
     case ${lang%%_*} in
                      kk|ky|tj) code='CyrAsia'  ;;
-                     kk|ky|tj) code='CyrAsia'  ;;
                         ru|uk) code='CyrKoi'   ;;
                   bg|mk|ru|sr) code='CyrSlav'  ;;
       bs|hr|cs|hu|pl|ro|sk|sl) code='Lat2'     ;;

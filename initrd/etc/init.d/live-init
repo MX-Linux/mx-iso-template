@@ -14,6 +14,9 @@
 
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
 
+MAKE_FSTAB="make-fstab"
+test -e "/live/bin/make-fstab" && MAKE_FSTAB="/live/bin/make-fstab"
+
   XSESSION_DIR=/usr/share/xsessions
       MENU_WMs="fluxbox icewm jwm"
       FF_PREFS="/etc/skel/.mozilla/firefox/*/prefs.js"
@@ -21,8 +24,7 @@ export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
  FOUND_VDRIVER=
  VERSION_FILES="/etc/antix-version /live/boot-dev/version"
 
-ALL_VIDEO_MODULES="amdgpu|ast|bochs[_-]drm|cirrus|emgd|gma500[_-]gfx|i810|i915|mga|mgag200|nouveau|nvidia|qxl|r128|radeon|savage|sis|sis[_-]agp|tdfx|vboxvideo|via|via[_-]agp|vmwgfx"
-KMS_VIDEO_MODULES="amdgpu|ast|bochs[_-]drm|cirrus|emgd|gma500[_-]gfx|i915|mgag200|nouveau|nvidia|qxl|radeon|udl|vboxvideo|vmwgfx"
+OTHER_VIDEO_MODULES="i810|mga|r128|savage|sis|sis[_-]agp|tdfx|via|via[_-]agp"
 SISIMEDIA_K_DRIVERS="sis|sis[_-]agp"
 XORG_DRIVER_DIR="/usr/lib/xorg/modules/drivers"
 
@@ -46,6 +48,9 @@ NETWORK_IF_FILE="/etc/network/interfaces"
 
 LIVE_MNT_DIR="/media"
 SPLASH_PROGRAMS="/sbin/splash-all /sbin/splash-term /usr/local/bin/splash-select /etc/udev/rules.d/*-fbcondecor.rules"
+
+
+SWAP_FILE="/live/boot-dev/swap-file"
 
 #-jbb For debugging
 : ${CMDLINE:=$(cat /live/config/proc-cmdline /live/config/cmdline /live/config/cmdline2)}
@@ -80,7 +85,6 @@ automount=off|amnt=off)                          AUTOMOUNT_OFF=true ;;
     automount=*|amnt=*)     CMD_MOUNT=$value ;       AUTOMOUNT=true ;;
                mount=*)     CMD_MOUNT=$value                        ;;
                fstab=*)     CMD_FSTAB=$value                        ;;
-               nofstab)      NO_FSTAB=true                          ;;
            desktheme=*)    DESK_THEME=$value                        ;;
                 norepo)       NO_REPO=true                          ;;
               norepo=*)   IGNORE_REPO=$value                        ;;
@@ -92,6 +96,11 @@ automount=off|amnt=off)                          AUTOMOUNT_OFF=true ;;
                  issue)   FORCE_ISSUE=true                          ;;
              vboxdecor)    VBOX_DECOR=true                          ;;
          i915powersave) ENABLE_I915_POWER_SAVE=true                 ;;
+           nomicrocode) NO_MICRO_CODE=true                          ;;
+         live_swap=off)      NO_SWAP=true                           ;;
+       live_swap=force)   FORCE_SWAP=true                           ;;
+     live_swap=all-off)      NO_SWAP=true  ; NO_SWAP_FILE=true      ;;
+
     esac
 done
 
@@ -115,6 +124,13 @@ main() {
 
 do_start() {
     echo_script "$_Localizing_configuring_X_Windows_" $0
+
+    local mc_file=/sys/devices/system/cpu/microcode/reload
+
+    if [ -z "$NO_MICRO_CODE" -a -e "$mc_file" ]; then
+        echo_live "$_Load_microcode_"
+        echo 1 > $mc_file
+    fi
 
     get_init_param DISTRO ""
 
@@ -140,7 +156,7 @@ do_start() {
     local user_automount
     [ -n "$HAVE_X" -a -e $AUTOMOUNT_CMD -a -z "$CMD_FSTAB" ] && user_automount=true
 
-    [ "$NO_FSTAB" ] || create_fstab "$DISTRO" "$user_automount"  "$CMD_FSTAB" "$CMD_MOUNT"
+    create_fstab "$DISTRO" "$user_automount"  "$CMD_FSTAB" "$CMD_MOUNT"
 
     #-jbb: for debugging
     unset COUNTRY WM_LANG KEYBOARDS KEYTABLE LANG MIRROR TZ XKBLAYOUT CONSOLE_FONT
@@ -175,7 +191,8 @@ do_start() {
 
     # Only do X stuff on systems that seem to have X
     if  [ "$HAVE_X" ]; then
-
+        KMS_VIDEO_MODULES_REGEX=$(kms_video_modules_regex)
+        ALL_VIDEO_MODULES="$KMS_VIDEO_MODULES_REGEX|$OTHER_VIDEO_MODULES"
         detect_any_video_driver
 
         if [ ${#FONT_SIZE} -gt 0 ]; then
@@ -196,15 +213,14 @@ do_start() {
     # and such.  First check the default user for SLiM and lightdm.  Then get
     # more desparate.
 
-    DEF_USER=$(find_def_user)
+    unset DEF_USER USER_HOME
 
-    eval "USER_HOME=~$DEF_USER"
-
-    if [ -z "$DEF_USER" -o -z "${USER_HOME##~*}" ]; then
-        #. No default user <USER-NAME> found on the system.
-        echo_live "$_No_default_user_X_found_on_the_system_" "$(pquote $DEF_USER)"
+    if ! find_def_user $DISTRO; then
+        echo_live "$_No_default_user_found_on_the_system_"
         return
     fi
+
+    echo_live "$_Found_default_user_X_"  "$(pquote $DEF_USER)"
 
     create_home "$DEF_USER" "$USER_HOME"
 
@@ -220,7 +236,7 @@ do_start() {
     if [ -n "$user_automount" ]; then
         set_user_automount "$DEF_USER" "$USER_HOME" "$AUTOMOUNT" "$AUTOMOUNT_OFF" 'create'
     else
-        set_user_automount "$DEF_USER" "$USER_HOME" "" "true"
+        set_user_automount "$DEF_USER" "$USER_HOME" "" 'true'
     fi
     #localize_firefox $LANG
 }
@@ -236,9 +252,30 @@ create_fstab() {
     local distro=$1 user_automount=$2  cmd_fstab=$3  cmd_mount=$4
     shift 1
 
+    #--- Create swap options ---
+
+    # first see if we should add a swap file
+    local swap_opts  remasterable  file=$SWAP_FILE
+    test -e /live/config/remasterable && remasterable=true
+
+    if [ -z "$NO_SWAP_FILE" -a -n "$remasterable" -a -w "$file" ]; then
+        if file -b "$file" | grep -q "^data$"; then
+            echo_live "$_Running_X_on_Y_" "$(pquote mkswap)" "$(pquote $file)"
+            chmod 0600 "$file"
+            chown root:root "$file"
+            mkswap --label 'live-swap-file' "$file"
+        fi
+        file -b "$file" | grep -iq 'swap file' && swap_opts="$swap_opts --swap-file=$file"
+    fi
+
+    # disable swap if encrypted or if user asks for no swap
+    if [ -e /live/config/encrypted -a -z "$FORCE_SWAP" ] || [ -n "$NO_SWAP" ]; then
+        swap_opts="$swap_opts --no-swap"
+    fi
+
     case $distro in
-        antiX) automount_and_fstab "$@"                       ;;
-      MX|MX-*) add_fstab_swap                                 ;;
+        antiX) automount_and_fstab "$@" $swap_opts            ;;
+      MX|MX-*) add_fstab_swap $swap_opts                      ;;
             *) error 'Unknown distro %s' "$(pquote $distro)"  ;;
     esac
 }
@@ -248,7 +285,7 @@ create_fstab() {
 #------------------------------------------------------------------------------
 add_fstab_swap() {
     echo_live 'Possibly adding swap partitions to fstab'
-    make-fstab --quiet --swap-only
+    $MAKE_FSTAB --quiet --swap-only "$@"
 }
 
 #------------------------------------------------------------------------------
@@ -258,7 +295,7 @@ add_fstab_swap() {
 automount_and_fstab() {
 
     #local user_automount=$1  automount=$AUTOMOUNT  automount_off=$AUTOMOUNT_OFF  cmd_mount=$CMD_MOUNT
-    local user_automount=$1  cmd_fstab=$2  cmd_mount=$3
+    local user_automount=$1  cmd_fstab=$2  cmd_mount=$3  ; shift 3
 
     local fstab_rule=/etc/udev/rules.d/90-fstab-automount.rules
 
@@ -301,7 +338,7 @@ automount_and_fstab() {
         off|"") ;;
 
         #. Invalid <mount/automount> option <invalid-option>
-        *) error "$_Invalid_X_option_Y_" "mount=" "$(pquote $cmd_mount)" ;;
+        *) error "$_Invalid_X_option_Y_" 'mount=' "$(pquote $cmd_mount)" ;;
     esac
 
     # Remove fstab file that has no entries
@@ -310,7 +347,7 @@ automount_and_fstab() {
     fi
 
     if [ -n "$user_automount" ]; then
-        make-fstab $mount_opt
+        $MAKE_FSTAB $mount_opt "$@"
         return
 
     elif [ -z "$cmd_fstab" -o "$cmd_fstab" = 'test' ]; then
@@ -335,7 +372,7 @@ automount_and_fstab() {
         off)
             echo_live "$_Automount_disabled_"
             #echo_live "Disabling fstab hotplugging (this will also disable automount)"
-            make-fstab $mount_opt
+            $MAKE_FSTAB $mount_opt "$@"
             return ;;
     esac
 
@@ -353,7 +390,7 @@ automount_and_fstab() {
     fi
 
     # Create an fstab file with most existing partitions included
-    make-fstab $mount_opt
+    $MAKE_FSTAB $mount_opt "$@"
 
     # Enable automount if requested to do so
     case $cmd_fstab in
@@ -748,11 +785,12 @@ detect_any_video_driver() {
 
     FOUND_VDRIVER=true
 
-    FOUND_KMS_DRIVER="$(echo "$video_modules" | egrep "^($KMS_VIDEO_MODULES)$")"
+    FOUND_KMS_DRIVER="$(echo "$video_modules" | egrep "^($KMS_VIDEO_MODULES_REGEX)$")"
     if [ "$FOUND_KMS_DRIVER" ]; then
         #. Found <KMS> video module(s) <module-name(s)>
         echo_live "$_Found_X_video_module_s_Y_" KMS "$(pquote $(echo $FOUND_KMS_DRIVER))"
         FOUND_i915=$(echo $FOUND_KMS_DRIVER | grep "^i915$")
+        [ -z "$NO_MODESET" ] && touch /live/config/modeset
         #blacklist_radeon "$FOUND_KMS_DRIVER" "$XORG_ARGS"
     else
         echo_live "$_Found_X_video_module_s_Y_" "" "$(pquote $(echo $video_modules))"
@@ -761,12 +799,26 @@ detect_any_video_driver() {
 }
 
 #------------------------------------------------------------------------------
+# Create a regular expression for all modules that depend on drm.ko
+#------------------------------------------------------------------------------
+kms_video_modules_regex() {
+    grep 'drm\.ko' /lib/modules/$(uname -r)/modules.dep \
+        | sed -e "s/:.*//"  \
+        -e "s|.*/||"        \
+        -e "s/\.ko$//"      \
+        -e "s/[_-]/[_-]/"   \
+        | grep -v "^drm"    \
+        | sort              \
+        | tr '\n' '|' | sed "s/|$//"
+}
+
+#------------------------------------------------------------------------------
 # Note: we will report FOUND_VDRIVER even if "nomodeset" is used because unless
 # the user wants safe mode then they should be allowed to use the KMS driver and
 # "nomodeset" without us forcing vesa.  That's what safe mode is for.
 #------------------------------------------------------------------------------
 detect_kms_driver() {
-    local kms_drivers=$(find_video_modules "$KMS_VIDEO_MODULES|drm_kms_helper")
+    local kms_drivers=$(find_video_modules "$KMS_VIDEO_MODULES_REGEX|drm_kms_helper")
     [ "$kms_drivers" ] || return
     echo_live "$_Found_X_video_module_s_Y_" KMS ""
     FOUND_VDRIVER=true
@@ -893,7 +945,9 @@ set_server_dpi() {
     local file
     for file in /etc/slim.conf /usr/share/slim/themes/antiX/slim-install.conf; do
         [ -e $file ] || continue
-        sed -i -e "s/^xserver_arguments.*/xserver_arguments -dpi $dpi -nolisten tcp/" $file
+        # remove existing dpi argument and add a new one
+        sed -i -e "/^xserver_arguments/ s/-dpi\s+[0-9]+\s*//p" \
+        -e "s/^(xserver_arguments\s+)/\1-dpi $dpi /" $file
     done
 
     file=/etc/lightdm/lightdm.conf
@@ -927,10 +981,10 @@ set_user_desktop_delay() {
     local bad=$(echo $delay | sed -r 's/^([0-9]+(\.[0-9]*)?|.[0-9]+)//')
 
     if [ ${#bad} -gt 0 ]; then
-        error "$_Bad_desktop_delay_parameter_X_" $(pquote $delay)
+        error 'Bad desktop delay parameter %s' $(pquote $delay)
         return
     fi
-    echo_live "$_Setting_desktop_delay_to_X_" $(pquote $delay)
+    echo_live 'Setting desktop delay to %s' $(pquote $delay)
     su -c "sed -r -i 's/^\s*(STARTUP_DELAY=).*/\1$delay/' $ds_conf" $user
 }
 
@@ -943,12 +997,12 @@ set_user_automount() {
     local file=$home/.desktop-session/automount.conf
     if [ "$on" ]; then
         echo_live "$_Automount_enabled_"
-        add_or_edit "^automount=" "automount=TRUE" "$file"  "$user"  "$create"
+        add_or_edit "^automount=" 'automount=TRUE' "$file"  "$user"  "$create"
 
     elif [ "$off" ]; then
         # ugh
         [ -n "$create" ] && echo_live "$_Automount_disabled_"
-        add_or_edit "^automount=" "automount=FALSE" "$file" "$user" "$create"
+        add_or_edit "^automount=" 'automount=FALSE' "$file" "$user" "$create"
     fi
 }
 
@@ -1009,7 +1063,11 @@ write_issue_file() {
     (   imsg "Welcome to %s! Powered by %s" "$(iq $pretty_name)" "$(iq Debian)."
         if [ -n "$installer" ]; then
             echo
-            imsg "For command line install, login as %s (password=%s)." "$(iq root)" "$(iq root)"
+            if test -e /live/config/persist-root; then
+                imsg "For command line install, login as %s." "$(iq root)"
+            else
+                imsg "For command line install, login as %s (password=%s)." "$(iq root)" "$(iq root)"
+            fi
             imsg "Enter the command %s.  Follow the instructions." "$(iq $installer)"
         fi
         if [ -n "$cli_cc" ]; then
@@ -1033,12 +1091,58 @@ iq() { echo "$bold_co$*$issue_co" ; }
 #-------------------------------------------------------------------------------
 # DEFAULT USER stuff
 #-------------------------------------------------------------------------------
+
 find_def_user() {
-    local user=$(sed -r -n 's/^\s*default_user\s+//p' /etc/slim.conf 2>/dev/null | tail -n1)
-    : ${user:=$(sed -r -n 's/^\s*autologin-user=//p' /etc/lightdm/lightdm.conf 2>/dev/null | tail -n1)}
-    : ${user:=$(getent passwd 1000 | cut -d: -f1)}
-    : ${user:=demo}
-    echo ${user%% *}
+    local distro=$1
+    USER_HOME=  DEF_USER=
+
+    case $distro in
+        MX|MX-*) valid_user $(mx_user) && return 0
+                 valid_user $(ax_user) && return 0 ;;
+
+              *) valid_user $(ax_user) && return 0
+                 valid_user $(mx_user) && return 0 ;;
+    esac
+
+    local uid
+    for uid in $(cut -d: -f3 /etc/passwd | sort -n); do
+        [ -z "$uid" ]     && continue
+        [ $uid -lt 1000 ] && continue
+        valid_user $(getent passwd $uid | cut -d: -f1) && return 0
+    done
+
+    return 1
+}
+
+#------------------------------------------------------------------------------
+# Get default user from slim.conf and lightdm.conf
+#------------------------------------------------------------------------------
+ax_user() { sed -r -n 's/^\s*default_user\s+([^\s]+)/\1/p' /etc/slim.conf 2>/dev/null | tail -n1 ; }
+mx_user() { sed -r -n 's/^\s*autologin-user=([^\s]+)/\1/p' /etc/lightdm/lightdm.conf 2>/dev/null | tail -n1 ; }
+
+#------------------------------------------------------------------------------
+# A valid user must:
+#    be a user
+#    have a uid >= 1000
+#    have a /bin/*sh login shell
+#    have a home directory under /home/
+#
+# Return results in DEF_USER and USER_HOME
+#------------------------------------------------------------------------------
+valid_user() {
+    local user=$1
+    [ -z "$user" ] && return 1
+
+    #echo "try: $user"
+    local ent=$(grep "^$user:.*:/home/.*:/bin/.*sh$" /etc/passwd)
+    local uid=$(echo $ent | cut -d: -f3)
+    [ -z "$uid" ] && return 1
+    [ $uid -lt 1000 ] && return 1
+
+    USER_HOME=$(echo $ent | cut -d: -f6)
+    DEF_USER=$user
+    #echo "found: $user"
+    return 0
 }
 
 #------------------------------------------------------------------------------
