@@ -9,8 +9,8 @@
    9)  hwclock=utc     Hardvérové hodiny používajú UTC (iba systémy Linux)
   10)  hwclock=local   Hardvérové hodiny používajú lokálny čas (systémy Windows)
   11)  password        Pred zavedením systému zmeniť heslá
-  12)  wicd            Enable wicd service on startup
-  13)  nowicd          Disable wicd service on startup
+  12)  wicd            Pri štarte povoliť službu wicd
+  13)  nowicd          Pri štarte vypnúť službu wicd
   14)  nostore         Zakázať funkciu Live-USB-Storage (iba Live-USB)
   15)  dostore         Povoliť funkciu Live-USB-Storage (iba Live-USB)
   16)  savestate       Ukladať súbory medzi spusteniami (iba Live-USB)

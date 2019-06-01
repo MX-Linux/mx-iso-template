@@ -1,10 +1,12 @@
    1)  Par défaut
-   2)  persist_all     Rapide. Il conserve la racine et le répertoire personnel. (Il emploie de RAM et sauvegarde lors de l'arrêt)
-   3)  persist_root    Rapide. Il ne conserve que de la racine. (Il emploie de RAM et sauvegarde lors de l'arrête.)
-   4)  persist_static  Lent. Il conserve la racine et le répertoire personnel (aucun usage de RAM, il sauvegarde constamment)
-   5)  persist_home    Persistance du répertoire personnel uniquement
-   6)  frugal_persist  Frugal avec la persistance et de la racine et du répertoire personel
-   7)  frugal_root     Frugal avec la persistance de la racine uniquement
-   8)  frugal_static   Frugal avec la persistance du répertoire personnel et de la racine statique
-   9)  frugal_home     Frugal avec la persistance du répertoire personnel uniquement
-  10)  frugal_only     Seulement Frugal , pas de persistance
+   2)  persist_all     Save root in RAM, save home on disk (save root at shutdown)
+   3)  persist_root    Save root and home in RAM then saved at shutdown
+   4)  persist_static  Save root and home on disk with home separate on disk
+   5)  p_static_root   Save root and home on disk together
+   6)  persist_home    Persistance du répertoire personnel uniquement
+   7)  frugal_persist  Frugal with root in RAM and home on disk
+   8)  frugal_root     Frugal with root and home in RAM then saved at shutdown
+   9)  frugal_static   Frugal with root on disk and home separate on disk
+  10)  f_static_root   Frugal with root and home on disk together
+  11)  frugal_home     Frugal avec la persistance du répertoire personnel uniquement
+  12)  frugal_only     Seulement Frugal , pas de persistance

@@ -54,6 +54,9 @@
 VERSION="0.91"
 VERSION_DATE="Sat May 11 02:09:10 MDT 2013"
 
+# Note: this does not start with "/live" because we have already pivoted
+SWAP_FILE="/boot-dev/swap-file"
+
 me=${0##*/}
 
      NEW_ROOT=/live
@@ -104,11 +107,18 @@ main() {
 }
 
 do_scripts() {
-
+    #chvt 1
     PATH=$BUSYBOX_BIN:/bin
     export PATH
 
     breakpoint s1 "Before running scripts"
+
+    # run the brightness shutdown script when using sysvinit
+    if ! test -e /live/config/systemd; then
+        if test -x /etc/init.d/brightness; then
+            /etc/init.d/brightness stop
+        fi
+    fi
 
     if test -e /live/config/remasterable; then
         seed_file=$(cat /live/config/seed-file 2>/dev/null)
@@ -153,13 +163,16 @@ do_sendsigs() {
     PATH=$BUSYBOX_BIN:/bin
     export PATH
 
+    # FIXME: hard-code for now
+    #chvt 1
+
     if [ "$(pgrep "^acpid$")" ]; then
         echo 'tell acpid to stop'
         /etc/init.d/acpid stop
     fi
 
     msg "${white}sendsigs"
-    #chvt 1
+    #[ -n "$OUR_TTY" ] && chvt $OUR_TTY
 
     local try all_dead list pid start_t
 
@@ -328,6 +341,11 @@ final_umount() {
 
     breakpoint 7 "After killing processes"
 
+    if grep -q "^$SWAP_FILE" /proc/swaps; then
+        msg  "$_Disable_live_swapfile_"
+        swapoff "$SWAP_FILE"
+    fi
+
     msg  "$_Unmount_most_filesystems_"
     kill_specific_progs $KILL_PROGS
     umount_most
@@ -350,17 +368,21 @@ read_cmdline() {
         CMDLINE=$(cat /proc/cmdline)
     fi
 
+    local param value
     for param in $CMDLINE; do
+        value=${param#*=}
         case $param in
-             uverb=*)      VERBOSE=${param#*=} ;;
+             uverb=*)      VERBOSE=$value      ;;
                  db+)      DB_PLUS=true        ;;
-             ushow=*)         SHOW=${param#*=} ;;
-               ubp=*) BREAK_POINTS=${param#*=} ;;
-              lang=*)         LANG=${param#*=} ;;
+             ushow=*)         SHOW=$value      ;;
+               ubp=*) BREAK_POINTS=$value      ;;
+              lang=*)         LANG=$value      ;;
             noprompt)    NO_PROMPT=true        ;;
               prompt)    DO_PROMPT=true        ;;
         nocolor|noco)        NO_CO=true        ;;
        lowcolor|loco)        LO_CO=true        ;;
+
+        console=tty*)      OUR_TTY=${value##*tty} ;;
         esac
     done
 
@@ -591,7 +613,7 @@ mountpoint_list() {
         esac
 
         case $mp in
-            /|/dev|/dev/*|/proc|/sys|/run*) continue;;
+            /|/dev|/dev/*|/proc|/proc/*|/sys|/sys/*|/run|/run/*) continue;;
         esac
         ret=0
         echo -n "$mp "
@@ -615,7 +637,7 @@ umount_most() {
         echo 'losetup >'
         losetup
     else
-        losetup > /dev/null
+        losetup >/dev/null 2>/dev/null
     fi
 
     for try in $(seq 1 3); do
@@ -722,6 +744,8 @@ shutdown_or_reboot() {
         wait_for_user
 
     elif [ -n "$DO_PROMPT" -o -n "$DB_PLUS" ]; then
+
+        [ -n "$OUR_TTY" ] && chvt $OUR_TTY
         printf "${cyan}======== Press$magenta ENTER$cyan key to $command ========"
         #read x </dev/console
         read x
@@ -739,6 +763,7 @@ shutdown_or_reboot() {
 #------------------------------------------------------------------------------
 wait_for_user() {
 
+    [ -n "$OUR_TTY" ] && chvt $OUR_TTY
     stty sane
     printf "$rev_cyan%s %s$nc"  "$_Please_remove_the_disc_close_the_tray_" \
          "$_and_press_ENTER_to_continue_"
@@ -833,6 +858,8 @@ breakpoint() {
                 esac   ;;
              *) return ;;
     esac
+
+    [ -n "$OUR_TTY" ] && chvt $OUR_TTY
 
     echo "$green$TBAR$nc"
     echo "$green==>$cyan limited shell @ breakpoint [$red$1$cyan]$white $2"
@@ -971,4 +998,3 @@ set_color() {
 
 
 main "$@"
-

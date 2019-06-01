@@ -1,10 +1,12 @@
    1)  Προεπιλογή
-   2)  persist_all     Γρήγορο. Αποθήκευση root και home (χρησιμοποιεί RAM, εξοικονομεί κατά τον τερματισμό)
-   3)  persist_root    Γρήγορο. Αποθήκευση root μόνο. (χρησιμοποιεί RAM, εξοικονομεί κατά τον τερματισμό)
-   4)  persist_static  Αργό. Αποθήκευση root και home (καμία χρήση RAM, εξοικονομεί συνεχώς)
-   5)  persist_home    Μόνο home persist
-   6)  frugal_persist  Frugal με root και home persist
-   7)  frugal_root     Frugal με μόνο root persist
-   8)  frugal_static   Frugal με home και static root persist
-   9)  frugal_home     Frugal με μόνο home persist
-  10)  frugal_only     Μόνο Frugal, χωρίς persist
+   2)  persist_all     Save root in RAM, save home on disk (save root at shutdown)
+   3)  persist_root    Save root and home in RAM then saved at shutdown
+   4)  persist_static  Save root and home on disk with home separate on disk
+   5)  p_static_root   Save root and home on disk together
+   6)  persist_home    Μόνο home persist
+   7)  frugal_persist  Frugal with root in RAM and home on disk
+   8)  frugal_root     Frugal with root and home in RAM then saved at shutdown
+   9)  frugal_static   Frugal with root on disk and home separate on disk
+  10)  f_static_root   Frugal with root and home on disk together
+  11)  frugal_home     Frugal με μόνο home persist
+  12)  frugal_only     Μόνο Frugal, χωρίς persist

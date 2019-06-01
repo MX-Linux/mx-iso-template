@@ -1,0 +1,17 @@
+   1)  Standard
+   2)  checkmd5        Tjek integritet af livemediet
+   3)  checkfs         Tjek LiveUSB og vedvarende ext2/3/4-filsystemer
+   4)  toram           Kopiér det komprimeret filsystem til RAM
+   5)  from=usb        Færdig med at opstarte fra en LiveUSB
+   6)  from=hd         Færdig med at opstarte fra en harddisk
+   7)  nousb2          Deaktivér alle usb-2-enheder under opstart
+   8)  hwclock=ask     Få systemet til at hjælpe med at fastslå urets indstilling
+   9)  hwclock=utc     Hardwarens ur bruger UTC (kun til Linux-systemer)
+  10)  hwclock=local   Hardwarens ur bruger lokal tid (Windows-systemer)
+  11)  password        Skift adgangskoder inden opstart
+  12)  wicd            Aktivér wicd-tjeneste ved opstart
+  13)  nowicd          Deaktivér wicd-tjeneste ved opstart
+  14)  nostore         Deaktivér LiveUSB-lager-funktionalitet (kun LiveUSB)
+  15)  dostore         Aktivér LiveUSB-lager-funktionalitet (kun LiveUSB)
+  16)  savestate       Gem nogen filer henover genstarter (kun LiveUSB)
+  17)  nosavestate     Gem ikke filer henover genstarter (kun LiveUSB)

@@ -1,14 +1,16 @@
-  1) default       15) Spanish (BO)  29) Italian      43) Portuguese (BR)
-  2) Arabic        16) Spanish (MX)  30) Hebrew       44) Romanian
-  3) Bulgarian     17) Spanish (NI)  31) Japanese     45) Russian
-  4) Catalan       18) Spanish (PE)  32) Kazakh       46) Albanian
-  5) Czech         19) Spanish (US)  33) Korean       47) Simplified Chinese
-  6) Danish        20) Spanish (VE)  34) Latvian      48) Slovak
-  7) German        21) Euskal        35) Lithuanian   49) Slovenian
-  8) Estonian      22) Farsi         36) Hungarian    50) Serbian
-  9) English (AU)  23) French        37) Macedonian   51) Finnish
- 10) English (UK)  24) French (BE)   38) Dutch        52) Swedish
- 11) English (NZ)  25) French (CA)   39) Dutch (BE)   53) Traditional Chinese
- 12) English (US)  26) Greek         40) Norwegian    54) Turkish
- 13) Spanish       27) Croatian      41) Polish       55) Ukrainian
- 14) Spanish (AR)  28) Icelandic     42) Portuguese
+  1) default       17) Spanish (BO)  33) Kartuli     49) Portuguese (BR)
+  2) Arabic        18) Spanish (CO)  34) Hebrew      50) Portuguese
+  3) Bulgarian     19) Spanish (EC)  35) Croatian    51) Romanian
+  4) Catalan       20) Spanish (MX)  36) Hungarian   52) Russian
+  5) Czech         21) Spanish (NI)  37) Icelandic   53) Albanian
+  6) Danish        22) Spanish (PE)  38) Italian     54) Slovak
+  7) German (AT)   23) Spanish (US)  39) Japanese    55) Slovenian
+  8) German (CH)   24) Spanish (UY)  40) Kazakh      56) Serbian
+  9) German        25) Spanish (VE)  41) Korean      57) Finnish
+ 10) Greek         26) Euskal        42) Latvian     58) Swedish
+ 11) English (AU)  27) Estonian      43) Lithuanian  59) Turkish
+ 12) English (NZ)  28) Farsi         44) Macedonian  60) Ukrainian
+ 13) English (UK)  29) French        45) Norwegian   61) Simplified Chinese
+ 14) English (US)  30) French (BE)   46) Dutch       62) Traditional Chinese
+ 15) Spanish       31) French (CA)   47) Dutch (BE)
+ 16) Spanish (AR)  32) French (CH)   48) Polish

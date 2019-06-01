@@ -188,6 +188,8 @@ gather_params() {
                         fstab=*)          ;;
                       hwclock=*)          ;;
                       desktop=*)          ;;
+                   mk_swap_file)          ;;
+                 mk_swap_file=*)          ;;
                               *) out=$out${out:+ }$p ;;
         esac
     done
