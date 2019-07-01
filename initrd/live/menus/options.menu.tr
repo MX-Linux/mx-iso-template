@@ -9,9 +9,7 @@
    9)  hwclock=utc     Donanım saati UTC kullanıyor (Yalnızca linux sistemler)
   10)  hwclock=local   Donanım saati yerel zaman kullanıyor (Windows sistemler)
   11)  password        Önyüklemeden önce parolaları değiştir
-  12)  wicd            wicd hizmetini başlangıçta etkinleştir
-  13)  nowicd          Başlangıçta wicd hizmetini devre dışı bırak
-  14)  nostore         LiveUSB Depolama özelliğini devre dışı bırak (Sadece LiveUSB)
-  15)  dostore         LiveUSB Depolama özelliğini etkinleştir (sadece LiveUSB)
-  16)  savestate       Save some files across reboots (LiveUSB only)
-  17)  nosavestate     Don't save files across reboots (LiveUSB only)
+  12)  nostore         LiveUSB Depolama özelliğini devre dışı bırak (Sadece LiveUSB)
+  13)  dostore         LiveUSB Depolama özelliğini etkinleştir (sadece LiveUSB)
+  14)  savestate       Save some files across reboots (LiveUSB only)
+  15)  nosavestate     Don't save files across reboots (LiveUSB only)

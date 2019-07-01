@@ -9,9 +9,7 @@
    9)  hwclock=utc     Zegar sprzętowy używa UTC (tylko systemy Linux)
   10)  hwclock=local   Zegar sprzętowy wykorzystuje czas lokalny (systemy Windows)
   11)  password        Zmień hasła przed uruchomieniem
-  12)  wicd            Włącz usługę wicd przy starcie
-  13)  nowicd          Wyłącz usługę wicd przy starcie
-  14)  nostore         Wyłącz funkcję LiveUSB-Storage (tylko LiveUSB)
-  15)  dostore         Włącz funkcję LiveUSB-Storage (tylko LiveUSB)
-  16)  savestate       Zapisz niektóre pliki między ponownymi uruchomieniami (tylko LiveUSB)
-  17)  nosavestate     Nie zapisuj plików między ponownymi uruchomieniami (tylko LiveUSB)
+  12)  nostore         Wyłącz funkcję LiveUSB-Storage (tylko LiveUSB)
+  13)  dostore         Włącz funkcję LiveUSB-Storage (tylko LiveUSB)
+  14)  savestate       Zapisz niektóre pliki między ponownymi uruchomieniami (tylko LiveUSB)
+  15)  nosavestate     Nie zapisuj plików między ponownymi uruchomieniami (tylko LiveUSB)

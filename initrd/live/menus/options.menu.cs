@@ -9,9 +9,7 @@
    9)  hwclock=utc     Hardvérové hodiny používají UTC (pouze systémy Linux)
   10)  hwclock=local   Hardvérové hodiny používají lokální nastavení času (systémy MS Windows)
   11)  password        Před přihášením změnit hesla
-  12)  wicd            Povolit službu wicd při startu
-  13)  nowicd          Zakázat službu wicd při startu
-  14)  nostore          Zakázat funkci uložiště LiveUSB (pouze LiveUSB)
-  15)  dostore          Povolit funkci uložiště LiveUSB (pouzeLiveUSB)
-  16)  savestate       Uchovávat soubory mezi restarty (pouze LiveUSB)
-  17)  nosavestate     Neuchovávat soubory mezi restarty (pouze LiveUSB)
+  12)  nostore          Zakázat funkci uložiště LiveUSB (pouze LiveUSB)
+  13)  dostore          Povolit funkci uložiště LiveUSB (pouzeLiveUSB)
+  14)  savestate       Uchovávat soubory mezi restarty (pouze LiveUSB)
+  15)  nosavestate     Neuchovávat soubory mezi restarty (pouze LiveUSB)

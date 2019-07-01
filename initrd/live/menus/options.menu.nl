@@ -9,9 +9,7 @@
    9)  hwclock=utc     Hardware klok gebruikt UTC (Enkel-linux systemen)
   10)  hwclock=local   Hardware klok gebruikt lokale tijd (Windows systemen)
   11)  password        Wijzig wachtwoorden voor het opstarten
-  12)  wicd            Schakel wicd service in bij het opstarten
-  13)  nowicd          Schakel wicd service uit bij het opstarten
-  14)  nostore         Schakel LiveUSB-Opslag optie uit (enkel LiveUSB)
-  15)  dostore         Schakel LiveUSB-Opslag optie in (enkel LiveUSB)
-  16)  savestate       Sla enkele bestanden op over het herstarten (enkel LiveUSB)
-  17)  nosavestate     Geen bestanden over herstarten opslaan (enkel LiveUSB)
+  12)  nostore         Schakel LiveUSB-Opslag optie uit (enkel LiveUSB)
+  13)  dostore         Schakel LiveUSB-Opslag optie in (enkel LiveUSB)
+  14)  savestate       Sla enkele bestanden op over het herstarten (enkel LiveUSB)
+  15)  nosavestate     Geen bestanden over herstarten opslaan (enkel LiveUSB)

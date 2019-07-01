@@ -31,6 +31,7 @@ _No_default_user_found_on_the_system_="Aucun utilisateur par défaut trouvé sur
 _Not_creating_or_populating_X_=" %s ni créé ni rempli."
 _Populating_X_directory_="Répertoire %s en cours de remplissage"
 _Removing_previous_auto_generated_X_file_="Suppression du précédent fichier %s généré automatiquement"
+_Running_X_on_Y_="Exécute %s de %s"
 _Scanning_for_hardware_specific_video_modules_="Recherche des modules vidéo matériel spécifiques..."
 _Setting_Conky_width_to_X_="Largeur de Conky réglée sur %s"
 _Setting_X_to_Y_="Réglage de %s sur %s"

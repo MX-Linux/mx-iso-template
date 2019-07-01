@@ -1,3 +1,9 @@
+mx-iso-template (19.06.02) mx; urgency=medium
+
+  * update to latest initrd and gfxboot from antix  (bitjam)
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 30 Jun 2019 21:47:28 -0400
+
 mx-iso-template (19.06.01) mx; urgency=medium
 
   * buster initial build (for testing) 

@@ -9,9 +9,7 @@
    9)  hwclock=utc     O relógio interno usa o fuso horário UTC (só em sistemas Linux)
   10)  hwclock=local   O relógio interno usa a hora local (sistemas Windows)
   11)  password        Alterar as senhas antes de inicializar
-  12)  wicd            Ativar serviço wicd ao iniciar
-  13)  nowicd          Desativar serviço wicd ao iniciar
-  14)  nostore         Desabilitar a funcionalidade Armazenar em Instalação USB Externa (apenas para Instalações USB)
-  15)  dostore         Habilitar a funcionalidade Armazenar em Instalação USB Externa (apenas para Instalações USB)
-  16)  savestate       Salvar alguns arquivos de reinício para reinício (apenas para Instalações USB)
-  17)  nosavestate     Não salvar arquivos de reinício para reinício (apenas para Instalações USB)
+  12)  nostore         Desabilitar a funcionalidade Armazenar em Instalação USB Externa (apenas para Instalações USB)
+  13)  dostore         Habilitar a funcionalidade Armazenar em Instalação USB Externa (apenas para Instalações USB)
+  14)  savestate       Salvar alguns arquivos de reinício para reinício (apenas para Instalações USB)
+  15)  nosavestate     Não salvar arquivos de reinício para reinício (apenas para Instalações USB)

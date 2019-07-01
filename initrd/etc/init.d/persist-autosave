@@ -11,7 +11,14 @@
 # Description:       Run persist-config on startup if needed.  Run persist-save if needed
 ### END INIT INFO
 
-export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin:/live/bin
+
+# We need this to know if we should chvt 1 for semi-auto save
+# And know if we need to chvt 1 at startup
+PERSIST_CONF=/etc/live/persist-config.conf
+
+test -d /live/config/tsplash && DO_TSPLASH=true
+TSPLASH_TTY_NUM_FILE=/live/config/tsplash/tty-num
 
 # . /usr/share/antiX/lib/live-init-utils.sh
 . /live/lib/live-init-utils.sh
@@ -39,11 +46,10 @@ main() {
 }
 
 do_start() {
-    local persist_conf=/etc/live/config/persist-config.conf
     local new_passwd=/live/config/new-passwords
 
     # Bail early if no persist-config is needed
-    if [ -e $persist_conf ]; then
+    if [ -e $PERSIST_CONF ]; then
         # But still do a persist-save if there are new passwords
         [ -e $new_passwd ] || exit 0
         echo "Saving new passwords in persistence file"
@@ -51,16 +57,23 @@ do_start() {
         exit 0
     fi
 
+    [ "$DO_TSPLASH" ] && tsplash_clear
+
     persist-config --cli --startup --nolog
-    [ -e $persist_conf -o -e $new_passwd ] || exit 0
+    [ -e $PERSIST_CONF -o -e $new_passwd ] || exit 0
     [ -e $new_passwd ]   && echo_live "$_Save_new_passwords_"
-    [ -e $persist_conf ] && echo_live "$_Save_new_autosave_selection_"
+    [ -e $PERSIST_CONF ] && echo_live "$_Save_new_autosave_selection_"
 
     persist-save --quiet -cli --nolog
+
+    [ "$DO_TSPLASH" ] && tsplash_on
 }
 
+#------------------------------------------------------------------------------
+# We may need to run persist-save in semi-auto mode but we don't want to do
+# it if a persist-save was just run in the GUI.
+#------------------------------------------------------------------------------
 do_stop() {
-
     # bail early
     [ -e /live/config/save-persist ] || return
     echo_script "$_Possibly_save_persistent_information_" $0
@@ -80,9 +93,45 @@ do_stop() {
             return
         fi
     done
+    test -r $PERSIST_CONF && . $PERSIST_CONF
+
+    # We always need to chvt 1 now in semi-auto mode
+    case $AUTOSAVE_MODE in
+        1*) tsplash_alert 'persist-save' ;;
+        2*) tsplash_clear; chvt 1        ;;
+         *) return                       ;;
+    esac
 
     local p_config=/usr/local/bin/persist-config
     test -x $p_config && $p_config --cli --shutdown
+}
+
+#------------------------------------------------------------------------------
+# Clear *this* screen then wait a tad an chvt back here
+#------------------------------------------------------------------------------
+tsplash_clear() {
+    [ "$DO_TSPLASH" ] || return
+    clear
+    sleep .2
+    chvt 1
+}
+
+#------------------------------------------------------------------------------
+# Display a message on the tsplash screen
+#------------------------------------------------------------------------------
+tsplash_alert() {
+    [ "$DO_TSPLASH" ] || return
+    /live/bin/tell-tsplash alert "$*"
+}
+
+#------------------------------------------------------------------------------
+# Switch back to the tsplash screeen
+#------------------------------------------------------------------------------
+tsplash_on() {
+    [ "$DO_TSPLASH" ] || return
+
+    local tty_num=$(cat $TSPLASH_TTY_NUM_FILE 2>/dev/null)
+    [ -n "$tty_num" ] && chvt $tty_num
 }
 
 main "$@" 2>&1 | tee -a $INIT_LOG_FILE
