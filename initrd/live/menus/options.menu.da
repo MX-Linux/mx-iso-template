@@ -9,9 +9,7 @@
    9)  hwclock=utc     Hardwarens ur bruger UTC (kun til Linux-systemer)
   10)  hwclock=local   Hardwarens ur bruger lokal tid (Windows-systemer)
   11)  password        Skift adgangskoder inden opstart
-  12)  wicd            Aktivér wicd-tjeneste ved opstart
-  13)  nowicd          Deaktivér wicd-tjeneste ved opstart
-  14)  nostore         Deaktivér LiveUSB-lager-funktionalitet (kun LiveUSB)
-  15)  dostore         Aktivér LiveUSB-lager-funktionalitet (kun LiveUSB)
-  16)  savestate       Gem nogen filer henover genstarter (kun LiveUSB)
-  17)  nosavestate     Gem ikke filer henover genstarter (kun LiveUSB)
+  12)  nostore         Deaktivér LiveUSB-lager-funktionalitet (kun LiveUSB)
+  13)  dostore         Aktivér LiveUSB-lager-funktionalitet (kun LiveUSB)
+  14)  savestate       Gem nogen filer henover genstarter (kun LiveUSB)
+  15)  nosavestate     Gem ikke filer henover genstarter (kun LiveUSB)

@@ -64,11 +64,14 @@ do_start() {
     BOOT_LOADER_MP=$BOOT_MP
 
     # Change to /live/bios if needed (changed the called scripts)
-    local uuid_file="$SQ_FILE_DIR/$BOOT_UUID_FNAME"
+    local uuid_file="$SQFILE_DIR/$BOOT_UUID_FNAME"
     if ! mount_boot_partition "$uuid_file"; then
         error "Could not mount the BIOS boot partition"
         exit 1
     fi
+
+    test -d /live/config/tsplash && DO_TSPLASH=true
+    tsplash_alert "Save boot parameters"
 
     if [ -n "$gfx_cmd" ]; then
         local script=/live/bin/gfxsave
@@ -240,6 +243,15 @@ mount_boot_dev() {
     BOOT_LOADER_MP=$mp
     return 0
 }
+
+#------------------------------------------------------------------------------
+# Display a message on the tsplash screen
+#------------------------------------------------------------------------------
+tsplash_alert() {
+    [ "$DO_TSPLASH" ] || return
+    /live/bin/tell-tsplash alert "$*"
+}
+
 
 debug() { return; echo "db: $*"; }
 

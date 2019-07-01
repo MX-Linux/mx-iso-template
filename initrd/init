@@ -26,8 +26,8 @@
 # that you don't want users to be able to adjust.
 
                      ME="initrd init"
-                VERSION="8.20.07"
-           VERSION_DATE="Fri 31 May 2019 06:23:15 PM MDT"
+                VERSION="8.22.00"
+           VERSION_DATE="Fri 21 Jun 2019 01:07:09 PM MDT"
               DEVELOPER="BitJam"
          BUG_REPORT_URL="liveboot@antixlinux.org"
 
@@ -37,11 +37,9 @@
           PERSIST_RETRY=10
     FAILSAFE_BOOT_RETRY=30
 
-    #DISABLE_SERVICES_OPTS="(c[0-9]+(\.[0-9]*)?|c\.[0-9]+|[ADLMPSWXacdgklmnNrsvwx])+"
-    DISABLE_SERVICES_OPTS="[aABcdgkilLmnNPrsSvVwWx]+"
+    DISABLE_SERVICES_OPTS="[aABcdgkilLmnNPrsSvVwWxY]+"
 
            RW_MODE="ro"
-       #DISTRO_NAME="Linux"
             PRINTK=0
 
           LIVE_DIR="/live"
@@ -51,6 +49,9 @@
           AUFS_DIR="aufs"
 
        EXTRA_FILES="deb xtra xtra.tgz"
+ TORAM_ALL_BDIR_FILES="vmlinuz vmlinuz1 initrd.gz"
+TORAM_ALL_OTHER_FILES="boot EFI version"
+
        MIN_SYS_RAM=80
       MIN_AUFS_RAM=80
 
@@ -69,6 +70,7 @@
       FRUGAL_FILES="linuxfs vmlinuz vmlinuz1 initrd.gz xtra xtra.tgz esp-uuid"
       FRUGAL_FILES="$FRUGAL_FILES ../boot ../efi ../EFI ../cdrom.ico ../version"
        FRUGAL_NAME="antiX"
+  DEFAULT_BOOT_DIR="antiX"
 
      MAX_MOUNT_CNT=30
        RETRY_DELAY=50               # in hundredths of a second
@@ -121,6 +123,8 @@ KMS_VIDEO_MODULES="amdgpu,analogix-anx78xx,ast,bochs-drm,ch7006,cirrus,gma500_gf
 
    MAX_ROOTFS_SIZE="40960"  # 40 GiB
    MIN_ROOTFS_SIZE="100"
+
+        SWAP_SIZES="200 250 300 400 500 750 1024 1536 2048 2560 3072 4096 5120 6144 8192 10240"
 
       LIVE_SCRIPTS="live-L10n live-init"
       LAST_BP_TIME=0
@@ -181,7 +185,6 @@ lbar="<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<<"
 
 
 main_wrapper() {
-
     local black blue green cyan red purple brown lt_gray dk_gray lt_blue
     local lt_green lt_cyan lt_red magenta yellow white rev_red
     local cheat_co cmd_co dev_co err_co from_co to_co head_co
@@ -215,24 +218,24 @@ main_wrapper() {
     read_cmdline_params
     select_breakpoints
 
-    start_tsplash
-
     FREE_MEM=$(mem_info MemFree)
 
     #[ -z "$NO_MODESET" -a -z "$LOW_COLOR" -a -z "$HIGH_COLOR" ] && NO_COLOR=true
     set_colors "$NO_COLOR" "$LOW_COLOR"
 
-    echo "$LANG" > $OUTPUT_DIR/lang
     read_xlat init $LANG
     set_console_width "$CON_WIDTH" "$LANG" 6
 
-    [ "$TSPLASH_ERROR" ] && non_fatal  "$_The_X_feature_requires_the_Y_boot_parameter_" 'tsplash' 'console=tty1'
+    echo "$LANG" > $OUTPUT_DIR/lang
+    # Do this after we set the console font/width
+    tsplash_start
 
     # disable console screen blanking
     printf "\e[9;0]\e[14;0]"
 
     echo "$PRINTK" > /proc/sys/kernel/printk
 
+    # Just in case it didn't get set in set_console_width
     SCREEN_WIDTH=$(stty size 2>/dev/null | cut -d" " -f2)
 
     [ -z "${FINAL_DIR##/*}" ] || FINAL_DIR="/$FINAL_DIR"
@@ -262,7 +265,7 @@ main_wrapper() {
 
     # Need to run persist-password outside of our error catching
 
-    tsplash_progress scripts-start
+    tsplash_progress  "$_run_live_scripts_"
 
     breakpoint 8      "before running live init.d scripts"
     breakpoint b8     "Bash shell before running live init.d scripts"
@@ -297,7 +300,7 @@ main_wrapper() {
 
     late_umount $BIOS_DEV
 
-    tsplash_progress scripts-end
+    #tsplash_progress "start init"
 
     if [ -z "$DISABLE_STORE" ]; then
         if detect_old_persist_scripts $NEW_ROOT; then
@@ -336,7 +339,7 @@ main_wrapper() {
 
     dmesg > $NEW_ROOT/live/config/dmesg.out
 
-    [ "$DO_TSPLASH" ] && openvt -w -c $TSPLASH_TTY /live/bin/tsplash progress init
+    [ "$DO_TSPLASH" ] && openvt -w -c $TSPLASH_TTY /live/bin/tsplash progress  "$_start_init_"
 
     breakpoint 9     "right before starting init"
 
@@ -350,14 +353,13 @@ main_wrapper() {
 
     #tsplash_progress init
 
-    copy_tsplash $NEW_ROOT
+    tsplash_copy_config $NEW_ROOT
 
     write_log_files $MY_LOG $NEW_ROOT/$LOG_FILE
     MY_LOG=$NEW_ROOT/$LOG_FILE.color
     [ "$NO_SAVE_LOGS" ] || copy_live_logs "$NEW_ROOT" "$LOG_DIR"
 
     breakpoint b9    "Bash shell right before starting init"
-    breakpoint bash  "Bash shell right before starting init"
 
     #free -m >> $MY_LOG
     echo 3 > /proc/sys/vm/drop_caches
@@ -371,7 +373,7 @@ main_wrapper() {
 
         CHROOT_BIN=$FINAL_DIR/bin
         $SET_ARCH chroot $NEW_ROOT $CHROOT_BIN/setsid $CHROOT_BIN/cttyhack $INIT_PROG
-        breakpoint i "after init= chroot"
+        #breakpoint i "after init= chroot"
 
         MY_LOG=/dev/null
         safe_shutdown poweroff ask
@@ -381,13 +383,16 @@ main_wrapper() {
         test -x $NEW_ROOT$INIT_COMMAND || INIT_COMMAND=/sbin/init
         vmsg 6  "Start %s process" $(pq $INIT_COMMAND)
 
-        [ "$NO_CLEAR" ] || [ "$NO_MODESET" ] || clear
-        exec $LIVE_BIN/switch_root -c /dev/tty1 $NEW_ROOT $INIT_COMMAND "$@"
+        # Note that "nomodeset" is yet again unreliable!
+        # [ "$NO_CLEAR" ] || [ "$NO_MODESET" ] || clear
+        [ "$NO_CLEAR" ] || clear
+        #exec $LIVE_BIN/switch_root -c /dev/tty1 $NEW_ROOT $INIT_COMMAND "$@"
+        exec $LIVE_BIN/switch_root $NEW_ROOT /usr/bin/env CONSOLE=/dev/tty1 $INIT_COMMAND "$@"
     fi
 }
 
 #------------------------------------------------------------------------------
-#
+# Any stderr in this code is colored red on the screen and in the log file
 #------------------------------------------------------------------------------
 main_core() {
     [ "$NO_CLEAR" ] || clear       # Clear and reset screen
@@ -400,6 +405,8 @@ main_core() {
     blacklist_modules "$BLACK_LIST" "$BLACK_LIST_FILE"
 
     breakpoint 1 "before welcome"
+
+    [ "$TSPLASH_ERROR" ] && non_fatal  "$_The_X_feature_requires_the_Y_boot_parameter_" 'tsplash' 'console=tty1'
 
     # These ones must be loaded before the others
     # Add a cheap black-lister
@@ -457,13 +464,17 @@ main_core() {
 
     #[ "$SET_CRYPT" -a -z "$NO_CRYPT" ] && setup_crypt "$CRYPT_ID" "$BOOT_DIR/$CRYPT_FNAME" "$BOOT_MP"
 
-    tsplash_progress search
+    tsplash_progress  "$_search_for_boot_device_"
     breakpoint 3 "before looking for linuxfs file"
 
     RW_MODE=ro
 
     if [ "$FRUGAL_ID" ]; then
         find_frugal_file "$FRUGAL_ID" || frugal_error $?
+
+        # This is not perfect but we don't want to flash back and forth quickly
+        # if we do a frugal install with persistence
+        [ -z "$PERSIST" ] || tsplash_on
     else
         find_linuxfs_file
     fi
@@ -487,13 +498,14 @@ main_core() {
     SEED_FULL=$(dirname "$SQFILE_FULL")/$SEED_FNAME
     seed_dev_random "$SEED_FULL"
 
-    tsplash_progress boot-dev
+    tsplash_progress  "$_found_boot_device_"
 
     breakpoint 4 "after mounting boot device"
     mount -o remount,rw $SQFILE_DEV 2>/dev/null
     dir_has_param "$SQFILE_MP" rw || REMASTERABLE=
 
     detect_vga_menu "$CMD_VGA" "$GFX_SAVE"
+    tsplash_on
 
     if remasterable; then
         do_remaster "$SQFILE_FULL"
@@ -523,12 +535,19 @@ main_core() {
 
     mount_persist_device "$PERSIST_FILES" "$FROM_PERSIST"
 
-    list_modules
-
     # Check for ehci warning
     dmesg | grep 'Warning.*ehci' >&2
 
+
+    if [ -n "$MADE_PERSIST_FILE" -a ! -e $SWAP_FILE ]; then
+        # FIXME check free space
+        YES_no  "$_Create_a_live_usb_swap_file_" && : ${SWAP_FILE_SIZE:=choose}
+    fi
+
     make_swap_file "$SWAP_FILE"  "$SWAP_FILE_SIZE"
+
+    tsplash_on
+    list_modules
 
     breakpoint 5 "after mounting persistence device"
 
@@ -578,11 +597,14 @@ main_core() {
     [ "$WANT_HOMEFS" ] \
         && mount_homefs $PERSIST_FULL_PATH/homefs $NEW_ROOT/home "$WANT_HOMEFS" "$NEED_HOMEFS"
 
+    tsplash_on
+
     [ "$DO_XTRA"       ] && copy_xtra    $DEFAULT_DIR
     [ "$DO_XTRA"       ] && delete_files $DEFAULT_DIR
     [ "$DO_AUTO_LOGIN" ] && auto_login   "$AUTO_LOGIN_PROG" "$AUTO_LOGIN_TERMS" "$NEW_ROOT"
     [ "$DO_FANCY"      ] && fancy_prompt "$FANCY_PROMPT" "$NEW_ROOT"
     [ "$DB_PLUS"       ] && page_updown_keys "$NEW_ROOT"
+    tsplash_enabled && [ -z "$CMD_MY_TTY$TTY1_ON" ] && disable_tty1 "$NEW_ROOT"
 
     # FIXME: do this after copy_xtra for easy testing (for now) (????)
     PROC_CMDLINE=$(cat /live/config/proc-cmdline)
@@ -609,7 +631,7 @@ main_core() {
 
     stop_hotplug
 
-    breakpoint 7 "before prepare switch_root"
+    #breakpoint 7 "before prepare switch_root"
 
     prepare_switch_root $NEW_ROOT $LIVE_DIR $FINAL_DIR
 
@@ -650,7 +672,8 @@ system_mount() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Make the barest devs we need to get started.  FIXME?  This may no longer
+# be needed.
 #------------------------------------------------------------------------------
 make_nodes() {
     local dir=$1
@@ -662,7 +685,8 @@ make_nodes() {
 }
 
 #------------------------------------------------------------------------------
-#
+# For every VAR="value"  in the file make a DISTRO_VAR variable that contains
+# that value
 #------------------------------------------------------------------------------
 read_distro_release() {
     local file=$1
@@ -685,7 +709,7 @@ clear_env() {
 }
 
 #------------------------------------------------------------------------------
-#
+# We do this late so the text menus can over-ride boot parameters
 #------------------------------------------------------------------------------
 read_late_cmdline_params() {
     #vmsg 6 "read_late_cmdline_params: $*"
@@ -707,8 +731,9 @@ read_late_cmdline_params() {
 
                   nousb2|noehci) NO_EHCI=true                         ;;
               private|private=*) FORCE_PASSWD=true                    ;;
-                          toram) TO_RAM=true                          ;;
-                    toram_store) TO_RAM=true ; TORAM_STORE=true       ;;
+                          toram) TO_RAM=true ; TORAM_ALL=true         ;;
+                      toram=min) TO_RAM=true                          ;;
+                    toram=store) TO_RAM=true ; TORAM_STORE=true       ;;
 
         # Convenience short cuts from our menus
                     persist_all) PERSIST='root!,home!'                ;;
@@ -721,21 +746,22 @@ read_late_cmdline_params() {
                  frugal_persist) set_frugal 'root!,home!'             ;;
                     frugal_root) set_frugal 'root!'                   ;;
                   frugal_static) set_frugal 'root!,home!,static'      ;;
-             frugal_static_root) set_frugal 'root!,home!,static'      ;;
-                  f_static_root) set_frugal 'root!,home!,static'      ;;
+             frugal_static_root) set_frugal 'root!,static'            ;;
+                  f_static_root) set_frugal 'root!,static'            ;;
                     frugal_home) set_frugal 'home!'                   ;;
                     frugal_only) set_frugal                           ;;
 
                         nostore) NO_STORE=true                        ;;
                         dostore) DO_STORE=true                        ;;
 
+                   mk_swap_file) SWAP_FILE_SIZE=choose                ;;
                  mk_swap_file=*) SWAP_FILE_SIZE=$value                ;;
         esac
     done
 }
 
 #------------------------------------------------------------------------------
-#
+#  A convenience routine to process frugal= boot params
 #------------------------------------------------------------------------------
 set_frugal() {
     : ${FRUGAL_ID:=label=$FRUGAL_NAME-Frugal}
@@ -767,6 +793,7 @@ read_cmdline_params()
                       splasht=*) DO_TSPLASH=$value                               ;;
                        st_tty=*) TSPLASH_TTY=$value                              ;;
                       console=*) CMD_MY_TTY=${value#tty}                         ;;
+                         tty1on) TTY1_ON=true                                    ;;
                       CONSOLE=*) CMD_MY_TTY=${value#tty}                         ;;
                        poweroff) poweroff -f -n                                  ;;
                          reboot) reboot -f -n                                    ;;
@@ -902,8 +929,11 @@ read_cmdline_params()
                   nousb2|noehci)  ;;
               private|private=*)  ;;
                           toram)  ;;
-                    toram_store)  ;;
+                        toram=*)  ;;
+                      toram_all)  ;;
 
+
+                   mk_swap_file)  ;;
                  mk_swap_file=*)  ;;
 
         # Convenience short cuts from our menus
@@ -964,7 +994,7 @@ read_cmdline_params()
 }
 
 #------------------------------------------------------------------------------
-#
+# Make sure in input value is an integer between 0 and 99
 #------------------------------------------------------------------------------
 small_int() {
     local var=$1 val=${2#*=} name=${2%%=*} param=$2
@@ -978,7 +1008,7 @@ small_int() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Make sure an input value is an integer
 #------------------------------------------------------------------------------
 any_int() {
     local var=$1 val=${2#*=} name=${2%%=*} param=$2
@@ -997,7 +1027,8 @@ coldplug_delay() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Run a loop in the background that is constantly "cold-plugging" i.e. scanning
+# /sys/ for alias devices and loading the modules associated with them.
 #------------------------------------------------------------------------------
 start_coldplug_loop() {
     coldplug-loop $PLUG_LOOP_DELAY &>/dev/null 17>/dev/null &
@@ -1007,7 +1038,8 @@ start_coldplug_loop() {
 }
 
 #------------------------------------------------------------------------------
-#
+# This is much more efficient than the cold-plug loop but it seems to be less
+# than 100% reliable.
 #------------------------------------------------------------------------------
 start_hotplug() {
     local trace_load=$1  targ=/proc/sys/kernel/hotplug
@@ -1028,7 +1060,7 @@ start_hotplug() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Stop hotplugging.
 #------------------------------------------------------------------------------
 stop_hotplug() {
     local targ=/proc/sys/kernel/hotplug
@@ -1042,7 +1074,7 @@ stop_hotplug() {
 }
 
 #------------------------------------------------------------------------------
-#
+# No longer useed
 #------------------------------------------------------------------------------
 old_stop_hotplug() {
     local targ=/proc/sys/kernel/hotplug
@@ -1050,7 +1082,7 @@ old_stop_hotplug() {
 }
 
 #------------------------------------------------------------------------------
-#
+# List all loaded modules
 #------------------------------------------------------------------------------
 list_modules() {
     local mod list cnt=0
@@ -1071,7 +1103,7 @@ list_modules() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Allow the user to select which breakpoints to use
 #------------------------------------------------------------------------------
 select_breakpoints() {
     case $BREAK_POINTS in
@@ -1092,7 +1124,7 @@ select_breakpoints() {
 }
 
 #------------------------------------------------------------------------------
-#
+# A nice display of the memory
 #------------------------------------------------------------------------------
 mem_info() {
     local info amt kb
@@ -1104,7 +1136,8 @@ mem_info() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Only remove init.xlat files because they are big and some of the others
+# are used later and/or at shutdown.
 #------------------------------------------------------------------------------
 clean_xlat() {
     find $LOCALE_DIR/xlat -name init.xlat -delete
@@ -1112,7 +1145,8 @@ clean_xlat() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Source the $LANG/$PROG.xlat file to handle translation.  We also source the
+# English one first in case some translated strings are missing.
 #------------------------------------------------------------------------------
 read_xlat() {
     local prog=$1  lang=${2%%_*}
@@ -1133,7 +1167,8 @@ read_xlat() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Set the font size based on language and screen resolution so we get roughly
+# X columns of text across the screen.  Default value of X is 120.
 #------------------------------------------------------------------------------
 set_console_width() {
     local width=${1:-$DEF_SCREEN_WIDTH}  lang=$2  verb=${3:-5} dir=${4:-$LOCALE_DIR/fonts}
@@ -1224,7 +1259,7 @@ set_console_width() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Create a pretty welcome messag that contains more info at higher verbosity
 #------------------------------------------------------------------------------
 do_welcome() {
 
@@ -1286,7 +1321,7 @@ do_welcome() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Show the boot parameters and flag possbily mispelled ones.
 #------------------------------------------------------------------------------
 show_bootcodes() {
     local unknown=$1
@@ -1307,7 +1342,8 @@ show_bootcodes() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Show all the integer errors. It is easier for the user if we lump them
+# together in one warning.
 #------------------------------------------------------------------------------
 show_integer_errors() {
     local param name value params=$1
@@ -1322,7 +1358,8 @@ show_integer_errors() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Show errors if the disable=XXXX letters do not match a known flag.
+# (We seem to be close to using the entire alphabet already)
 #------------------------------------------------------------------------------
 show_disable_errors() {
     local codes=$1  ds_param=$2
@@ -1334,7 +1371,7 @@ show_disable_errors() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Not used
 #------------------------------------------------------------------------------
 cpu_param() {
     local result=$(grep "^$1" /proc/cpuinfo | head -n 1 | sed 's/.*\t: //')
@@ -1343,7 +1380,8 @@ cpu_param() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Used to disable ehci via "nousb2" or "noehci".  This was for old hardware
+# and I doubt it is currently being used.
 #------------------------------------------------------------------------------
 disable_hcd() {
     local type=$1
@@ -1360,7 +1398,7 @@ disable_hcd() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Get the width of the screen when fbcondecor is active.  A bit of a kludge.
 #------------------------------------------------------------------------------
 get_fbcondecor_width() {
     local theme=${1:-default}  res
@@ -1376,7 +1414,7 @@ get_fbcondecor_width() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Not used
 #------------------------------------------------------------------------------
 get_fbcondecor_theme() {
 
@@ -1394,7 +1432,7 @@ get_fbcondecor_theme() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Not used
 #------------------------------------------------------------------------------
 set_fbcondecor() {
     local boot_param=$1 orig_name=$2 param verbose theme=default
@@ -1471,7 +1509,7 @@ load_kernel_modules() {
 }
 
 #------------------------------------------------------------------------------
-#
+# A Hail Mary when load=all is used (sigh)
 #------------------------------------------------------------------------------
 load_all_modules() {
     local subdir=$1
@@ -1484,7 +1522,7 @@ load_all_modules() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Used to put lots of output into the log file when "load=all" is given
 #------------------------------------------------------------------------------
 debug_cmd() {
     echo "==== $*"                        >> $MY_LOG
@@ -1493,7 +1531,9 @@ debug_cmd() {
 }
 
 #------------------------------------------------------------------------------
-#
+# scan /sys/devices for alias files and load their associated modules If doing
+# hotplugging we first enable hotplugging and then do one coldplug to make sure
+# everything is loaded
 #------------------------------------------------------------------------------
 coldplug_modules() {
     local verb=$1
@@ -1538,7 +1578,7 @@ is_usb_or_removable() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Not used
 #------------------------------------------------------------------------------
 is_removable() {
     local drive=$(get_drive $1)
@@ -1561,7 +1601,7 @@ get_drive() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Not used
 #------------------------------------------------------------------------------
 next_partition() {
     local device=$1  dev=${1##*/}
@@ -1653,7 +1693,8 @@ from_filter() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Wrapper to find_files() when we are looking for boot files.  This provides
+# the proper messaging and error message for that case
 #------------------------------------------------------------------------------
 find_boot_file() {
     local ret
@@ -1967,7 +2008,7 @@ find_device() {
     DEVICE_LIST=
 
     #. Look for <type> devices with <attribute X>
-    [ "$try" = 0 ] && msg  "$_Look_for_X_device_with_Y_" "$(fq $find_type)" "$type $(cq $value)"
+    [ "$try" = 0 ] && tsplash_alert  "$_Look_for_X_device_with_Y_" "$(fq $find_type)" "$type $(cq $value)"
 
     case $type in
         name) DEVICE_LIST=$(cleanse_dev  $value)  ; err_ret=1 ;;
@@ -1994,7 +2035,8 @@ find_device() {
 
 
 #------------------------------------------------------------------------------
-#
+# Create a grub entry file that can be added to a grub.cfg for booting into
+# a frugal system
 #------------------------------------------------------------------------------
 create_grub_entry() {
     local bdir=$1  uuid=$2
@@ -2008,7 +2050,7 @@ Grub_Entry
 }
 
 #------------------------------------------------------------------------------
-#
+# Print the UUID of a partition
 #------------------------------------------------------------------------------
 device_uuid() {
     local device=$1
@@ -2016,7 +2058,7 @@ device_uuid() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Print the label of a partition
 #------------------------------------------------------------------------------
 device_label() {
     local device=$1
@@ -2024,7 +2066,7 @@ device_label() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Print the file system type of a partition
 #------------------------------------------------------------------------------
 device_fstype() {
     local device=$1
@@ -2032,7 +2074,7 @@ device_fstype() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Print the file system type based on a mount point
 #------------------------------------------------------------------------------
 mntpnt_fstype() {
     local dev=$(df -P $1 | tail -n1 | cut -d" " -f1)
@@ -2040,7 +2082,7 @@ mntpnt_fstype() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Clean things up after a failed attempt to find the frugal device
 #------------------------------------------------------------------------------
 frugal_error() {
 
@@ -2057,21 +2099,21 @@ frugal_error() {
 }
 
 #------------------------------------------------------------------------------
-#
+# A wrapper for find_files() to look for a frugal install.
 #------------------------------------------------------------------------------
 find_frugal_file() {
     local frugal_id=$1  bdir=$FRUGAL_DIR
     : ${bdir:=$FRUGAL_NAME-Frugal-$(uname -r)}
 
+    tsplash_alert  "$_Search_for_X_partition_" frugal
     local sqfile=$bdir/$SQFILE_NAME need_to_ask
     local device name=${frugal_id%%=*}  value=${frugal_id#*=}
-
     find_files frugal "$sqfile" "$BOOT_MP" "$frugal_id" "$FRUGAL_RETRY"
     local ret=$?
 
     if [ $ret -eq 0  -a -z "$FORCE_FRUGAL" ]; then
         #. Found existing <frugal> install
-        msg  "$_Found_existing_X_install_" frugal
+        tsplash_alert  "$_Found_existing_X_install_" frugal
         SQFILE_MP=$BOOT_MP
         SQFILE_DEV=$FOUND_DEV
 
@@ -2080,7 +2122,6 @@ find_frugal_file() {
         DEFAULT_PERSIST_PATH=$SQFILE_PATH
         SQFILE_DIR=$(dirname $SQFILE_FULL)
         DEFAULT_DIR=$SQFILE_DIR
-
         return 0
 
     elif [ $ret -eq 40 ]; then
@@ -2128,16 +2169,14 @@ find_frugal_file() {
     local actual=$(file_usage_m $old_dir $FRUGAL_FILES)
 
     # Safety first!
-    local needed=${FRUGAL_NEEDED:=$((actual + 10))}
+    local needed=${FRUGAL_NEEDED:=$((actual + 100))}
 
     if  [ -z "$device" ]; then
 
-        msg  "$_Looking_for_partitions_with_at_least_X_free_Please_wait_" "$(nq $(size_label_m $needed))"
-
-        select_device 'frugal' device $needed not_mounted || return 2
-
+        tsplash_alert  "$_Looking_for_partitions_with_at_least_X_free_Please_wait_" "$(nq $(size_label_m $needed))"
+        select_device 'frugal' device $needed not_mounted
         local ret=$?
-
+        [ $ret -eq 0 ] || return 2
         [ -z "$device" -o "$device" =  "$_quit_" ] && return 1
 
         [ "$LABEL_FRUGAL" ] && label_device $device "$FRUGAL_NAME-Frugal"
@@ -2158,7 +2197,7 @@ find_frugal_file() {
 
     [ "$FORCE_FRUGAL" ] && rm -rf $sqfile_dir
 
-    breakpoint f "in frugal install"
+    #breakpoint f "in frugal install"
 
     if [ -e $sqfile_full ]; then
         msg  "$_Found_existing_X_install_" frugal
@@ -2184,9 +2223,8 @@ find_frugal_file() {
 
         msg  "$_copy_X_to_Y_" $(pq $(size_label_m $actual)) $(pq $sqfile_dir/)
 
-        #if ! time_cmd copy_files_md5 $old_dir $sqfile_dir $FRUGAL_FILES; then
-        if ! prog_copy_md5 $sqfile_dir $old_dir $FRUGAL_FILES; then
-            warn  "Copy failed.  Erasing partial copy"
+        if ! tsplash_prog_copy_md5 frugal_install $sqfile_dir $old_dir $FRUGAL_FILES; then
+            tsplash_warn  "Copy failed.  Erasing partial copy"
             log_cmd rm -f $sqfile_full
             return 40
         fi
@@ -2221,7 +2259,7 @@ find_frugal_file() {
 }
 
 #------------------------------------------------------------------------------
-#
+# A wrapper for find_boot_file() or find_crypt_or_linuxfs
 #------------------------------------------------------------------------------
 find_linuxfs_file() {
 
@@ -2263,6 +2301,7 @@ find_linuxfs_file() {
     else
 
         find_crypt_or_linuxfs
+        tsplash_on
 
         SQFILE_MP=$BOOT_MP
         SQFILE_DEV=$FOUND_DEV
@@ -2375,6 +2414,7 @@ find_crypt_or_linuxfs() {
 
     BOOT_UUID=$CRYPT_UUID
 
+    tsplash_clear
     msg  "$_Checking_for_encrypted_partition_on_device_X_" "$crypt_dev"
 
     test -e "$crypt_dev" || fatal  "$_Encrypted_device_X_does_not_exist_"                 "$(dqe $crypt_dev)"
@@ -2409,7 +2449,8 @@ find_crypt_or_linuxfs() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Allow the user to change the encryption passphrase based on the "passphrase"
+# boot parameter.  Peraps it is silly to have this here.
 #------------------------------------------------------------------------------
 change_passphrase() {
     local dev=$1
@@ -2439,7 +2480,9 @@ change_passphrase() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Force user to reset the passphrase based on a passphrase that already
+# exists in the "passphrase file.  Useful for distributing an encrypted
+# live-usb.  The recipient sets their own passphrase on first boot.
 #------------------------------------------------------------------------------
 reset_passphrase() {
     local file=$1  dev=$2
@@ -2467,7 +2510,7 @@ reset_passphrase() {
 }
 
 #------------------------------------------------------------------------------
-#
+# ?????
 #------------------------------------------------------------------------------
 set_new_passphrase() {
     local file=$1  dev=$2
@@ -2587,7 +2630,7 @@ check_kernel_version() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Seed the random device as best we can
 #------------------------------------------------------------------------------
 seed_dev_random() {
     local file=$1
@@ -2597,7 +2640,7 @@ seed_dev_random() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Create a new random seed file
 #------------------------------------------------------------------------------
 prep_seed_dev_random() {
     local i  file=$1  cnt=${2:-32}
@@ -2648,7 +2691,7 @@ mount_linuxfs() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Mount the tmpfs part of the union file system
 #------------------------------------------------------------------------------
 mount_aufs_ram() {
     local aufs_ram_mp=$1  min_aufs_ram=$2  free_mem=$3
@@ -2662,7 +2705,7 @@ mount_aufs_ram() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Sanity checks for the union file system
 #------------------------------------------------------------------------------
 check_unionfs() {
     test -d /sys/module/aufs    && AUFS_OKAY=true
@@ -2690,7 +2733,8 @@ check_unionfs() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Let user specify the type of union file system to use.  This was mostly
+# for debugging and may no longer be needed
 #------------------------------------------------------------------------------
 want_unionfs() {
     local okay=$1  this=$2  other=$3
@@ -2703,7 +2747,8 @@ want_unionfs() {
 }
 
 #------------------------------------------------------------------------------
-#
+# If a root persistence file already exists then we need to use the same
+# type of union file system that was already used on it.
 #------------------------------------------------------------------------------
 need_unionfs() {
     local okay=$1  this=$2
@@ -2718,7 +2763,8 @@ need_unionfs() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Make sure we have the union file system we need based on what was already
+# used in the rootfs file.
 #------------------------------------------------------------------------------
 check_existing_unionfs() {
     local mp=$1  type
@@ -2738,7 +2784,7 @@ check_existing_unionfs() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Mount the union file system
 #------------------------------------------------------------------------------
 mount_unionfs() {
     local upper_mp aufs_mp=$1  aufs_ram_mp=$3  rootfs_mp=$4
@@ -2767,7 +2813,7 @@ mount_unionfs() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Mount an overlay(fs) file system
 #------------------------------------------------------------------------------
 mount_overlayfs() {
     local  aufs_mp=$1  sqfs_mp=$2  upper_mp=$3
@@ -2797,7 +2843,7 @@ mount_aufs() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Not used (very old)
 #------------------------------------------------------------------------------
 link_top_dirs() {
     local mp=$1  dir  mp_dir
@@ -2814,7 +2860,9 @@ link_top_dirs() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Try to mount a device.  Ignore error messages.  Using blkid to find the
+# fstype makes this faster and more effient.  I wonder if the busybox mount
+# command can figure out the file system type now?
 #------------------------------------------------------------------------------
 try_mount() {
     local dev=$1  mp=$2  rw=${3:-$RW_MODE}
@@ -2822,7 +2870,7 @@ try_mount() {
     [ "$type" ] || return 1
     local opts=$rw,noatime
     local winopts=umask=000,dmask=002,fmask=113
-    local ntfsopts=force,rw,$winopts,uid=$USER_UID,gid=$USER_GID
+    local ntfsopts=recover,rw,$winopts,uid=$USER_UID,gid=$USER_GID
     local fatopts=$winopts,shortname=winnt,uid=$USER_UID,gid=$USER_GID
 
     case $type in
@@ -2841,7 +2889,7 @@ try_mount() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Try to mount a filesystem-on-a-file.  Only try ext[234} and try 4 first
 #------------------------------------------------------------------------------
 try_file_mount() {
     local file=$1  mp=$2  rw=${3:-$RW_MODE}
@@ -2906,7 +2954,7 @@ DD_Hexdump
 }
 
 #------------------------------------------------------------------------------
-#
+# See if it is time to run our regular fsck
 #------------------------------------------------------------------------------
 should_fsck() {
     local dev=$1  sdev=${1##*/}  name=$2  max_count=$MAX_MOUNT_CNT
@@ -2970,7 +3018,7 @@ should_fsck() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Peform fsck when asked or when we think we are ready.
 #------------------------------------------------------------------------------
 do_fsck() {
     local err ret  name=$1 dev=$2  sdev=$(pq ${2##*/}) opts=${3:--n} filefs=$4
@@ -2984,7 +3032,7 @@ do_fsck() {
 
     msg  "$_check_X_filesystem_" "$(pq $name)"
 
-    breakpoint F "Before fsck"
+    #breakpoint F "Before fsck"
 
     vmsg 2 "fsck$white $dev"
     ld_path /sbin/e2fsck $opts $dev &> $fifo
@@ -2994,7 +3042,7 @@ do_fsck() {
 
     ld_path /sbin/tune2fs -C 1 $dev
 
-    breakpoint F "After fsck"
+    #breakpoint F "After fsck"
 
     case $ret in
 	    0) vmsg 1     "$_There_were_no_errors_on_X_"            "$sdev" ; err=0 ;;
@@ -3011,7 +3059,7 @@ do_fsck() {
 }
 
 #------------------------------------------------------------------------------
-#
+# ?????????????????
 #------------------------------------------------------------------------------
 fsck_any_device() {
     local dev=$(readlink -f "$1")  mp=$2  lab=$3
@@ -3040,7 +3088,7 @@ set_path() {
 }
 
 #------------------------------------------------------------------------------
-#
+# See if this break point was specified in the bp= boot parameter
 #------------------------------------------------------------------------------
 should_break_at() {
     local bp=$1
@@ -3057,7 +3105,7 @@ should_break_at() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Run custom code labeled by breakpoint
 #------------------------------------------------------------------------------
 custom_code() {
     local file=$1  desc=$2
@@ -3075,12 +3123,15 @@ custom_code() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Actually do the break point as specified in "bp=x,y,z"
+# Try to account for time spent inside the breakpoint (may not always work)
 #------------------------------------------------------------------------------
 breakpoint() {
     local bp=$1  desc=$2
 
-    custom_code "$bp" "$desc"
+    case $bp in
+        [08])  custom_code "$bp" "$desc" ;;
+    esac
 
     if [ "$DB_PLUS" -a -n "${bp##b*}" ]; then
         local now=$(get_time)
@@ -3114,7 +3165,7 @@ breakpoint() {
 
     trap "" $SIGNAL_LIST
 
-    tsplash_on
+    [ "$bp" != 'e' ] && tsplash_on
 
     bp_time_2=$(get_time)
 
@@ -3123,7 +3174,10 @@ breakpoint() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Do a "bash" breakpoint which entails chrooting into the system and running
+# Bash.  We do some "clever" things so "shutdown" and "reboot" commands do
+# the right thing, which is to exit the shell and signal us to either run
+# safe-shutdown or safe-reboot.
 #------------------------------------------------------------------------------
 do_bash_chroot() {
 
@@ -3185,7 +3239,9 @@ ncq()    { echo "$hi_co$*$nc_co"          ;}
 gq()     { echo "$hi_co$*$lt_green"       ;}
 
 #------------------------------------------------------------------------------
-#
+# vmsg N "fmt" <params>
+# Always put the message in the log file.  Display on screen only if the
+# Current verbosity is N or greater.
 #------------------------------------------------------------------------------
 vmsg() {
     local level=$1  fmt=$2
@@ -3199,7 +3255,7 @@ vmsg() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Do not add the final "\n" to the message
 #------------------------------------------------------------------------------
 vmsgN() {
     local level=$1  fmt=$2
@@ -3213,7 +3269,7 @@ vmsgN() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Only add it to the log file if verbosity is >= N
 #------------------------------------------------------------------------------
 vmsg_if() {
     local level=$1; shift
@@ -3222,7 +3278,7 @@ vmsg_if() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Start the message out without color
 #------------------------------------------------------------------------------
 vmsg_nc() {
     local level=$1; shift
@@ -3230,7 +3286,7 @@ vmsg_nc() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Set a bunch of lowercase global variables for handling ANSI color.
 #------------------------------------------------------------------------------
 set_colors() {
     local noco=$1  loco=$2
@@ -3258,7 +3314,7 @@ set_colors() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Get the time since the kernel started in hundredths of secondes
 #------------------------------------------------------------------------------
 get_time() { cut -d" " -f22 /proc/self/stat ;}
 
@@ -3267,7 +3323,7 @@ show_time() {
 }
 
 #------------------------------------------------------------------------------
-#
+#  Add the decimal point to convert the above to seconds
 #------------------------------------------------------------------------------
 get_seconds() {
     local dt=${1:-$(get_time)}
@@ -3275,7 +3331,7 @@ get_seconds() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Marching dots (sigh)
 #------------------------------------------------------------------------------
 bogo_meter() {
     local width=${1:-$SCREEN_WIDTH} delay=60  dot=.
@@ -3291,7 +3347,7 @@ bogo_meter() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Run a command, show marching dots and record how long the command took.
 #------------------------------------------------------------------------------
 time_cmd() {
     local t0=$(get_time)
@@ -3309,7 +3365,7 @@ time_cmd() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Not used
 #------------------------------------------------------------------------------
 vmsg_old() {
     local msg nflag  level=$1; shift
@@ -3330,7 +3386,7 @@ vmsg_old() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Print a nice heading when we are doing something major
 #------------------------------------------------------------------------------
 heading() {
     vmsg 6 $head_co$tbar
@@ -3340,7 +3396,7 @@ heading() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Add command to log file, show it to screen a v=8 or greater
 #------------------------------------------------------------------------------
 log_cmd() {
     vmsg_nc 8 "$*"
@@ -3476,7 +3532,7 @@ safe_shutdown() {
     set_path $LIVE_BIN
 
     final_umount && vmsg 1  "$_Unmount_successful_"
-    breakpoint u "final umount"
+    #breakpoint u "final umount"
     if [ "$ask" ]; then
         vmsgN 1  "$_Press_X_to_Y_" "<$(bq  "$_Enter_")>" "$(hq $cmd)"
         read x
@@ -3495,7 +3551,7 @@ non_fatal()  { _non_fatal "$(printf "$@")"                   ;}
 # Show last 10 lines of dmesg before the error message
 #------------------------------------------------------------------------------
 fatal_dmesg() {
-    tsplash_clear
+    tsplash_only_clear
     local lines=10
     printf 'Last %s lines of the dmesg output:\n' "$lines"
     printf "%s\n" "$rbar"
@@ -3510,6 +3566,7 @@ YES_no() {  _yes_no 0  "$_yes_" "$@" ;}
 yes_NO() {  _yes_no 1  "$_no_"  "$@" ;}
 
 _yes_no() {
+    tsplash_clear
     local def_ret=$1  def_lab=$(cq $2)
     shift 2
     local ans title=$(printf "$m_co$@")
@@ -3567,7 +3624,7 @@ my_select() {
 #------------------------------------------------------------------------------
 my_select_2() {
     local title=$1  var=$2  default=$3  data=$4  display=$5
-    local def_prompt=$(printf  "$_Press_X_for_the_default_selection_" "$(cq  "$_enter_")")
+    local def_prompt=$(printf  "$_Press_X_for_the_default_selection_" "$(cq  "$_Enter_")")
 
     local val input err_msg
     while [ -z "$val" ]; do
@@ -3913,6 +3970,8 @@ select_device() {
     local title_type=$1  var=$2  min_size=${3:-0} not_mounted=$4
     local title=$(printf  "$_Please_select_X_device_" "$title_type")
 
+    tsplash_only_clear
+
     local cnt=1 cnt_lab rtype mp=/tmp/mnt
     local size_lab free free_lab
     local line pretty skip data display
@@ -4039,6 +4098,9 @@ Blkid
         display="${display}$(printf  "$_The_limiting_factors_are_highlighted_in_X_" "$rev_video")\n"
         display="${display}$(printf "A hightlighted name means the device is already mounted")\n"
     fi
+
+    tsplash_off
+    tsplash_alert ""
 
     my_select_2 "$title" $var "0" "$data" "$display"
     echo -e "$display" >> $MY_LOG
@@ -4265,6 +4327,15 @@ prog_copy_md5() {
 }
 
 #------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+tsplash_prog_copy_md5() {
+    local label=$1 dest=$2  src=$3 ; shift 3
+    tsplash_prog_copy "$label" $dest $(find_md5_files $src "$@")
+}
+
+
+#------------------------------------------------------------------------------
 # prog_copy <dest> <src1> <src2> ...
 # Copy source files to destination directory and display a bar indicating the
 # progress.
@@ -4285,6 +4356,7 @@ prog_copy() {
     local dirty_ratio dirty_bytes
     read dirty_ratio < /proc/sys/vm/dirty_ratio
     read dirty_bytes < /proc/sys/vm/dirty_bytes
+    echo $USB_DIRTY_BYTES > /proc/sys/vm/dirty_bytes
 
     mkdir -p "$dest"
     rm -f $err_file
@@ -4332,6 +4404,17 @@ prog_copy() {
     return 0
 }
 
+#------------------------------------------------------------------------------
+# Use tsplash to do the copy if it is enabled.
+#------------------------------------------------------------------------------
+tsplash_prog_copy() {
+    local label=$1 ; shift
+    if tsplash_enabled; then
+        tsplash_wait "$label" "$@"
+    else
+        prog_copy "$@"
+    fi
+}
 #------------------------------------------------------------------------------
 # Show a progress arrow while doing "dd" command
 #------------------------------------------------------------------------------
@@ -4406,22 +4489,33 @@ prog_dd() {
 # if needed since it is aleady in a chroot.
 #------------------------------------------------------------------------------
 make_swap_file() {
-    local file=$1  size=$(echo $2 | tr 'mg' 'MG')  raw_size=$2
-    [ -z "$size" ]  && return
+    local file=$1  swap_size=$(echo $2 | tr 'mg' 'MG')  raw_size=$2
+    [ -z "$swap_size" ]  && return
+
     if test -e "$file"; then
         warn  "$_Swap_file_X_already_exists_" "$(pqw $file)"
+        return
     fi
 
     local dir=$(dirname "$file")
     local free_space=$(free_space "$dir")
-    local megs  factor=
-    case $size in
-        [0-9]*[0-9]) megs=${size%M} ; factor=1    ;;
-                 *M) megs=${size%M} ; factor=1    ;;
-                 *G) megs=${size%G} ; factor=1024 ;;
+
+    case $swap_size in
+        choose)  select_swap_file_size 'swap_size' $free_space $dir ;;
     esac
 
-    msg "Freespace: $free_space"
+    [ "$swap_size" =  "$_quit_" ] && return 1
+
+    vmsg 1  "$_Swap_file_size_X_" "$(nq_label_meg $swap_size)"
+
+    local megs  factor=
+    case $swap_size in
+        [0-9]*[0-9]) megs=${swap_size%M} ; factor=1    ;;
+                 *M) megs=${swap_size%M} ; factor=1    ;;
+                 *G) megs=${swap_size%G} ; factor=1024 ;;
+    esac
+
+    # msg "Freespace: $free_space"
 
     if [ -z "$factor" ] || ! echo "$megs" | grep -q "^[0-9]\+$"; then
         warn  "$_Invalid_X_option_Y_" 'mk_swap_file=' "$(pqw $raw_size)"
@@ -4429,7 +4523,7 @@ make_swap_file() {
     fi
     megs=$((megs * factor))
 
-    msg "Megs: $megs"
+    # msg "Megs: $megs"
 
     if [ $((free_space - megs)) -lt 10 ]; then
         non_fatal  "$_Not_enough_space_to_create_a_X_swap_file_" "$(pqw $raw_size)"
@@ -4437,7 +4531,46 @@ make_swap_file() {
     fi
 
     msg  "$_Creating_X_swap_file_at_Y_Please_be_patient_" "$(pq $raw_size)" "$(pq $file)"
-    prog_dd "$file" "$megs"
+
+    if tsplash_enabled; then
+        tsplash_wait mk_swap_file "$file" "$megs"
+    else
+        prog_dd "$file" "$megs"
+    fi
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+select_swap_file_size() {
+    local var=$1  free=$2  dir=$3  size  sizes
+    local title=$(printf  "$_Please_select_size_of_X_file_" $(pqw 'swap'))
+
+    local avail=$((free - MKFS_FREE_MARGIN))
+
+    local part_fstype=$(mntpnt_fstype $dir)  is_vfat
+    case $part_fstype in
+        vfat) is_vfat=true ;;
+    esac
+
+    # Set the maximum size for this menu
+    local max_size=$avail  min_size=0
+    [ -n "$is_vfat" -a "$max_size" -gt 4095 ] && max_size=4095
+    if [ "$base_file" = rootfs ]; then
+        [ "$max_size" -gt "$MAX_ROOTFS_SIZE" ] && max_size=$MAX_ROOTFS_SIZE
+        min_size=$MIN_ROOTFS_SIZE
+    fi
+
+    # Create a menu of sizes, stop when the sizes are too big
+    local size sizes
+    for size in $SWAP_SIZES; do
+        [ $size -gt $max_size ] && break
+        [ $size -lt $min_size ] && continue
+        sizes="$sizes $size"
+    done
+
+    tsplash_clear
+    size_menu $var "$title" "" $sizes
 }
 
 #------------------------------------------------------------------------------
@@ -4625,7 +4758,7 @@ check_vid() {
     local sqfs_vid=$1  base=$2  fname=$3
 
     local vid_file=$base$VID_DIR/$fname
-    breakpoint v "before check VID"
+    #breakpoint v "before check VID"
 
     local rootfs_vid
     [ "$vid_file" ] && rootfs_vid=$(get_vid $vid_file)
@@ -4700,7 +4833,7 @@ check_md5()
 
     vmsg 2 $tbar
     #. Check <md5> of files in <some> directory
-    vmsg_nc 1  "$_Check_X_of_files_in_Y_directory_Please_be_patient_" md5 "$(fq $dir)"
+    tsplash_alert_nc  "$_Check_X_of_files_in_Y_directory_Please_be_patient_" md5 "$(fq $dir)"
 
     local file fname md5_file file_md5 true_md5 error
     for fname in $(ls $dir); do
@@ -4739,10 +4872,10 @@ check_md5()
     elif [ "$error" ]; then
         non_fatal  "$_At_least_one_X_checksum_did_not_match_" md5
     elif [ "$fcnt" = 1 ]; then
-        vmsg 1  "$_Success_The_file_passed_"
+        tsplash_alert  "$_Success_The_file_passed_"
     else
         #. Success! All <count> file(s) passed
-        vmsg 1  "$_Success_All_X_files_passed_" $(nq $fcnt)
+        tsplash_alert  "$_Success_All_X_files_passed_" $(nq $fcnt)
     fi
     vmsg 2 $tbar
 }
@@ -4809,7 +4942,6 @@ do_remaster() {
     local sqfile="$sqfile_path/$SQFILE_NAME"
     local old_file="$sqfile.old" new_file="$sqfile.new" bad_file="$sqfile.bad"
 
-
     if [ "$ROLLBACK" ]; then
         heading 'remaster %s' "$(cq rollback)"
 
@@ -4821,7 +4953,8 @@ do_remaster() {
             return 1
         fi
         msg $tbar
-        warn  "Roll back file %s to %s" "$SQFILE_NAME.old" "$SQFILE_NAME"
+        #warn "Roll back file %s to %s" "$SQFILE_NAME.old" "$SQFILE_NAME"
+        tsplash_warn  "Roll back file %s to %s" "$SQFILE_NAME.old" "$SQFILE_NAME"
         msg $tbar
 
         local file full
@@ -4858,7 +4991,7 @@ do_remaster() {
         return 2
     fi
     msg $tbar
-    warn  "Remaster the file %s to %s" "$SQFILE_NAME.new" "$SQFILE_NAME"
+    tsplash_warn  "Remaster the file %s to %s" "$SQFILE_NAME.new" "$SQFILE_NAME"
     msg $tbar
 
     local file full
@@ -4891,10 +5024,11 @@ copy_to_ram() {
 
     if _copy_to_ram "$@"; then
 
+        local bdir=$toram_mp/$DEFAULT_BOOT_DIR
         LINUXFS_DEV=
         SQFILE_MP=$toram_mp
-        SQFILE_DIR=$toram_mp
-        SQFILE_FULL=$toram_mp/$name
+        SQFILE_DIR=$bdir
+        SQFILE_FULL=$bdir/$name
         DEFAULT_DIR=$SQFILE_DIR
 
         log_cmd umount $SQFS_MP
@@ -4903,13 +5037,15 @@ copy_to_ram() {
     else
         mountpoint -q $toram_mp && log_cmd umount $toram_mp
         [ -d $toram_mp ]        && rmdir $toram_mp
+        non_fatal  "$_Copy_to_RAM_failed_"
     fi
-    breakpoint t "After copy to ram"
+    #breakpoint t "After copy to ram"
 }
 
 _copy_to_ram() {
     local from=$1 toram_mp=$2  err_toram=$(cqe toram)
     local name=$(basename $from) dir=$(dirname $from)
+    local dir_dir=$(dirname $dir)
 
     heading  "$_copy_X_file_to_RAM_" "$(fq $name)"
     local real_sq_file=$(readlink -f $from)
@@ -4919,8 +5055,26 @@ _copy_to_ram() {
     local format2="%s: %10d k"
     vmsg 8 "$format" "$name" $sq_size_k
 
+    local extra_files="$EXTRA_FILES $name.md5"
+
     local extra ex_full size_k
-    for extra in $EXTRA_FILES; do
+    if [ "$TORAM_ALL" ]; then
+        extra_files="$extra_files $TORAM_ALL_BDIR_FILES"
+
+        # Get the size of the additional files/dirs we are going to copy
+        for extra in $TORAM_ALL_OTHER_FILES; do
+            ex_full="$(readlink -f $dir_dir/$extra)"
+            [ -e "$ex_full" ] || continue
+            size_k="$(du -sk $ex_full | cut -f 1)"
+            sq_size_k=$((sq_size_k + size_k))
+            vmsg 8 "$format" $extra $size_k
+            # Total [RAM needed]
+            vmsg 8 "$format2" '          Total'  $sq_size_k
+        done
+    fi
+
+    # Get the size of all extra files/dirs we are going to copy
+    for extra in $extra_files; do
         ex_full="$(readlink -f $dir/$extra)"
         [ -e "$ex_full" ] || continue
         size_k="$(du -sk $ex_full | cut -f 1)"
@@ -4948,22 +5102,32 @@ _copy_to_ram() {
     fi
 
     local orig=$dir
-    local dest=$toram_mp
+    local dest=$toram_mp/$DEFAULT_BOOT_DIR
 
     mkdir -p $dest
 
     vmsg 3  "$_Will_copy_files_from_X_to_Y_Please_be_patient_" \
         "$(dq $orig)" "$(dq $dest)"
 
-    for extra in $EXTRA_FILES; do
+    local from_list
+
+    if [ "$TORAM_ALL" ]; then
+        for extra in $TORAM_ALL_OTHER_FILES; do
+            from_list="$from_list $(readlink -f $dir_dir/$extra)"
+        done
+        log_cmd cp -a $from_list $toram_mp
+    fi
+
+    local from_list=$orig/$name
+    for extra in $extra_files; do
         local full=$(readlink -f $dir/$extra)
-        [ -e "$full" ] && cp -a $full $dest
+        [ -e "$full" ] && from_list="$from_list $full"
+        [ -e "$full.md5" ] && from_list="$from_list $full.md5"
     done
-    [ -e $from ] && cp $from.md5 $dest
 
     #if ! cp_file $orig $name $dest 2>&1; then
 
-    if ! prog_copy $dest $orig/$name; then
+    if ! tsplash_prog_copy copy_toram $dest $from_list; then
         err  "Copy failed.  Cannot do %s" $err_toram
         return 3
     fi
@@ -5123,7 +5287,6 @@ mount_persist_device() {
             unset WANT_ROOTFS WANT_HOMEFS NEED_ROOTFS NEED_HOMEFS
             return
         fi
-
     fi
 
     if [ $ret -eq 0 ]; then
@@ -5308,7 +5471,7 @@ _persist_makefs() {
 
     mount -o remount,rw $SQFILE_DEV 2>/dev/null
 
-    breakpoint m "before makefs"
+    #breakpoint m "before makefs"
 
     [ "$is_vfat" ] &&  warn  "$_Warning_this_can_take_several_minutes_per_Gigabyte_on_a_X_file_system_" $(pqw $part_fstype)
     if ! time_cmd makefs $full_file $fs_type $fs_size $part_fstype; then
@@ -5318,6 +5481,8 @@ _persist_makefs() {
     fi
 
     do_fsck "new $file file" $full_file -p filefs || return 1
+
+    MADE_PERSIST_FILE=true
 
     eval $needed_var=\$needed
     eval $wanted_var=\$wanted
@@ -5410,11 +5575,11 @@ size_menu() {
     my_select_2 "$title"  $var  "" "$data" "$display"
 }
 
-
 #------------------------------------------------------------------------------
 #
 #------------------------------------------------------------------------------
 select_persist_device() {
+    tsplash_clear
     local device label=$1
     warn
     warn  "Could not find a partition with label %s" "$(pqw $label)"
@@ -5489,7 +5654,6 @@ _mount_and_copy_rootfs() {
 
     return 0
 }
-
 
 #------------------------------------------------------------------------------
 # Function: copy_persist_to_ram
@@ -5715,12 +5879,12 @@ copy_homefs() {
 
     msg  "$_Copy_home_filesystem_Please_be_patient_"
 
-    breakpoint r "Before resize homefs rsync"
+    #breakpoint r "Before resize homefs rsync"
 
     time_cmd ld_path rsync -aq --delete $cur_home_mp/ $new_home_mp/
     local ret=$?
 
-    breakpoint r "After resize homefs rsync"
+    #breakpoint r "After resize homefs rsync"
 
     if [ "$ret" -ne 0 ]; then
         err  "The %s program failed.  Will not resize %s" $(pqe rsync) $(pqe homefs)
@@ -5734,6 +5898,15 @@ copy_homefs() {
     log_cmd mv -f $homefs.new $homefs
 
     return 0
+}
+
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+disable_tty1() {
+    local dir=$1
+    sed -r -i "s/^\s*(1:2345:respawn)/# \1/" $dir/etc/inittab
 }
 
 #------------------------------------------------------------------------------
@@ -6024,6 +6197,7 @@ SQFS_VID_FILE="$SQFS_VID_FILE"
 STATIC_ROOT="$STATIC_ROOT"
 TORAM_MP="$TORAM_MP"
 TORAM_STORE="$TORAM_STORE"
+TOORAM_ALL="$TOORAM_ALL"
 USER_GID="$USER_GID"
 USER_UID="$USER_UID"
 VID_ERROR="$VID_ERROR"
@@ -6034,6 +6208,7 @@ Initrd_Out
 
     [ -e /sys/firmare/efi ]                  && touch $dir/uefi
     [ "$DID_TORAM"    ]                      && touch $dir/did-toram
+    [ "$TORAM_ALL"    ]                      && touch $dir/toram-all
     [ "$TORAM_STORE"  ]                      && touch $dir/toram-store
     [ "$REMASTERABLE" ]                      && touch $dir/remasterable
     [ "$PERSIST_ROOT" ]                      && touch $dir/persist-root
@@ -6194,6 +6369,7 @@ update_file() {
 #
 #------------------------------------------------------------------------------
 press_enter() {
+    # As in:  Press Enter to continue
     local ans enter="Enter"
     msg  "$_Press_X_to_continue_" "$(pq "$enter")"
     read ans
@@ -6391,33 +6567,43 @@ random_string() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Start up the tsplash screen on its on tty
+# Modify our scripts so we all use the same tty
 #------------------------------------------------------------------------------
-start_tsplash() {
+tsplash_start() {
     tsplash_enabled || return
 
+    # This does nothing now
     case $CMD_MY_TTY in
         [1-9]|1[0-2]) ;;
-        *) DO_TSPLASH= ; TSPLASH_ERROR=true ; return ;;
-  esac
+     #   *) DO_TSPLASH= ; TSPLASH_ERROR=true ; return ;;
+    esac
 
-    sed -r -i "s/^(tty)=.*/\1=$TSPLASH_TTY/" /bin/tell-tsplash
+    vmsg 6 "@ %s starting %s" "$(get_seconds)" "$(pq tsplash)"
+
+    # change the tty used in these 3 scripts
+    sed -r -i "s/^(tty)=.*/\1=$TSPLASH_TTY/" /bin/tell-tsplash   /bin/tsplash-on
     sed -r -i "s/tty[0-9]+/tty$TSPLASH_TTY/" /bin/clear-tsplash
 
     openvt -s -c $TSPLASH_TTY tsplash start "$DO_TSPLASH"
 }
 
-tsplash_enabled()  { [ -n "$DO_TSPLASH" ]; return $?        ; }
-tsplash_off()      { chvt $MY_TTY                           ; }
-tsplash_progress() { [ "$DO_TSPLASH" ] && /live/bin/tell-tsplash progress "$*" ; }
+#------------------------------------------------------------------------------
+# Convenience routine
+#------------------------------------------------------------------------------
+tsplash_enabled()  {
+    [ -n "$DO_TSPLASH" ]
+    return $?
+}
 
 #------------------------------------------------------------------------------
-# Go back to the tsplash screen and reset the TSPLASH_CLEARED flag
+# Switch to the boot screen
 #------------------------------------------------------------------------------
-tsplash_on() {
+tsplash_off() {
     tsplash_enabled || return
-    chvt $TSPLASH_TTY
-    unset TSPLASH_CLEARED
+    echo 'tsplash off' >> $MY_LOG
+    TSPLASH_OFF=true
+    chvt $MY_TTY
 }
 
 #------------------------------------------------------------------------------
@@ -6426,18 +6612,91 @@ tsplash_on() {
 #------------------------------------------------------------------------------
 tsplash_clear() {
     tsplash_enabled || return
-    if [ -z "$TSPLASH_CLEARED" ]; then
+    if [ -z "$TSPLASH_CLEARED" -a -z "$NO_CLEAR" ]; then
         clear
+        echo 'tsplash clear' >> $MY_LOG
         sleep .2
         TSPLASH_CLEARED=true
     fi
+
+    TSPLASH_OFF=true
     chvt $MY_TTY
 }
 
 #------------------------------------------------------------------------------
 #
 #------------------------------------------------------------------------------
-copy_tsplash() {
+tsplash_only_clear() {
+    tsplash_enabled || return
+    if [ -z "$TSPLASH_CLEARED" -a -z "$NO_CLEAR" ]; then
+        clear
+        echo 'tsplash clear' >> $MY_LOG
+        sleep .1
+        TSPLASH_CLEARED=true
+    fi
+}
+#------------------------------------------------------------------------------
+# Go back to the tsplash screen and reset the TSPLASH_CLEARED flag
+#------------------------------------------------------------------------------
+tsplash_on() {
+    tsplash_enabled    || return
+    [ "$TSPLASH_OFF" ] || return
+    unset TSPLASH_OFF
+    echo 'tsplash on' >> $MY_LOG
+    chvt $TSPLASH_TTY
+    unset TSPLASH_CLEARED
+}
+
+#------------------------------------------------------------------------------
+# Advance the tsplash progress
+#------------------------------------------------------------------------------
+tsplash_progress() { tsplash_enabled && /live/bin/tell-tsplash progress "$*" ; }
+
+#------------------------------------------------------------------------------
+# Display a message in the tsplash progress bar area AND show it here
+#------------------------------------------------------------------------------
+tsplash_alert() {
+    vmsg 1  "$@"
+    tsplash_enabled || return
+    local fmt=$1 ; shift
+    /live/bin/tell-tsplash alert "$(printf "$m_co$fmt$nc_co" "$@")"
+}
+
+#------------------------------------------------------------------------------
+# *sigh* this is for the no-color alert in init.
+#------------------------------------------------------------------------------
+tsplash_alert_nc() {
+    vmsg_nc 1  "$@"
+    tsplash_enabled || return
+    local fmt=$1 ; shift
+    /live/bin/tell-tsplash alert "$(printf "$nc_co$fmt$nc_co" "$@")"
+}
+
+#------------------------------------------------------------------------------
+# Note we call "alert" because we take care of the colors here
+#------------------------------------------------------------------------------
+tsplash_warn() {
+    warn "$@"
+    tsplash_enabled || return
+    local fmt=$1 ; shift
+    /live/bin/tell-tsplash alert "$(printf "$warn_co$fmt$nc_co" "$@")"
+}
+
+#------------------------------------------------------------------------------
+# Wait for the tsplash program to finish before moving on
+# We use this for progress bars
+#------------------------------------------------------------------------------
+tsplash_wait() {
+    # Yes I could do this iwth -s but that sometimes causes problems
+    chvt $TSPLASH_TTY
+    openvt -w -c $TSPLASH_TTY /live/bin/tsplash "$@"
+}
+
+#------------------------------------------------------------------------------
+# Copy the tsplash config to the "real" file system.  We need to do this as
+# last as possible, I think.  Perhaps we can improve this.
+#------------------------------------------------------------------------------
+tsplash_copy_config() {
     tsplash_enabled || return
     local new_dir=$1
 
@@ -6448,7 +6707,7 @@ copy_tsplash() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Get the new "root" filesystem ready before we switch_root to it
 #------------------------------------------------------------------------------
 prepare_switch_root() {
     local new_root=$1  live_dir=$2  final_live=$3
@@ -6479,7 +6738,7 @@ prepare_switch_root() {
 
     local f
     for f in README LICENSE; do
-        local from=/live/$f  to=$new_root/etc/live/$f
+        local from=/live/$f  to=$new_root/live/$f
         test -e $from || continue
         test -e $to   && continue
         cp $from $to
@@ -6561,11 +6820,12 @@ remove_from_runlevel() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Convenience routine
 #------------------------------------------------------------------------------
 remasterable() { [ -n "$REMASTERABLE" ];  return $?; }
+
 #------------------------------------------------------------------------------
-#
+#  This is done elsewhere now FIXME?
 #------------------------------------------------------------------------------
 live_param_filter() { echo $*; }
 

@@ -9,9 +9,7 @@
 9:hwclock=utc:hwclock=utc
 10:hwclock=local:hwclock=local
 11:password:password
-12:wicd:wicd
-13:nowicd:nowicd
-14:nostore:nostore
-15:dostore:dostore
-16:savestate:savestate
-17:nosavestate:nosavestate
+12:nostore:nostore
+13:dostore:dostore
+14:savestate:savestate
+15:nosavestate:nosavestate

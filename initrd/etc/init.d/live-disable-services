@@ -163,12 +163,12 @@ do_start() {
         [ -z "${disable_param##*[n]*}" ] &&       NFS_REASON=n
         [ -z "${disable_param##*[N]*}" ] &&      ENABLE_NTPD=true
         [ -z "${disable_param##*[P]*}" ] &&       ENABLE_PAM=true
-        [ -z "${disable_param##*[S]*}" ] &&  ENABLE_PLYMOUTH=true
         [ -z "${disable_param##*[v]*}" ] &&     DISABLE_VBOX=true
         [ -z "${disable_param##*[V]*}" ] &&     ENABLE_FBDEV=true
         [ -z "${disable_param##*[w]*}" ] &&             WICD=no
         [ -z "${disable_param##*[W]*}" ] &&             WICD=yes
         [ -z "${disable_param##*[x]*}" ] &&        XTRA_LEAN=true
+        [ -z "${disable_param##*[Y]*}" ] &&  ENABLE_PLYMOUTH=true
     fi
 
     #[ -n "$LEAN" -o -n "$MEAN" ] && : ${WICD:=no}

@@ -9,9 +9,7 @@
    9)  hwclock=utc     El rellotge del maquinari usa UTC (sistemes amb només Linux)
   10)  hwclock=local   El rellotge de maquinari usa l'hora local (sistemes amb Windows)
   11)  password        Canvieu les contrasenyes abans d'arrencar
-  12)  wicd            Activa el servei wicd a l'arrencada
-  13)  nowicd          Desactiva el servei wicd a l'arrencada
-  14)  nostore         Desactiva l'opció d'emmagatzematge LiveUSB (només LiveUSB)
-  15)  dostore         Activa l'opció d'emmagatzematge LiveUSB (només LiveUSB)
-  16)  savestate       Desa alguns fitxers entre arrencades (només USB autònom)
-  17)  nosavestate     No desis fitxers entre arrencades (només USB autònom)
+  12)  nostore         Desactiva l'opció d'emmagatzematge LiveUSB (només LiveUSB)
+  13)  dostore         Activa l'opció d'emmagatzematge LiveUSB (només LiveUSB)
+  14)  savestate       Desa alguns fitxers entre arrencades (només USB autònom)
+  15)  nosavestate     No desis fitxers entre arrencades (només USB autònom)

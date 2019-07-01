@@ -1,5 +1,5 @@
    1)  Pré-definição
-   2)  persist_all     Save root in RAM, save home on disk (save root at shutdown)
+   2)  persist_all     Guardar o raíz na RAM, guardar pasta pessoal no disco (guardar o raíz no encerramento)
    3)  persist_root    Save root and home in RAM then saved at shutdown
    4)  persist_static  Save root and home on disk with home separate on disk
    5)  p_static_root   Save root and home on disk together

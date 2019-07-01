@@ -75,6 +75,7 @@ BOOT_DEV_FILE=/config/boot-device
  BREAK_POINTS=0
  SHOW_COMMAND=0
 
+      OUR_TTY=1
 
 HBAR="======================================================================"
 TBAR="----------------------------------------------------------------------"
@@ -107,7 +108,6 @@ main() {
 }
 
 do_scripts() {
-    #chvt 1
     PATH=$BUSYBOX_BIN:/bin
     export PATH
 
@@ -163,16 +163,12 @@ do_sendsigs() {
     PATH=$BUSYBOX_BIN:/bin
     export PATH
 
-    # FIXME: hard-code for now
-    #chvt 1
-
     if [ "$(pgrep "^acpid$")" ]; then
         echo 'tell acpid to stop'
         /etc/init.d/acpid stop
     fi
 
     msg "${white}sendsigs"
-    #[ -n "$OUR_TTY" ] && chvt $OUR_TTY
 
     local try all_dead list pid start_t
 
@@ -200,8 +196,6 @@ do_sendsigs() {
 
     # wait 1/10th second
     usleep 100000
-
-    #chvt 1
 
     # if list=$(pgrep "$TARDY_LIST"); then
     #     msg "Killing known tardy processes: %s" "$white$(echo $list)"
@@ -263,8 +257,6 @@ do_umountfs() {
     msg "${white}umountfs"
 
     PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin:$BUSYBOX_BIN
-
-    #chvt 1
 
     # err "test error system"
 
@@ -382,9 +374,13 @@ read_cmdline() {
         nocolor|noco)        NO_CO=true        ;;
        lowcolor|loco)        LO_CO=true        ;;
 
-        console=tty*)      OUR_TTY=${value##*tty} ;;
+        console=tty*)    CONSOLE_TTY=${value##*tty} ;;
         esac
     done
+
+    case $CONSOLE_TTY in
+        [0-9]|1[0-0]) OUT_TTY=$CONSOLE_TTY ;;
+    esac
 
     case $VERBOSE in
         [0-9]|[0-9][0-9]) V_LEVEL=$VERBOSE;;

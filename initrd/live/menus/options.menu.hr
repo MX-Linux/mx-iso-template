@@ -9,9 +9,7 @@
    9)  hwclock=utc     Sat sklopovlja kotisti UTC (samo LInux sustavi)
   10)  hwclock=local   Sat sklopovlja kotisti lokalno vrijeme (Windows sustavi)
   11)  password        Change passwords before booting
-  12)  wicd            Omogući wicd servis pri pokretanju
-  13)  nowicd          Onemogući wicd servis pri pokretanju
-  14)  nostore         Disable LiveUSB-Storage feature (LiveUSB only)
-  15)  dostore         Enable LiveUSB-Storage feature (LiveUSB only)
-  16)  savestate       Save some files across reboots (LiveUSB only)
-  17)  nosavestate     Don't save files across reboots (LiveUSB only)
+  12)  nostore         Disable LiveUSB-Storage feature (LiveUSB only)
+  13)  dostore         Enable LiveUSB-Storage feature (LiveUSB only)
+  14)  savestate       Save some files across reboots (LiveUSB only)
+  15)  nosavestate     Don't save files across reboots (LiveUSB only)

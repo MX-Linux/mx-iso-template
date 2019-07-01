@@ -257,7 +257,7 @@ create_fstab() {
     # first see if we should add a swap file
     local swap_opts  remasterable  file=$SWAP_FILE
     test -e /live/config/remasterable && remasterable=true
-
+    test -e /live/config/did-toram    && NO_SWAP_FILE=true
     if [ -z "$NO_SWAP_FILE" -a -n "$remasterable" -a -w "$file" ]; then
         if file -b "$file" | grep -q "^data$"; then
             echo_live "$_Running_X_on_Y_" "$(pquote mkswap)" "$(pquote $file)"
@@ -265,12 +265,16 @@ create_fstab() {
             chown root:root "$file"
             mkswap --label 'live-swap-file' "$file"
         fi
-        file -b "$file" | grep -iq 'swap file' && swap_opts="$swap_opts --swap-file=$file"
+        if file -b "$file" | grep -iq 'swap file'; then
+            swap_opts="$swap_opts --swap-file=$file"
+            DID_SWAP_FILE=true
+        fi
     fi
 
-    # disable swap if encrypted or if user asks for no swap
-    if [ -e /live/config/encrypted -a -z "$FORCE_SWAP" ] || [ -n "$NO_SWAP" ]; then
-        swap_opts="$swap_opts --no-swap"
+    # disable swap if encrypted or we have a swap file or user requested no swap
+    if [ -e /live/config/encrypted -o -n "$DID_SWAP_FILE" -o -n "$NO_SWAP" ]; then
+        # But "live_swap=force" overrides all of the above
+        [ -z "$FORCE_SWAP" ] && swap_opts="$swap_opts --no-swap"
     fi
 
     case $distro in
@@ -1008,6 +1012,7 @@ set_user_automount() {
 
 #------------------------------------------------------------------------------
 # Set delay before consoles automatically blank (is this still working?)
+# NOT USED
 #------------------------------------------------------------------------------
 set_console_blanking() {
     local blank=$1  conf_file=/etc/kbd/config

@@ -160,19 +160,58 @@ Don't localize the Debian antiX/MX repositories based on timezone.
 
     norepo=aa,bb,cc
 
-Don't localize the antiX/MX repositories to "aa", "bb", or 'cc".
-Instead, localize to the next closest repository. Codes:
+Don't localize the antiX/MX repositories to "aa", "bb", or 'cc".  Instead,
+localize to the next closest repository.  Codes:
 
-    de  Germany (defunct)
-    ec  Ecuador
-    fr  France (defunct)
-    gr  Greece
-    la  Los Angeles
-    nl  Netherlands
-    nz  New Zealand
-    se  Sweden
-    tw  Tawain
-    ut  Utah
+    au1   Melbourne
+    au2   Trasmania
+    at    Vienna
+    be    Brussels
+    bg    Sofia
+    br    Manaus
+    ca    Halifax
+    ch    Zurich
+    cn    Beijing
+    cz    Prague
+    de    Germany
+    dk    Denmark
+    ec    Ecuador
+    es    Spain
+    fr    France
+    gb    United Kingdom
+    ge    Georgia
+    gr    Greece
+    hk    Hong Kong
+    hu    Hungary
+    id    Indonesia
+    in    India
+    it    Italy
+    jp    Japan
+    ke    Kenya
+    kz    Kazakhstan
+    la    Los Angeles, USA
+    lt    Lithuania
+    my    Malaysia
+    nl    The Netherlands
+    ny    United States, Rochester NY
+    nz    New Zealand
+    ph    Phillipines
+    pk    Pakistan
+    pl    Poland
+    ru    Russia
+    se    Sweden
+    sg    Singapore
+    si    Slovenia
+    sk    Slovakia
+    th    Thailand
+    tr    Turkey
+    tw    Taiwan
+    ua    Ukraine
+    ut    Utah, USA
+    uy    Uruguay
+    vn    Vietnam
+    za    South_Africa
+
 
 Disable Services
 -----------------
@@ -192,27 +231,27 @@ A list of actual services that have been disabled is available in the
 file "/etc/live/config/disabled".  You can enable and disable services
 after you boot with the "services" command.
 
-  a             disable acpid
-  A             ENABLE acpid
-  d nodbus      disable dbus
-  g             disable gpm
-  i             disable ifplugd
-  k             do not set the console or X keyboard layout
-  l lean        disable "lean" services (see "lean" below)
-  m mean        disable networking (see "mean" below)
-  n             disable NFS service
-  N             ENABLE ntp service
-  P             ENABLE standard PAM message-of-the-day
-
-  r norepo      don't localize repos based on timezone
-  s nosavestate don't save state on live-usb systems
-  S savestate   DO save state on live-usb systems
-
-  v             disable virtual box services (see note)
-  V vboxdecor   ENABLE fbcondecor in Virtual Box
-  w             disable wicd
-  W             ENABLE wicd
-  x Xtralean    disable "Xtralean" services (see "Xtralean" below)
+    a                disable acpid service
+    A                Enable acpid service
+    B                Enable bootclean.sh service (disabled by default)
+    c                disable connmand service
+    d [nodbus]       disable dbus service
+    g                disable gpm service (mouse on virtual consoles)
+    i                disable ifplugd service
+    l [lean]         disable "lean" services (see below)
+    L                Enabled syslogd service
+    m [mean]         disable "mean" services (see below)
+    n                disable nfs service
+    N                Enable ntpd service (disbabled by default)
+    P                Enable pamd service (disabled by default)
+    r [norepo]       don't localize repos based on timezone
+    s [nosavestate]  don't save state on live-usb systems
+    S [savestate]    DO save state on live-usb systems
+    v                disable VirtualBox services
+    V                Don't blacklist fb modules, nvidiafb, etc.
+      [vboxdecor]    Enable fbcondecor in Virtual Box
+    x [Xtralean]     disable "Xtra-lean" services (see below)
+    Y                Enable Plymouth (disabled by default)
 
 Note 1: Virtual Box services are enabled automatically when run
 on Virtual Box and disabled automatically when not.
@@ -220,9 +259,6 @@ on Virtual Box and disabled automatically when not.
 Note 2: If a laptop is detected then acpid and wicd are excluded
 from the list of lean services.  They can still be disabled on with "a"
 and "w".
-
-Note 3: The letter "c" can be followed by numerals and an optional
-decimal point.
 
 Lean Services (l):
 
@@ -369,22 +405,12 @@ breakpoint does the same thing as the "bash" breakpoint.
      4) after mounting boot device
      5) after mounting persistence device
      6) after mounting aufs
-     7) before prepare switch_root
+     7) after prepare switch_root
      8) before running live init.d scripts
      9) right before starting init
      e) On possibly fatal error
-     f) in frugal install
-     i) after init= chroot
-     m) before makefs
-     r) After resize homefs rsync
-     r) Before resize homefs rsync
-     t) After copy to ram
-     u) final umount
-     v) before check VID
-     x) before select device
     b8) Bash shell before running live init.d scripts
     b9) Bash shell before the system starts
-  bash) Bash shell before the system starts
 
     verb=*
 
@@ -437,17 +463,19 @@ legacy bootloader.  They are provided so you don't have to understand
 the more flexible "persist=*" and "frugal=*" parameters.  This first
 group enable persistence but not frugal:
 
-  persist_all       persist=root!,home         required root persistence, optional home
+  persist_all       persist=root!,home!        required root and home persistence
   persist_root      pesist=root!               required root persistence
-  persist_static    persist=root!,home,static  required static root persistence, optional home
+  persist_static    persist=root!,home!,static required home and static root persistence
   persist_home      persist=home!              required home persistence
+  p_static_root     persist=root!,static       required static root persistence
 
 This second group enable frugal and persistence:
 
-  frugal_persist    frugal=root!,home          required root persistence, optional home
+  frugal_persist    frugal=root!,home!         required root nad home persistence
   frugal_root       frugal=root!               required root persistence
-  frugal_static     frugal=root!,home,static   required static root persistence, optional home
+  frugal_static     frugal=root!,home!,static  required home and static root persistence
   frugal_home       frugal=home!               required home persistence
+  f_static_root     persist=root!,static       required static root persistence
   frugal_only       frugal                     no persistence
 
 
@@ -554,7 +582,6 @@ Remastering (live-usb Only)
 These two options affect remastering.  Normally, remastering is done
 automatically whenever there is a "linuxfs.new" file in the same directory as
 the "linuxfs" file.
-
 
     noremaster
 
