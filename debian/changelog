@@ -1,3 +1,9 @@
+mx-iso-template (19.06.03) mx; urgency=medium
+
+  * try-mount patch applied 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Fri, 23 Aug 2019 21:34:33 -0400
+
 mx-iso-template (19.06.02) mx; urgency=medium
 
   * update to latest initrd and gfxboot from antix  (bitjam)
