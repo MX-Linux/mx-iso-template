@@ -135,6 +135,7 @@ for param in $(cat /proc/cmdline); do
                         splasht)  ;;
                       splasht=*)  ;;
                        st_tty=*)  ;;
+                        vcard=*)  ;;
 
         # Our Live params
         hwclock=utc|hwclock=local|xorg|xorg=*|noearlyvid|earlyvid) ;;

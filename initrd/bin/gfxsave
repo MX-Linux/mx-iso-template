@@ -569,11 +569,13 @@ extra_cmdline_params() {
              checkmd5|checkfs) continue ;;
                   noautomount) continue ;;
             automount|mount=*) continue ;;
+   i915_invert|no_i915_invert) continue ;;
                     hwclock=*) continue ;;
                     desktop=*) continue ;;
             nouveau.modeset=0) continue ;;
                  mk_swap_file) continue ;;
                mk_swap_file=*) continue ;;
+                      vcard=*) continue ;;
         esac
         case " $ALL_MENU_PARAMS " in
             *" ${param%%=*} "*) ;;

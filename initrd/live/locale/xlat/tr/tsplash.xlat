@@ -1,5 +1,6 @@
-_Copy_X_to_RAM_="%s RAM'a kopyalandı"
+_Copy_X_to_RAM_="%s 'i RAM'a kopyala"
 _Create_X_swap_file_="%s takas dosyası oluştur"
+_console_login_="uçbirime giriş"
 _prepare_consoles_="Uçbirimi hazırla"
 _return_here_="buraya geri dön"
 _see_boot_process_="Açılış sürecine bakın"

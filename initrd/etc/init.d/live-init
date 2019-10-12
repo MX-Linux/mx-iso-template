@@ -12,20 +12,17 @@
 # Description: localize /etc/skel, create /home/demo, customize X, mirrors, set default desktop
 ### END INIT INFO
 
-export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
+export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin:/live/bin
 
 MAKE_FSTAB="make-fstab"
 test -e "/live/bin/make-fstab" && MAKE_FSTAB="/live/bin/make-fstab"
 
-  XSESSION_DIR=/usr/share/xsessions
-      MENU_WMs="fluxbox icewm jwm"
-      FF_PREFS="/etc/skel/.mozilla/firefox/*/prefs.js"
      AUTOMOUNT=
  FOUND_VDRIVER=
  VERSION_FILES="/etc/antix-version /live/boot-dev/version"
 
-OTHER_VIDEO_MODULES="i810|mga|r128|savage|sis|sis[_-]agp|tdfx|via|via[_-]agp"
-SISIMEDIA_K_DRIVERS="sis|sis[_-]agp"
+  NON_KMS_MODULES_REGEX="i810|sis[_-]agp|via[_-]agp"
+
 XORG_DRIVER_DIR="/usr/lib/xorg/modules/drivers"
 
 #See: https://en.wikipedia.org/wiki/List_of_Intel_graphics_processing_units
@@ -36,11 +33,9 @@ UXA_PCI_ID="0042|0046|1132|1240|2562|2572|2582|258a|2592|2772|2776|2782
 2e12|2e13|2e22|2e23|2e32|2e33|2e42|2e43|2e92|2e93|3577|3582
 358e|7121|7123|7125|7800|a001|a002|a011|a012"
 
-  SKYLAKE_PCI_ID="19[0-5]"
-BROADWELL_PCI_ID="1616|1612|161e|1626|162b|1622"  # The more powerful broadwell
-
 SKYLAKE_FLICKER_FILE="/etc/modprobe.d/skylake-flicker-fix.conf"
 I915_POWER_SAVE_FILE="/etc/modprobe.d/i915-power-saving.conf"
+    I915_INVERT_FILE="/lib/modprobe.d/i915-invert.conf"
 
 AUTOMOUNT_CMD="/usr/local/bin/automount-antix"
 
@@ -49,11 +44,23 @@ NETWORK_IF_FILE="/etc/network/interfaces"
 LIVE_MNT_DIR="/media"
 SPLASH_PROGRAMS="/sbin/splash-all /sbin/splash-term /usr/local/bin/splash-select /etc/udev/rules.d/*-fbcondecor.rules"
 
-
 SWAP_FILE="/live/boot-dev/swap-file"
 
-#-jbb For debugging
+DEFAULT_VDRIVER="vesa"
+UEFI_VDRIVER="fbdev"
+
+VIDEO_TWEAKS_FILE="/live/config/video-tweaks"
+XORG_BUS_ID_FILE="/etc/X11/xorg-bus-id"
+
+if test -d /live/config/uefi; then
+    UEFI_BOOT=true
+    DEFAULT_VDRIVER=$UEFI_VDRIVER
+fi
+
+
+#-jbb For testing can set CMDLINE=xxx in environment
 : ${CMDLINE:=$(cat /live/config/proc-cmdline /live/config/cmdline /live/config/cmdline2)}
+
 for param in $CMDLINE; do
     value=${param#*=}
     case "$param" in
@@ -69,15 +76,9 @@ for param in $CMDLINE; do
                   tz=*)       CMD_TZ=$value                         ;;
               mirror=*)   CMD_MIRROR=$value                         ;;
 
-# Disable these because we do it in live-hwclock now
-#         hwclock=local)    CMD_CLOCK=$value                         ;;
-#           hwclock=utc)    CMD_CLOCK=$value                         ;;
-
               failsafe)   XORG_ARGS=safe${XORG_ARGS:+,}$XORG_ARGS   ;;
-             xorg=safe)   XORG_ARGS=safe${XORG_ARGS:+,}$XORG_ARGS   ;;
                 xorg=*)   XORG_ARGS=$XORG_ARGS${XORG_ARGS:+,}$value ;;
                 noxorg)   NO_XORG=true                              ;;
-
 automount=off|amnt=off)                          AUTOMOUNT_OFF=true ;;
            noautomount)                          AUTOMOUNT_OFF=true ;;
         automount|amnt)                              AUTOMOUNT=true ;;
@@ -88,10 +89,8 @@ automount=off|amnt=off)                          AUTOMOUNT_OFF=true ;;
            desktheme=*)    DESK_THEME=$value                        ;;
                 norepo)       NO_REPO=true                          ;;
               norepo=*)   IGNORE_REPO=$value                        ;;
-           deskdelay=*) DESKTOP_DELAY=$value                        ;;
              nomodeset)    NO_MODESET=true    ; VBOX_DECOR=true     ;;
             fontsize=*)     FONT_SIZE=$value                        ;;
-             vtblank=*)      VT_BLANK=$value                        ;;
         skylakeflicker)   FIX_SKYLAKE=true                          ;;
                  issue)   FORCE_ISSUE=true                          ;;
              vboxdecor)    VBOX_DECOR=true                          ;;
@@ -101,6 +100,11 @@ automount=off|amnt=off)                          AUTOMOUNT_OFF=true ;;
        live_swap=force)   FORCE_SWAP=true                           ;;
      live_swap=all-off)      NO_SWAP=true  ; NO_SWAP_FILE=true      ;;
 
+           i915_invert)     I915_INVERT=true                        ;;
+        no_i915_invert)  NO_I915_INVERT=true                        ;;
+
+                nuke=*)  NUKE_MODS="$NUKE_MODS $value"              ;;
+                nonuke)  NO_NUKE=true                               ;;
     esac
 done
 
@@ -170,10 +174,6 @@ do_start() {
     # Always create keyboard file in non-persistent system even with no X
     # Unless NO_LOAD_KEYS
     [ -z "$NO_LOAD_KEYS" ] && set_keyboard
-    set_utc_local $CMD_CLOCK
-
-    test -e /live/config/virtualbox && : ${VT_BLANK:=0}
-    #[ ${#VT_BLANK} -gt 0 ] && set_console_blanking $VT_BLANK
 
     if [ -e /live/config/virtualbox -a -z "$VBOX_DECOR" ]; then
         echo_live "$_Disabling_splash_fbcondecor_inside_of_Virtual_Box_"
@@ -187,14 +187,45 @@ do_start() {
 
     [ "$ENABLE_I915_POWER_SAVE" ] && enable_i915_power_save $I915_POWER_SAVE_FILE
 
+    if [ "$I915_INVERT" ] ; then
+        do_i915_invert $I915_INVERT_FILE
+
+    elif [ "$NO_I915_INVERT" -a -e "$I915_INVERT_FILE" ] ; then
+        echo_live "$_Removing_X_" "$(pquote $I915_INVERT_FILE)"
+        rm -r $I915_INVERT_FILE
+    fi
+
+    if [ "$FIX_SKYLAKE" ]; then
+        skylake_flicker_fix $SKYLAKE_FLICKER_FILE
+    else
+        rm -f $SKYLAKE_FLICKER_FILE
+    fi
+
     fix_cache_apt_archive_partial
 
-    # Only do X stuff on systems that seem to have X
-    if  [ "$HAVE_X" ]; then
-        KMS_VIDEO_MODULES_REGEX=$(kms_video_modules_regex)
-        ALL_VIDEO_MODULES="$KMS_VIDEO_MODULES_REGEX|$OTHER_VIDEO_MODULES"
-        detect_any_video_driver
+    #==========================================================================
+    #==========================================================================
+    # new safe video code starts here
+    #==========================================================================
+    #==========================================================================
 
+    # Undo previous nuking (this is the slow way)
+    # We also perform the manual nuke here
+    if [ -d "/lib/modules/$(uname -r)-nuked" -o -n "$NUKE_MODS" ]; then
+        nuke-modules --update $NUKE_MODS
+    fi
+
+    if [ -n "$HAVE_X" ]; then
+
+        # Always delete an previously auto-generated xorg.conf file
+        local xorg=/etc/X11/xorg.conf
+        if test -f $xorg && grep -q "^#\s*Generated by\s*make-xorg-conf" $xorg; then
+            echo_live "$_Removing_previous_auto_generated_X_file_" $(pquote xorg.conf)
+            rm -f $xorg
+        fi
+        test -f $xorg && NO_XORG=true
+
+       # Old cruft
         if [ ${#FONT_SIZE} -gt 0 ]; then
             font_size_to_dpi $FONT_SIZE
             dpi=$DPI_OUT
@@ -202,12 +233,83 @@ do_start() {
             check_dpi $CMD_DPI
             dpi=$DPI_OUT
         fi
-
         set_server_dpi ${CMD_SDPI:-$dpi}
 
-        make_xorg_conf "$XORG_ARGS" "$FOUND_VDRIVER" "$FOUND_KMS_DRIVER" "$NO_XORG"
+    elif [ -n "$XORG_ARGS" ]; then
+        # People should not set xorg= if there is not X installed
+        live_echo "Could not find X server.  Ignoring xorg arguments."
+    fi
+
+    # Don't bother with any of this if we aren't making an xorg.conf file
+    if [ -n "$HAVE_X" -a -z "$NO_XORG" ]; then
+
+        # Parse the xorg= parameters.  Ignore resolutions.
+        local param
+        for param in ${XORG_ARGS//,/ }; do
+            case $param in
+                     safe) SAFE_VIDEO=true                      ;;
+                     nuke) SAFE_VIDEO=true ; NUKE_VIDEO=true    ;;
+                  busid=*) XORG_BUS_ID=${param#*=}              ;;
+            *[0-9]x[0-9]*)                                      ;;
+                        *) XORG_DRIVER=$param                   ;;
+            esac
+        done
+
+        remember_xorg_bus_id "$XORG_BUS_ID_FILE"
+
+       echo_live "$_Scanning_for_hardware_specific_video_modules_"
+
+        # We use this twice so calcuation it once
+        KMS_MODULES_REGEX=$(kms_modules_regex)
+
+        local hw_video_modules=$(hw_video_modules)
+        local hw_kms_modules=$(hw_kms_modules "$hw_video_modules")
+
+        if [ "$hw_kms_modules" ]; then
+            #. Found <KMS> video module(s) <module-name(s)>
+            echo_live "$_Found_X_video_module_s_Y_" KMS "$(pquote $(echo $hw_kms_modules))"
+
+            if [ "$SAFE_VIDEO" ]; then
+                # If "nomodeset" was given then let's rely on it to work properly
+                [ -z "$NO_MODESET" ] && do_safe_video "$NUKE_VIDEO" "$hw_kms_modules"
+            else
+                # May set XORG_DRIVER
+                detect_uxa_hardware "$hw_kms_modules"
+            fi
+
+        elif [ "$hw_video_modules" ]; then
+            echo_live "$_Found_X_video_module_s_Y_" "non-KMS" "$(pquote $(echo $hw_video_modules))"
+            video_tweak "non-kms video driver: $(echo $hw_video_modules)"
+            # May set XORG_DRIVER
+            [ -z "$SAFE_VIDEO" ] && detect_sisimedia_driver "$hw_video_modules"
+
+        else
+            # We get here if there is no hardware specific video driver so we want to
+            # create a default xorg.conf file to avoid fbdev in Legacy boot mode
+            video_tweak "No kernel video driver"
+
+            if [ -z "$XORG_DRIVER" -a -z "$SAFE_VIDEO" ]; then
+                if have_chrome_gpu_and_driver; then
+                    echo_live "$_Letting_X_server_default_to_X_driver_" "$(pquote openchrome)"
+                elif test -e /live/config/virtualbox; then
+                    echo_live "$_No_default_X_in_Virtual_Box_" "$(pquote xorg.conf)"
+                elif [ -z "$XORG_DRIVER" ]; then
+                    echo_live "$_Forcing_X_server_to_use_X_driver_" "$(pquote $DEFAULT_VDRIVER)"
+                    XORG_DRIVER=$DEFAULT_VDRIVER
+                fi
+            fi
+        fi
+
+        # Set driver to "vesa" or "fbdeb" but let user over-ride
+        [ "$SAFE_VIDEO" ] && : ${XORG_DRIVER:=$DEFAULT_VDRIVER}
+
+        [ -n "$XORG_DRIVER$XORG_BUS_ID" ] && make_xorg "$XORG_DRIVER" "$XORG_BUS_ID"
 
     fi
+
+    # End of new safe video code
+    #==========================================================================
+    #==========================================================================
 
     # Find the "default" user.  This is usually "demo" but can vary on snapshots
     # and such.  First check the default user for SLiM and lightdm.  Then get
@@ -232,13 +334,16 @@ do_start() {
     set_default_desktop    "$CMD_DESKTOP"      $DEF_USER $USER_HOME
     set_desktop_theme      "$DESK_THEME"       $DEF_USER $USER_HOME
     set_user_dpi           "${CMD_UDPI:-$dpi}" $DEF_USER $USER_HOME
-    set_user_desktop_delay "$DESKTOP_DELAY"    $DEF_USER $USER_HOME
     if [ -n "$user_automount" ]; then
         set_user_automount "$DEF_USER" "$USER_HOME" "$AUTOMOUNT" "$AUTOMOUNT_OFF" 'create'
     else
         set_user_automount "$DEF_USER" "$USER_HOME" "" 'true'
     fi
     #localize_firefox $LANG
+
+#===============================================================================
+#===== end of do_start() =======================================================
+#===============================================================================
 }
 
 #===============================================================================
@@ -512,27 +617,6 @@ localize_repo() {
 }
 
 #------------------------------------------------------------------------------
-# Tell system that hardware clock is set to either UTC or to localtime.
-#------------------------------------------------------------------------------
-set_utc_local() {
-    local new=$1 file=/etc/adjtime
-    [ "$new" ] || return
-
-    #. Assuming <hwclock> is set to <utc|local> time
-    echo_live "$_Assuming_X_is_set_to_Y_time_" hwclock $(pquote $new)
-
-    #grep -i -q $new $file && return
-
-    case $new in
-        local) sed -i 's/^UTC\s*$/LOCAL/' $file
-               hwclock --hctosys --localtime      ;;
-          utc) sed -i 's/^LOCAL\s*$/UTC/' $file
-               hwclock --hctosys --utc            ;;
-    esac
-}
-
-
-#------------------------------------------------------------------------------
 # Fix the ownership and permissions on the /var/cache/apt/archives/partial/
 # directory and everything below
 #------------------------------------------------------------------------------
@@ -541,212 +625,6 @@ fix_cache_apt_archive_partial() {
     mkdir -p $dir
     [ "$(stat --format %U:%G $dir)" == "$owner" ] || chown -R $owner $dir
     [ "$(stat --format %a    $dir)" == "$perms" ] || chmod    $perms $dir
-}
-
-#===============================================================================
-# XORG and VIDEO stuff
-#===============================================================================
-#------------------------------------------------------------------------------
-# Create an xorg.conf file to use vesa driver (instead of the default fbdev
-# driver) if we don't detect a KMS video driver.
-#
-# Don't make a default xorg.conf if:
-#    1) a modified xorg.conf is found
-#    2) "noxorg" was specified
-#    3) any video driver was found (regardless of "nomodeset")
-#    4) we are in Virtual Box
-#------------------------------------------------------------------------------
-make_xorg_conf() {
-    local args=$1  found_vdriver=$2  found_kms_driver=$3  no_xorg=$4
-    local safe_mode xorg_conf=/etc/X11/xorg.conf
-
-    case ,$args, in
-        *,[xX],*) make_xorg_xorg_conf; return ;;
-        *,safe,*) safe_mode=true ;;
-    esac
-
-    # Always erase generated xorg.conf files
-    if test -f $xorg_conf && grep -q "^#\s*Generated by\s*make-xorg-conf" $xorg_conf; then
-        echo_live "$_Removing_previous_auto_generated_X_file_" $(pquote xorg.conf)
-        rm -f $xorg_conf
-    fi
-
-    local no_default
-    test -e $xorg_conf             && no_default=true
-    [ "$no_xorg" ]                 && no_default=true
-    [ "$found_vdriver" ]           && no_default=true
-    [ -e /live/config/virtualbox ] && no_default=true
-
-    if [ -z "$NO_MODESET" -a -n "$found_kms_driver" -a -n "$safe_mode" ]; then
-        #. Note: KMS means "kernel mode switching"
-        #. Disabling safe mode because of KMS <video-driver> video hardware
-        echo_live "$_Disabling_safe_mode_because_of_KMS_X_video_hardware_" "$(pquote $found_kms_driver)"
-        args=$(echo $args | sed "s/\<safe\>//g")
-        safe_mode=
-    fi
-
-    #  # safe mode from the user over-rides vbox
-    #  [ -z "$safe_mode" -a -e /live/config/virtualbox -a -z "$args" -a -z "$no_default" ] \
-    #     && args=vbox${args:+,}$args
-
-    if have_chrome_gpu_and_driver; then
-        echo_live "$_Letting_X_server_default_to_using_X_driver_" "$(pquote openchrome)"
-        no_default=true
-    fi
-
-    # if  [ -z "$no_default" -a -z "$safe_mode" -a -z "$args" ]; then
-    #     have_chrome_gpu_and_driver && args=openchrome
-    #     echo_live "Creating %s file for %s" "$(pquote xorg.conf)" "$(pquote "VIA Chrome GPU")"
-    #     no_default=true
-    # fi
-
-    if  [ -z "$no_default" -a -z "$safe_mode" ]; then
-        echo_live "$_Forcing_X_Windows_to_use_default_mode_"
-        args=default${args:+,}$args
-    fi
-
-    local IS_SKYLAKE ARGS_OUT=$args
-    [ "$FOUND_i915" ] && is_skylake && IS_SKYLAKE=true
-
-    if [ "$FIX_SKYLAKE" ]; then
-        skylake_flicker_fix $SKYLAKE_FLICKER_FILE
-    else
-        rm -f $SKYLAKE_FLICKER_FILE
-    fi
-
-    [ "$FOUND_i915" -a -z "$no_xorg" ] && fix_intel $args
-    args=$ARGS_OUT
-
-    [ "$args" ] || return
-    #. Configuring <xorg.conf> file with <arguments to xorg= cheat>
-    echo_live "$_Configuring_X_file_with_Y_" $(pquote $xorg_conf) $(pquote $args)
-    backup_file $xorg_conf
-    /sbin/make-xorg-conf --output=$xorg_conf $args
-}
-
-#------------------------------------------------------------------------------
-# Have xorg create the xorg.conf file
-#------------------------------------------------------------------------------
-make_xorg_xorg_conf() {
-    echo_live "$_Using_X_to_make_xorg_conf_"
-    local cmd="X :3 -configure"
-
-    $cmd >/dev/null 2>&1
-
-    /sbin/splash-term --auto
-    /live/bin/set-console-width >/dev/null
-
-    local new=/xorg.conf.new xorg=/etc/X11/xorg.conf
-    test -e $new || return
-    cat <<Xorg_xorg_conf > $xorg
-#-----------------------------------------------------------------------------
-# xorg.conf file
-# (created with the command "$cmd"
-#
-# Generated by make-xorg-conf sometime around $(date)
-#
-# If you want to save customizations, delete the line above or this
-# file will get automatically deleted on the next live boot.
-#-----------------------------------------------------------------------------
-Xorg_xorg_conf
-
-    cat $new >> $xorg
-    rm -f $new
-}
-
-#------------------------------------------------------------------------------
-# Tweak the acceleration for i915 graphics drivers.   This works around bugs
-# in the driver.
-#------------------------------------------------------------------------------
-fix_intel() {
-    local args=$1
-
-    local arch=$(uname -m)
-    if [ $arch = x86_64 ]; then
-
-        if need_uxa; then
-            #. Forcing <acceleration-type> acceleration on <cpu-type>
-            echo_live "$_Forcing_X_acceleration_on_Y_" $(pquote uxa) $(pquote pre-sandybridge)
-            args=uxa${args:+,}$args
-
-        elif is_broadwell; then
-            #. Forcing <driver-name> driver on <cpu-type>
-            echo_live "$_Forcing_X_driver_on_Y_" $(pquote modesetting) $(pquote broadwell)
-        fi
-
-    elif [ $arch = i686 ]; then
-        if [ "$IS_SKYLAKE" -a -z "$NO_MODESET" ]; then
-            #. Forcing <driver-name> driver on <cpu-type>
-            echo_live "$_Forcing_X_driver_on_Y_" $(pquote modesetting) $(pquote skylake)
-            args=modesetting${args:+,}$args
-        fi
-    fi
-
-    ARGS_OUT=$args
-}
-
-#------------------------------------------------------------------------------
-# Is this an Intel skylake cpu?
-#------------------------------------------------------------------------------
-is_skylake() {
-    # See recent pci.ids from http://pci-ids.ucw.cz/
-    lspci -n | cut -d" " -f3 | egrep -q "^8086:($SKYLAKE_PCI_ID)"
-    return $?
-}
-
-#------------------------------------------------------------------------------
-# Is there a VIA Chrome video chip?
-#------------------------------------------------------------------------------
-is_chrome_gpu() {
-    lspci -n | cut -d" " -f3 | egrep -q "^1106:(1122|3344|3a01|5122|7122)"
-    return $?
-}
-
-#------------------------------------------------------------------------------
-# Does this X driver exist?
-#------------------------------------------------------------------------------
-have_X_driver() {
-    test -e $XORG_DRIVER_DIR/${1}_drv.so
-    return $?
-}
-
-#------------------------------------------------------------------------------
-# Do we have a chrome gpu and the openchrome driver?
-#------------------------------------------------------------------------------
-have_chrome_gpu_and_driver() {
-    is_chrome_gpu && have_X_driver openchrome && return 0
-    return 1
-}
-#------------------------------------------------------------------------------
-# Is this an Intel broadwell cpu?
-#------------------------------------------------------------------------------
-is_broadwell() {
-    lspci -n | cut -d" " -f3 | egrep -q "^8086:($BROADWELL_PCI_ID)"
-    return $?
-}
-
-#------------------------------------------------------------------------------
-# Which Intel cpus need to use uxa acceleration
-#------------------------------------------------------------------------------
-need_uxa() {
-    local pci_id_regex=$(echo $UXA_PCI_ID | tr '\n' '|')
-
-    lspci -n | cut -d" " -f3 | egrep -q "^8086:(${pci_id_regex%|})"
-    return $?
-}
-
-#------------------------------------------------------------------------------
-# Get a list of video modules that are supported by this hardware (and are
-# enabled by the kernel)
-#------------------------------------------------------------------------------
-find_video_modules() {
-    local modules=${1:-$ALL_VIDEO_MODULES}
-    find /sys/devices -name modalias -print0 | xargs -0 sort -u \
-        | xargs modprobe -a -D -q 2>> $INIT_LOG_FILE | sort -u \
-        | sed -n -r "s/^insmod [^ ]*($modules)\.ko.*/\1/p"
-
-    # for testing:
-    # echo sis-agp
 }
 
 #------------------------------------------------------------------------------
@@ -770,62 +648,163 @@ Skylake_Fix
 }
 
 #------------------------------------------------------------------------------
+# Create modprobe.d file for inverting i915 video
+#------------------------------------------------------------------------------
+do_i915_invert() {
+    local file=$1
+    echo_live "$_Creating_file_X_" $(pquote $file)
+    mkdir -p "$(dirname "$file")"
+    cat > "$file" <<I915_Invert
+#-----------------------------------------------------------------------------
+# Invert video on some i915 hardware
+# file: $file
+#
+# This file was created by the antiX/MX live system because of the
+# "i915_invert" boot parameter.
+#-----------------------------------------------------------------------------
+
+options i915 invert_brightness=1
+I915_Invert
+}
+
+#------------------------------------------------------------------------------
 # Uncomment payload of i915 power savings file
 #------------------------------------------------------------------------------
 enable_i915_power_save() {
     local file=$1
+    test -e $file || return
     sed -r -i "s/^#\s*(options\s+i915\s+)/\1/" $file
 }
 
-#------------------------------------------------------------------------------
-# Note: we will report FOUND_VDRIVER even if "nomodeset" is used because unless
-# the user wants safe mode then they should be allowed to use the KMS driver and
-# "nomodeset" without us forcing vesa.  That's what safe mode is for.
-#------------------------------------------------------------------------------
-detect_any_video_driver() {
-    echo_live "$_Scanning_for_hardware_specific_video_modules_"
-    local video_modules=$(find_video_modules)
-    [ "$video_modules" ] || return
+#==============================================================================
+#==============================================================================
+# More new safe video code
+#==============================================================================
+#==============================================================================
 
-    FOUND_VDRIVER=true
+#------------------------------------------------------------------------------
+# Find kms drivers for this hardware plus hard-coded non-kms video drivers
+#------------------------------------------------------------------------------
+hw_video_modules() {
+   local video_modules_regex="$KMS_MODULES_REGEX|$NON_KMS_MODULES_REGEX"
 
-    FOUND_KMS_DRIVER="$(echo "$video_modules" | egrep "^($KMS_VIDEO_MODULES_REGEX)$")"
-    if [ "$FOUND_KMS_DRIVER" ]; then
-        #. Found <KMS> video module(s) <module-name(s)>
-        echo_live "$_Found_X_video_module_s_Y_" KMS "$(pquote $(echo $FOUND_KMS_DRIVER))"
-        FOUND_i915=$(echo $FOUND_KMS_DRIVER | grep "^i915$")
-        [ -z "$NO_MODESET" ] && touch /live/config/modeset
-        #blacklist_radeon "$FOUND_KMS_DRIVER" "$XORG_ARGS"
-    else
-        echo_live "$_Found_X_video_module_s_Y_" "" "$(pquote $(echo $video_modules))"
-        detect_sisimedia_driver "$video_modules"
-    fi
+    find /sys/devices -name modalias -print0 | xargs -0 sort -u \
+        | tr '\n' '\0' | xargs -0 modprobe -a -D -q 2>/dev/null | sort -u \
+        | sed -n -r "s/^insmod [^ ]*\/($video_modules_regex)\.ko.*/\1/p"
+}
+
+#------------------------------------------------------------------------------
+# List all KMS modules that can be used by the hardware
+#------------------------------------------------------------------------------
+hw_kms_modules() {
+    local hw_modules=$1
+    echo "$hw_modules" | grep -E "($KMS_MODULES_REGEX)"
 }
 
 #------------------------------------------------------------------------------
 # Create a regular expression for all modules that depend on drm.ko
 #------------------------------------------------------------------------------
-kms_video_modules_regex() {
+kms_modules_regex() {
+    all_kms_modules | sed -e "s/[_-]/[_-]/"  | tr '\n' '|' | sed "s/|$//"
+}
+
+#------------------------------------------------------------------------------
+# Create a list of all modules that depend on drm.ko
+#------------------------------------------------------------------------------
+all_kms_modules() {
     grep 'drm\.ko' /lib/modules/$(uname -r)/modules.dep \
         | sed -e "s/:.*//"  \
         -e "s|.*/||"        \
         -e "s/\.ko$//"      \
-        -e "s/[_-]/[_-]/"   \
-        | grep -v "^drm"    \
-        | sort              \
-        | tr '\n' '|' | sed "s/|$//"
+        | grep -v -E "^(drm|drm_kms_helper|ttm)$"   \
+        | sort -u
 }
 
 #------------------------------------------------------------------------------
-# Note: we will report FOUND_VDRIVER even if "nomodeset" is used because unless
-# the user wants safe mode then they should be allowed to use the KMS driver and
-# "nomodeset" without us forcing vesa.  That's what safe mode is for.
+# For every given module either set modeset=0 or nuke it if it does not have
+# a modeset= option.
 #------------------------------------------------------------------------------
-detect_kms_driver() {
-    local kms_drivers=$(find_video_modules "$KMS_VIDEO_MODULES_REGEX|drm_kms_helper")
-    [ "$kms_drivers" ] || return
-    echo_live "$_Found_X_video_module_s_Y_" KMS ""
-    FOUND_VDRIVER=true
+do_safe_video() {
+    local nuke_mode=$1  mod_list=$2
+
+    if [ "$nuke_mode" ]; then
+        nuke_modules $mod_list
+        return
+    fi
+
+    local mod nuke_list no_mode_set
+    for mod in $mod_list; do
+        if modinfo -p $mod |grep -q  "^modeset:"; then
+            no_mode_set="$no_mode_set $mod"
+        else
+            nuke_list="$nuke_list $mod"
+        fi
+    done
+    [ -n "$nuke_list" ] && video_tweak "Nuke modules $nuke_list"
+    nuke_modules     $nuke_list
+    no_mode_set_mods $no_mode_set
+}
+
+#------------------------------------------------------------------------------
+# create file to disable modesetting for the listed modules
+#------------------------------------------------------------------------------
+no_mode_set_mods() {
+    local file=/lib/modprobe.d/no-mode-set.conf
+    [ -z "$*" ] && return
+
+    echo_live "$_disabling_modeset_for_X_" "$(pquote $*)"
+    cat > $file <<No_Mode_Set
+#-----------------------------------------------------------------------------
+# file: $file
+# disble modesetting in the following modules
+#-----------------------------------------------------------------------------
+
+$(no_mode_set_lines $*)
+No_Mode_Set
+}
+
+#------------------------------------------------------------------------------
+# Helper for making the no-mode-set.conf file above
+#------------------------------------------------------------------------------
+no_mode_set_lines() {
+    local mod
+    for mod; do
+        echo "options $mod modeset=0"
+    done
+}
+
+#------------------------------------------------------------------------------
+# Acutally remove these modules from the trree
+#------------------------------------------------------------------------------
+nuke_modules() {
+    [ -z "$*" -o -n "$NO_NUKE" ] && return
+    nuke-modules $*
+}
+
+
+#===== Various Video Tweaks ===================================================
+
+#------------------------------------------------------------------------------
+# Tweak the acceleration for i915 graphics drivers.   This works around bugs
+# in the driver.
+#------------------------------------------------------------------------------
+detect_uxa_hardware()  {
+    local video_modules=$1
+    case $video_modules in *i915*) ;; *) return ;; esac
+
+    [ "$(uname -m)" =  x86_64 ] || return
+
+    local pci_id_regex=$(echo $UXA_PCI_ID | tr '\n' '|')
+    lspci -n | cut -d" " -f3 | egrep -q "^8086:(${pci_id_regex%|})" || return
+
+    have_X_driver intel || return
+
+    video_tweak "pre-sandybridge UXA acceleration"
+
+    #. Forcing <acceleration-type> acceleration on <cpu-type>
+    echo_live "$_Forcing_X_acceleration_on_Y_" $(pquote uxa) $(pquote pre-sandybridge)
+
+    : ${XORG_DRIVER:=uxa}
 }
 
 #------------------------------------------------------------------------------
@@ -833,48 +812,93 @@ detect_kms_driver() {
 # boot param so we create an xorg.conf file that uses that driver
 #------------------------------------------------------------------------------
 detect_sisimedia_driver() {
-    local video_modules=$1  xorg_driver=sisimedia
-    echo "$video_modules" | egrep -q "^($SISIMEDIA_K_DRIVERS)$" || return
+    local video_modules=$1  sisi_driver=sisimedia
+    case $video_modules in *sis[_-]apg*) ;; *) return ;; esac
+
     #. Found <type> kernel modules ...
-    echo_live "$_Found_X_kernel_modules_" sis
-    have_X_driver $xorg_driver || return
+    echo_live "$_Found_X_kernel_modules_" sis-apg
+
+    have_X_driver $sisi_driver || return
     #. Found <driver-name> video driver
-    echo_live "$_Found_X_video_driver_" $xorg_driver
+    echo_live "$_Found_X_video_driver_" $sisi_driver
 
-    # Add "default" only if there is no previous XORG_ARGS
-    # Always add the "sisimedia" driver
-    # But both come *before* the orignal XORG_ARGS so they get over-ridden
-    # by the xorg= cheat.
-    XORG_ARGS="${XORG_ARGS:-default,$xorg_driver}"
+    video_tweak "Use $sisi_driver xorg driver"
+
+    # Use the "sisimedia" driver unless another was specified
+    : ${XORG_DRIVER:=$sisi_driver}
 }
 
 #------------------------------------------------------------------------------
-# NOT USED!
-# Blacklist radeon driver if amdgpu driver is supported and if the blacklist
-# file does not already exist
+# Do we have a chrome gpu and the openchrome driver?
 #------------------------------------------------------------------------------
-blacklist_radeon() {
-    local drivers=$1  args=$2  bl_file=/etc/modprobe.d/blacklist-radeon.conf
-
-    case ,$args, in
-        *,radeon,*) return ;;
-    esac
-
-    #echo "$drivers" | grep -q "^amdgpu$" || return
-
-    test -e $bl_file && return
-
-    echo_live "$_Creating_file_X_" $(pquote $bl_file)
-
-    cat > $bl_file << Blacklist_Radeon
-# Created by the $DISTRO live initrd system around $(date +"%Y-%m-%d %H:%M")
-#
-# This file blacklists the radeon driver so the amdgpu driver becomes the default.
-# If you would prefer to use the radeon driver, comment out the following line:
-
-blacklist radeon
-Blacklist_Radeon
+have_chrome_gpu_and_driver() {
+    have_X_driver openchrome || return 1
+    lspci -n | cut -d" " -f3 | egrep -q "^1106:(1122|3344|3a01|5122|7122)" || return 1
+    video_tweak "Chrome GPU and openchrome driver"
+    return 0
 }
+
+#------------------------------------------------------------------------------
+# Does this X driver exist?
+#------------------------------------------------------------------------------
+have_X_driver() {
+    test -e $XORG_DRIVER_DIR/${1}_drv.so
+    return $?
+}
+
+#------------------------------------------------------------------------------
+# Let people know if this is special hardware
+#------------------------------------------------------------------------------
+video_tweak() { echo "$*" >> $VIDEO_TWEAKS_FILE ; }
+
+
+#------------------------------------------------------------------------------
+# Save the xorg bus-id (for card selection in a machine-state file
+#------------------------------------------------------------------------------
+remember_xorg_bus_id() {
+    local file=$1  bus_id=$XORG_BUS_ID
+    if [ -z "$bus_id" ]; then
+        if test -r $file; then
+            bus_id=$(cat $file 2>/dev/null)
+            [ -n "$bus_id" ] && echo_live "$_Restore_xorg_bus_id_X_from_file_Y_" "$(pquote $bus_id)" "$(pquote $file)"
+        fi
+
+    elif [ -r $file ]; then
+        local new_id=$(cat $file 2>/dev/null)
+        if [ "$bus_id" != "$new_id" ]; then
+            echo "$bus_id" > $file
+            echo_live "$_Upate_xorg_bus_id_to_X_in_file_Y_" "$(pquote $bus_id)" "$(pquote $file)"
+        fi
+    else
+        echo_live "$_Save_xorg_bus_id_X_in_file_Y_" "$(pquote $bus_id)" "$(pquote $file)"
+        echo "$bus_id" > $file
+    fi
+    XORG_BUS_ID=$bus_id
+}
+
+#------------------------------------------------------------------------------
+# A simple wrapper for make-xorg-conf
+#------------------------------------------------------------------------------
+make_xorg() {
+    local file=/etc/X11/xorg.conf  driver=$1  bus_id=$2
+
+    [ -z "$*" ] && return
+
+    bus_id=${bus_id:+busid=$bus_id}
+
+    #. Configuring <xorg.conf> file with <driver>
+    echo_live "$_Configuring_X_file_with_Y_" "$(pquote $file)" "$(pquote $driver $bus_id)"
+
+    backup_file $file
+    /sbin/make-xorg-conf --output=$file $driver $bus_id
+    sync
+    sleep 1  # *** sigh ***
+}
+
+# End of new safe video code
+#==============================================================================
+#==============================================================================
+
 
 #------------------------------------------------------------------------------
 # Scale the height and width of conky to according to the dpi being used.  If
@@ -973,26 +997,6 @@ set_user_dpi() {
 }
 
 #------------------------------------------------------------------------------
-# Set the desktop delay used by desktop-session.  Hopefully, this code is no
-# longer needed.
-#------------------------------------------------------------------------------
-set_user_desktop_delay() {
-    local delay=$1  user=$2  home=$3
-    [ ${#delay} -gt 0 ] || return
-
-    local ds_conf=$home/.desktop-session/desktop-session.conf
-    test -e $ds_conf || return
-    local bad=$(echo $delay | sed -r 's/^([0-9]+(\.[0-9]*)?|.[0-9]+)//')
-
-    if [ ${#bad} -gt 0 ]; then
-        error 'Bad desktop delay parameter %s' $(pquote $delay)
-        return
-    fi
-    echo_live 'Setting desktop delay to %s' $(pquote $delay)
-    su -c "sed -r -i 's/^\s*(STARTUP_DELAY=).*/\1$delay/' $ds_conf" $user
-}
-
-#------------------------------------------------------------------------------
 # Set automounting mode via users .desktop-session/automount.conf file (sigh)
 #------------------------------------------------------------------------------
 set_user_automount() {
@@ -1008,41 +1012,6 @@ set_user_automount() {
         [ -n "$create" ] && echo_live "$_Automount_disabled_"
         add_or_edit "^automount=" 'automount=FALSE' "$file" "$user" "$create"
     fi
-}
-
-#------------------------------------------------------------------------------
-# Set delay before consoles automatically blank (is this still working?)
-# NOT USED
-#------------------------------------------------------------------------------
-set_console_blanking() {
-    local blank=$1  conf_file=/etc/kbd/config
-    [ ${#blank} -gt 0 ] || return
-
-    echo_live "$_Setting_console_blanking_timeout_to_X_minute_s_" "$(pquote $blank)"
-    setterm --blank $blank
-    test -w $conf_file || return
-    sed -ri "s/^(BLANK_TIME=).*/\1$blank/" $conf_file
-}
-
-#------------------------------------------------------------------------------
-# Disable ipv6 so ipv4 networking starts *much* faster
-# Does not solve the network delay problem, NOT USED
-#------------------------------------------------------------------------------
-disable_ipv6() {
-    local file=/etc/sysctl.d/disable-ipv6.conf  msg="Added by $DISTRO live initrd"
-    test -e $file && return
-    mkdir -p $(dirname $file)
-    cat > $file << Disable_Ipv6
-
-###################################################################
-# $msg
-# disable ipv6 networking to avoid long network delays
-#
-
-net.ipv6.conf.all.disable_ipv6 = 1
-net.ipv6.conf.default.disable_ipv6 = 1
-net.ipv6.conf.lo.disable_ipv6 = 1
-Disable_Ipv6
 }
 
 #------------------------------------------------------------------------------
@@ -1213,17 +1182,6 @@ backup_file() {
     cp -f $file $file$ext2
     test -e $file$ext1 && return
     mv -f $file $file$ext1
-}
-
-#------------------------------------------------------------------------------
-# Move f1 to f2 only if f1 exists and f2 does not exist.  Create f2 directory
-# if needed. NOT USED.
-#------------------------------------------------------------------------------
-move_if() {
-    local f1=$1  f2=$2
-    test -e $f1 || return
-    mkdir -p $(dirname $f2)
-    mv -f $f1 $f2
 }
 
 #------------------------------------------------------------------------------

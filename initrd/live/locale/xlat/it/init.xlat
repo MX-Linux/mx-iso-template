@@ -1,7 +1,7 @@
 _All_block_devices_X_="Tutti i block devices: %s"
 _Are_you_sure_you_have_written_down_or_memorized_the_new_passphrase_="Sei sicuro di aver memorizzato o di aver preso nota della nuova password/pass-frase?"
 _At_least_one_X_checksum_did_not_match_="Almeno un %s md5-checksum non corrisponde"
-_Automounting_is_enabled_by_default_="L'automontaggio è abilitato didefault"
+_Automounting_is_enabled_by_default_="L'automontaggio è abilitato di default"
 _Begin_="Inizia"
 _Changing_encryption_passphrase_="Cambio della passphrase di crittografia in corso ..."
 _Check_X_of_files_in_Y_directory_Please_be_patient_="Controllo di %s dei files in %s directory. Sii paziente, per favore..."
