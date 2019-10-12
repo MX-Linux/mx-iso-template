@@ -26,8 +26,8 @@
 # that you don't want users to be able to adjust.
 
                      ME="initrd init"
-                VERSION="8.22.00"
-           VERSION_DATE="Fri 21 Jun 2019 01:07:09 PM MDT"
+                VERSION="8.30.12"
+           VERSION_DATE="Thu 10 Oct 2019 11:24:39 PM MDT"
               DEVELOPER="BitJam"
          BUG_REPORT_URL="liveboot@antixlinux.org"
 
@@ -37,7 +37,7 @@
           PERSIST_RETRY=10
     FAILSAFE_BOOT_RETRY=30
 
-    DISABLE_SERVICES_OPTS="[aABcdgkilLmnNPrsSvVwWxY]+"
+    DISABLE_SERVICES_OPTS="[aABcdFgkilLmnNPrsSvVwWxY]+"
 
            RW_MODE="ro"
             PRINTK=0
@@ -150,6 +150,7 @@ KMS_VIDEO_MODULES="amdgpu,analogix-anx78xx,ast,bochs-drm,ch7006,cirrus,gma500_gf
 
        TSPLASH_TTY=10
             MY_TTY=1
+   VCARD_CONF_FILE="/live/config/vcard-cmd"
 
     #           HUP INT QUIT SEGV TERM
     SIGNAL_LIST="1   2   3    11   15"
@@ -274,6 +275,8 @@ main_wrapper() {
     # remove_from_runlevel lightdm 3
 
     # Try running live-usb-save first so it can restore an xorg.conf machine-state file
+    # We run live-vcard 2nd, right after live-usb-save
+    confile vcard-cmd    && LIVE_SCRIPTS="live-vcard    $LIVE_SCRIPTS"
     confile remasterable && LIVE_SCRIPTS="live-usb-save $LIVE_SCRIPTS"
     confile hwclock      && LIVE_SCRIPTS="$LIVE_SCRIPTS live-hwclock"
     confile persist-root force-passwd && LIVE_SCRIPTS="$LIVE_SCRIPTS persist-password"
@@ -604,10 +607,13 @@ main_core() {
     [ "$DO_AUTO_LOGIN" ] && auto_login   "$AUTO_LOGIN_PROG" "$AUTO_LOGIN_TERMS" "$NEW_ROOT"
     [ "$DO_FANCY"      ] && fancy_prompt "$FANCY_PROMPT" "$NEW_ROOT"
     [ "$DB_PLUS"       ] && page_updown_keys "$NEW_ROOT"
-    tsplash_enabled && [ -z "$CMD_MY_TTY$TTY1_ON" ] && disable_tty1 "$NEW_ROOT"
+    [ "$TTY1_OFF"      ] && disable_tty1 "$NEW_ROOT"
 
     # FIXME: do this after copy_xtra for easy testing (for now) (????)
     PROC_CMDLINE=$(cat /live/config/proc-cmdline)
+
+    prep_vcard $VCARD_CMD
+
     [ "$DO_MENUS" ] && do_late_menus
     echo "$PROC_CMDLINE" > /live/config/proc-cmdline
 
@@ -784,16 +790,16 @@ read_cmdline_params()
         case $param in
                            aufs) WANT_UNIONFS=aufs                               ;;
                       overlayfs) WANT_UNIONFS=overlay                            ;;
-                          menus) DO_MENUS=${MENUS_LIST:-cltopfs}                 ;;
+                          menus) DO_MENUS=${MENUS_LIST:-cltopfsv}                ;;
                         menus=*) DO_MENUS=$DO_MENUS$value                        ;;
+                        vcard=*) VCARD_CMD=$value                                ;;
             rootdelay=*|delay=*) small_int COLDPLUG_DELAY $param                 ;;
                          splash) SPLASH_PARAM=v                                  ;;
                        splash=*) SPLASH_PARAM=$value                             ;;
                         splasht) DO_TSPLASH=Z                                    ;;
                       splasht=*) DO_TSPLASH=$value                               ;;
-                       st_tty=*) TSPLASH_TTY=$value                              ;;
                       console=*) CMD_MY_TTY=${value#tty}                         ;;
-                         tty1on) TTY1_ON=true                                    ;;
+                        tty1off) TTY1_OFF=true                                   ;;
                       CONSOLE=*) CMD_MY_TTY=${value#tty}                         ;;
                        poweroff) poweroff -f -n                                  ;;
                          reboot) reboot -f -n                                    ;;
@@ -953,6 +959,12 @@ read_cmdline_params()
                         nostore)  ;;
                         dostore)  ;;
 
+                    i915_invert)  ;;
+                 no_i915_invert)  ;;
+
+                         nuke=*)  ;;
+                         nonuke)  ;;
+
         #----- Some known codes -------------------------
 
         [sS1-6]|BOOT_IMAGE=*);;
@@ -984,13 +996,6 @@ read_cmdline_params()
     case $CMD_VGA in
         ask+save) GFX_SAVE=both ; BOOT_SAVE=true ;;
     esac
-
-    local p
-    for p in ${SPLASH_PARAM//,/ }; do
-        case $p in
-            x|tx) DO_TSPLASH=true ;;
-        esac
-    done
 }
 
 #------------------------------------------------------------------------------
@@ -1548,7 +1553,7 @@ coldplug_modules() {
     #    | xargs modprobe -a -q -b 2>/dev/null
 
     find /sys/devices -name modalias -print0 | xargs -0 sort -u \
-        | xargs modprobe -a -q -b 2>/dev/null
+        | tr '\n' '\0' | xargs -0 modprobe -a -q -b 2>/dev/null
     return
 
     # local alias_file alias
@@ -2032,7 +2037,6 @@ find_device() {
     general_device_error "$find_type" "$type" "$value"
     return $err_ret
 }
-
 
 #------------------------------------------------------------------------------
 # Create a grub entry file that can be added to a grub.cfg for booting into
@@ -3129,9 +3133,7 @@ custom_code() {
 breakpoint() {
     local bp=$1  desc=$2
 
-    case $bp in
-        [08])  custom_code "$bp" "$desc" ;;
-    esac
+    custom_code "$bp" "$desc"
 
     if [ "$DB_PLUS" -a -n "${bp##b*}" ]; then
         local now=$(get_time)
@@ -4529,6 +4531,7 @@ make_swap_file() {
         return
     fi
 
+    #. Creating <size> swap file at <filename>.  Please be patient ...
     msg  "$_Creating_X_swap_file_at_Y_Please_be_patient_" "$(pq $raw_size)" "$(pq $file)"
 
     if tsplash_enabled; then
@@ -5899,9 +5902,8 @@ copy_homefs() {
     return 0
 }
 
-
 #------------------------------------------------------------------------------
-#
+# Disable login on tty1
 #------------------------------------------------------------------------------
 disable_tty1() {
     local dir=$1
@@ -5909,7 +5911,7 @@ disable_tty1() {
 }
 
 #------------------------------------------------------------------------------
-#
+# Automatically log in on given set of virtual consoles
 #------------------------------------------------------------------------------
 auto_login() {
     local dir file full prog=$1  terms=$2 root=$3
@@ -5988,20 +5990,18 @@ copy_xtra() {
 
     if [ -e $tarball ]; then
         msg 'Unpack xtra tarball'
-        gunzip -c $tarball | tar x -C $NEW_ROOT/
+        gunzip -c "$tarball" | tar x -C $NEW_ROOT/
     fi
 
     [ -d "$xtra_dir" ] || return
+
     local list=$(ls $xtra_dir)
     [ -n "$list" ] || return
 
-    msgN 'Copy xtra file(s) to:'
-    for  dir in $list; do
-        [ -d "$xtra_dir/$dir" ] || continue
-        msgN " $from_co/$dir"
-        cp -a $xtra_dir/$dir $NEW_ROOT/
-    done
-    msg
+    msg 'Copy xtra file(s) to: %s' "$(fq $list)"
+
+    # Use tar because cp stumbles on some symlinks in target directory
+    (cd "$xtra_dir" && tar cf - *) | tar x -C "$NEW_ROOT"
 
      # Create a symlink to the /antiX/xtra directory if it exists
     local r_dir="$NEW_ROOT/root"
@@ -6009,6 +6009,25 @@ copy_xtra() {
 
     test -e $r_dir/xtra && return
     test -d $r_dir && test -d $x_dir && log_cmd ln -s $x_dir $r_dir/xtra
+}
+
+#------------------------------------------------------------------------------
+#
+#------------------------------------------------------------------------------
+prep_vcard() {
+    local vcard_cmd=$1  file=$VCARD_CONF_FILE
+    local vcard_cnt=$(lspci | grep  "$_Class_03_" | wc -l)
+    case $vcard_cnt in
+        0) msg  "$_Found_no_video_display_devices_"                    ;;
+        1) msg  "$_Found_one_video_display_device_"                    ;;
+        *) msg  "$_Found_X_video_display_devices_" "$(nq $vcard_cnt)" ;;
+    esac
+
+    case $vcard_cmd in
+                   on|"") [ $vcard_cnt -gt 1 ] && touch $file                         ;;
+          off|menu|clear) echo $vcard_cmd > $file                                     ;;
+                       *) warn  "$_Unexpected_X_value_Y_" "$(pqw vcard)" "$(vcard_cmd)" ;;
+    esac
 }
 
 #------------------------------------------------------------------------------
@@ -6228,9 +6247,7 @@ Initrd_Out
     [ "$DID_TORAM" ] && [ "$(stat -c %t $SQFILE_DEV)" = b ] \
         && echo "BOOT_DEV=$SQFILE_DEV" > $dir/toram-eject
 
-    [ -d /sys/class/power_supply ] \
-        && grep -q Battery /sys/class/power_supply/*/type 2>/dev/null \
-        && touch $dir/laptop
+    is_laptop && touch $dir/laptop
 
     local f full
     for f in version $MADE_BY_FILE; do
@@ -6255,6 +6272,21 @@ update_store_file() {
     elif [ "$enable" ]; then
         rm -f $no_store_file
     fi
+}
+
+
+#------------------------------------------------------------------------------
+# Is this a laptop?  For the first test see:
+# https://superuser.com/questions/877677/programatically-determine-if-an-script-is-being-executed-on-laptop-or-desktop/877796
+#------------------------------------------------------------------------------
+is_laptop() {
+    local chassis=$(cat /sys/class/dmi/id/chassis_type 2>/dev/null)
+    case $chassis in
+        9|10|14) return 0 ;;
+    esac
+
+    grep -q Battery /sys/class/power_supply/BAT*/type 2>/dev/null
+    return $?
 }
 
 #------------------------------------------------------------------------------

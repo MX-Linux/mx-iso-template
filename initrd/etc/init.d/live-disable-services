@@ -164,7 +164,6 @@ do_start() {
         [ -z "${disable_param##*[N]*}" ] &&      ENABLE_NTPD=true
         [ -z "${disable_param##*[P]*}" ] &&       ENABLE_PAM=true
         [ -z "${disable_param##*[v]*}" ] &&     DISABLE_VBOX=true
-        [ -z "${disable_param##*[V]*}" ] &&     ENABLE_FBDEV=true
         [ -z "${disable_param##*[w]*}" ] &&             WICD=no
         [ -z "${disable_param##*[W]*}" ] &&             WICD=yes
         [ -z "${disable_param##*[x]*}" ] &&        XTRA_LEAN=true
@@ -202,7 +201,6 @@ do_start() {
     [ "$ENABLE_NTPD"      ] || disable_services "ntpd disable by default" ntp
     [ "$ENABLE_PAM"       ] || disable_pam_login
     [ "$ENABLE_PLYMOUTH"  ] || disable_services 'plymouth' plymouth
-    [ "$ENABLE_FBDEV"     ] || disable_fbdev
 
     # only exit early if "disable=OFF" is given (see above)
     # [ -n "$must_run" -o -n "$DISABLE_NFS" ] || exit 0
@@ -350,16 +348,6 @@ do_stop() {
         -e 's/^\s*(session\s+[^\s]+\s+pam_lastlog.so).*/\1/'     \
         -e '/session\s+[^\s]+\s+pam_(exec|motd).so/ s/^#-*\s*//' \
         $ROOT$PAM_FILE
-}
-
-#------------------------------------------------------------------------------
-# Create a file in tmpfs to blackist nvidiafb and rivafb
-# and others as well.
-#------------------------------------------------------------------------------
-disable_fbdev() {
-    local dir=/run/modprobe.d  file=live-fbdev-blacklist.conf
-    mkdir -p "$dir"
-    cp /live/etc/modprobe.d/$file "$dir"
 }
 
 config_wicd() {

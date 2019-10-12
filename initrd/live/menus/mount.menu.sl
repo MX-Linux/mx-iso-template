@@ -1,3 +1,3 @@
    1)  Privzeto
-   2)  automount       Automatically mount devices when plugged in
-   3)  noautomount     Disable all extra mounting and automounting
+   2)  automount       Samodejno priklopi naprave, ko se priključijo
+   3)  noautomount     Izklopi posebno priklapljanje in samodejni priklop
