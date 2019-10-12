@@ -1,0 +1,31 @@
+Format: 1.8
+Date: Sat, 12 Oct 2019 12:36:03 -0400
+Source: mx-iso-template
+Binary: mx-iso-template
+Architecture: source all
+Version: 19.10.01
+Distribution: mx
+Urgency: medium
+Maintainer: Adrian <adrian@mxlinux.org>
+Changed-By: Dolphin Oracle <dolphinoracle@gmail.com>
+Description:
+ mx-iso-template - MX ISO template
+Changes:
+ mx-iso-template (19.10.01) mx; urgency=medium
+ .
+   * update to latest antiX upstream
+Checksums-Sha1:
+ 88d082070dc2be19c1adac57c05002d2eb39101b 621 mx-iso-template_19.10.01.dsc
+ 7d06db22b839d5689518b93a3fabfae690424d3f 5464768 mx-iso-template_19.10.01.tar.xz
+ 0db39db6cd1e394768d3ba7d9b1430bf63fafad3 10203344 mx-iso-template_19.10.01_all.deb
+ a8aa020be360ad9e9975992287278c1f66c25837 4653 mx-iso-template_19.10.01_amd64.buildinfo
+Checksums-Sha256:
+ f8b58dda502a192027496d08a215ccf22094f6a6d0ae730cb70cda799f0bdc97 621 mx-iso-template_19.10.01.dsc
+ 078efc0fc37a52174749003cc6f17d724a481ebd986adb5718425ce6f110637e 5464768 mx-iso-template_19.10.01.tar.xz
+ 87b4b38fa138e7c928934a8f119cb44e955e09725a9a8222a1f5f15781dd50d4 10203344 mx-iso-template_19.10.01_all.deb
+ 76a0540f94a283d5d2b999307c2983fa4e566764f6af7b983148e9559dd8b3bf 4653 mx-iso-template_19.10.01_amd64.buildinfo
+Files:
+ df86bddf5c3052fee36e4f024212525e 621 admin optional mx-iso-template_19.10.01.dsc
+ a65455a8516b41a2c2cfacc55e50ba1d 5464768 admin optional mx-iso-template_19.10.01.tar.xz
+ 72b2195c2e44e9de536f38319cc6afba 10203344 admin optional mx-iso-template_19.10.01_all.deb
+ 815e31a4061130458cf7deeceec0e95c 4653 admin optional mx-iso-template_19.10.01_amd64.buildinfo
