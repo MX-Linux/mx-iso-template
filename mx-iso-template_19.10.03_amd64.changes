@@ -1,0 +1,31 @@
+Format: 1.8
+Date: Sat, 19 Oct 2019 16:24:17 -0400
+Source: mx-iso-template
+Binary: mx-iso-template
+Architecture: source all
+Version: 19.10.03
+Distribution: mx
+Urgency: medium
+Maintainer: Adrian <adrian@mxlinux.org>
+Changed-By: Dolphin Oracle <dolphinoracle@gmail.com>
+Description:
+ mx-iso-template - MX ISO template
+Changes:
+ mx-iso-template (19.10.03) mx; urgency=medium
+ .
+   * fix bad build of bootloader configs
+Checksums-Sha1:
+ 46a5892b379bf3f314559c9c8279b18af054c19c 621 mx-iso-template_19.10.03.dsc
+ c409a65e3ced5e52a75abb8c4e5fbc5a2a440199 5464108 mx-iso-template_19.10.03.tar.xz
+ ca4e69e00e69f019eb7fe08339355e3ae54f445b 9071128 mx-iso-template_19.10.03_all.deb
+ 5c4d1b0ea359e96261115c8c31c76eeeb34a6fc5 4650 mx-iso-template_19.10.03_amd64.buildinfo
+Checksums-Sha256:
+ 556ac77939dce6b1b8b1d5f249b4136b72af45ce874b0861fcf7f25027e51164 621 mx-iso-template_19.10.03.dsc
+ 4a5eb754a8e5dc59490e8b40d54eb8e2aa7978a6eff8d0df87eaf80d8bd0e465 5464108 mx-iso-template_19.10.03.tar.xz
+ 173536b9c29f8743af288b1ce5298d346513020bde158f42e73e33b383746c9b 9071128 mx-iso-template_19.10.03_all.deb
+ 20bb9cca5348e82fc3b6d21b6abc36ef44b0b4a9b2bc39a80a1c362befd18ba9 4650 mx-iso-template_19.10.03_amd64.buildinfo
+Files:
+ 7bbec9c83c27f22db70c14e569eee15d 621 admin optional mx-iso-template_19.10.03.dsc
+ 1e4bc5fdb539ed6635d7de98e69d63d3 5464108 admin optional mx-iso-template_19.10.03.tar.xz
+ dc1937e22e9af43928bd60e284fb7686 9071128 admin optional mx-iso-template_19.10.03_all.deb
+ 5745f70243320cf504c78ecfe71b4652 4650 admin optional mx-iso-template_19.10.03_amd64.buildinfo

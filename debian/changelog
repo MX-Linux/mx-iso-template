@@ -1,3 +1,9 @@
+mx-iso-template (19.10.03) mx; urgency=medium
+
+  * fix bad build of bootloader configs
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 19 Oct 2019 16:24:17 -0400
+
 mx-iso-template (19.10.02) mx; urgency=medium
 
   * update to luks fix
