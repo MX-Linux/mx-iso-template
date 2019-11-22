@@ -1,3 +1,9 @@
+mx-iso-template (19.11.01) mx; urgency=medium
+
+  * update live-umount in iso-template 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Thu, 21 Nov 2019 20:40:31 -0500
+
 mx-iso-template (19.10.03) mx; urgency=medium
 
   * fix bad build of bootloader configs
