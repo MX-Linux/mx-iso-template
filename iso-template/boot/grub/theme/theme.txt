@@ -16,7 +16,7 @@ terminal-box:   "inbox_*.png"
     left  = 30%
     top   = 8%
     width = 100%
-    text  = "Welcome to MX- ()!"
+    text  = "Welcome to MX-Linux"
     color = "#ffffff"
     align = "left"
     font  = "DejaVu Sans Regular 18"
