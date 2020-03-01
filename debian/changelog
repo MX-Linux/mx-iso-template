@@ -1,3 +1,9 @@
+mx-iso-template (20.02.01) mx; urgency=medium
+
+  * update efi.img
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 29 Feb 2020 20:51:08 -0500
+
 mx-iso-template (19.12.01) mx; urgency=medium
 
   * add .disk folder and info file 
