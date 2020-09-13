@@ -1,3 +1,9 @@
+mx-iso-template (20.09.01) mx; urgency=medium
+
+  * remove alt_shift switch from defaults 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 12 Sep 2020 21:57:41 -0400
+
 mx-iso-template (20.02.01) mx; urgency=medium
 
   * update efi.img
