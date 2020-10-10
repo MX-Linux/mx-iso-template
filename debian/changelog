@@ -1,3 +1,10 @@
+mx-iso-template (20.10.01) mx; urgency=medium
+
+  * update live system translations 
+  * minor code changes
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 10 Oct 2020 18:30:31 -0400
+
 mx-iso-template (20.09.01) mx; urgency=medium
 
   * remove alt_shift switch from defaults 
