@@ -1,3 +1,9 @@
+mx-iso-template (20.10.02) mx; urgency=medium
+
+  * update live translations of gfx boot 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 11 Oct 2020 09:32:52 -0400
+
 mx-iso-template (20.10.01) mx; urgency=medium
 
   * update live system translations 
