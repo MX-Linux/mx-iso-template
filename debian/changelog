@@ -1,3 +1,9 @@
+mx-iso-template (20.10.05) mx; urgency=medium
+
+  * update efi.img with complete set of efi stubs 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 26 Oct 2020 19:00:06 -0400
+
 mx-iso-template (20.10.04) mx; urgency=medium
 
   * add splasht to default params 
