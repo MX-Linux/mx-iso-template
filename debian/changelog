@@ -1,3 +1,10 @@
+mx-iso-template (20.12.01) mx; urgency=medium
+
+  * add microcode loading (bitjam)
+  * revise valid_user check (d.o.)
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 26 Dec 2020 18:30:16 -0500
+
 mx-iso-template (20.10.06) mx; urgency=medium
 
   * fix for failsafe and uefi boots 
