@@ -1,3 +1,9 @@
+mx-iso-template (20.12.02) mx; urgency=medium
+
+  * check for localize-repo before running it. 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 28 Dec 2020 16:22:33 -0500
+
 mx-iso-template (20.12.01) mx; urgency=medium
 
   * add microcode loading (bitjam)
