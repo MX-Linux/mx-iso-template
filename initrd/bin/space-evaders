@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/bin/bash
 
 ME=${0##*/}
 
@@ -132,11 +132,11 @@ space_evaders() {
 
          d|D)  duck_mode=$(( (duck_mode + 1) % 4));;
 
-         s|S)  printf "$e[$ship_y;1H$e[3B"
-                restore_tty
-                PS1="${red}Space-evaders$green>$nc " sh 2>&1
-                hide_tty
-                refresh;;
+         # s|S)  printf "$e[$ship_y;1H$e[3B"
+         #        restore_tty
+         #        PS1="${red}Space-evaders$green>$nc " sh 2>&1
+         #        hide_tty
+         #        refresh;;
 
          f|F)  if [ $cycles_per_step -gt 0 -a -n "$debug" ]; then
                     idle_factor=$(( (idle_factor * 90) / 100))
@@ -502,7 +502,6 @@ $e[3;1H$cyan
            down-arrow: slower
             space-bar: fire!
                     q: quit
-                    s: shell
                     p: pause
                     h: help
 $white

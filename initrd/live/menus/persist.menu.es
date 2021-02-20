@@ -1,10 +1,12 @@
    1)  Por defecto
-   2)  persist_all     Rápido. Guardar root y home (utiliza RAM, guardar al salir)
-   3)  persist_root    Rápido. Solamente guarda root (utiliza RAM, guardar al salir)
-   4)  persist_static  Lento. Guardar root y home (n utiliza RAM, guardar constantemente)
-   5)  persist_home    Sólo persistencia de home
-   6)  frugal_persist  Frugal con persistencia de root y home
-   7)  frugal_root     Frugal con persistencia de root solamente
-   8)  frugal_static   Frugal con persistencia estática de home y root
-   9)  frugal_home     Frugal con sólo persistencia de home
-  10)  frugal_only     Solamente Frugal, sin persistencia
+   2)  persist_all     Guarda root en RAM, guarda home en disco (guarda root al salir)
+   3)  persist_root    Guarda root y home en RAM luego se guarda al salir
+   4)  persist_static  Guarda root y home en disco con home separado en el disco
+   5)  p_static_root   Guarda root y home en disco juntos
+   6)  persist_home    Sólo persistencia de home
+   7)  frugal_persist  Frugal con root en RAM y home en disco
+   8)  frugal_root     Frugal con root y home en RAM luego se guarda al salir
+   9)  frugal_static   Frugal con root en disco y home separado en disco
+  10)  f_static_root   Frugal con root y home en disco juntos
+  11)  frugal_home     Frugal con sólo persistencia de home
+  12)  frugal_only     Solamente Frugal, sin persistencia

@@ -176,15 +176,22 @@ gather_params() {
     for p in $(cat /live/config/proc-cmdline /live/config/cmdline 2>/dev/null) $*; do
         case $p in
                   menus|menus=*) MENUS=$p ;;
-              gfxsave|gfxsave=*)  ;;
-            bootsave|bootsave=*)  ;;
-                   BOOT_IMAGE=*)  ;;
-          savestate|nosavestate)  ;;
-                nostore|dostore)  ;;
-           md5|checkmd5|checkfs)  ;;
-              automount|mount=*)  ;;
-                      hwclock=*)  ;;
-                      desktop=*)  ;;
+                     bp=*|upb=*)          ;;
+              gfxsave|gfxsave=*)          ;;
+            bootsave|bootsave=*)          ;;
+                   BOOT_IMAGE=*)          ;;
+          savestate|nosavestate)          ;;
+                nostore|dostore)          ;;
+           md5|checkmd5|checkfs)          ;;
+              automount|mount=*)          ;;
+                    noautomount)          ;;
+     i915_invert|no_i915_invert)          ;;
+                        fstab=*)          ;;
+                      hwclock=*)          ;;
+                      desktop=*)          ;;
+                   mk_swap_file)          ;;
+                 mk_swap_file=*)          ;;
+                        vcard=*)          ;;
                               *) out=$out${out:+ }$p ;;
         esac
     done

@@ -480,7 +480,7 @@ not quit your present job and join me here?"
 
 The mainframe programmer then began to describe his system to his
 friend, saying, "The mainframe sits like an ancient Sage meditating
-in the midst of the Data Center. Its disk drives lie end-to- end
+in the midst of the Data Center. Its disk drives lie end-to-end
 like a great ocean of machinery. The software is as multifaceted as
 a diamond, and as convoluted as a primeval jungle. The programs,
 each unique, move through the system like a swift-flowing river.

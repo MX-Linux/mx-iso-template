@@ -20,7 +20,7 @@ Options:
     -h|--help   Show this usage
     -n|--pid    Only print PIDs
 
-Any other option that starts with - will have the - stipped off and
+Any other option that starts with - will have the - stripped off and
 be used as the argument to ps.  So to use "ps aux" use "psg -aux ...".
 Usage
     exit

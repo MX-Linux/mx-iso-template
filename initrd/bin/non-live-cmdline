@@ -113,16 +113,29 @@ for param in $(cat /proc/cmdline); do
                     persist_all)  ;;
                    persist_root)  ;;
                  persist_static)  ;;
+                 p_static_root)   ;;
                    persist_home)  ;;
                  frugal_persist)  ;;
                     frugal_root)  ;;
                   frugal_static)  ;;
+                  f_static_root)  ;;
                     frugal_home)  ;;
                     frugal_only)  ;;
                         nostore)  ;;
                         dostore)  ;;
                    disablestore)  ;;
               fatuid=*|fatgid=*)  ;;
+                    live_swap=*)  ;;
+                   mk_swap_file)  ;;
+                 mk_swap_file=*)  ;;
+                       notmptmp)  ;;
+                    nomicrocode)  ;;
+                     nosavelogs)  ;;
+                         tty1on)  ;;
+                        splasht)  ;;
+                      splasht=*)  ;;
+                       st_tty=*)  ;;
+                        vcard=*)  ;;
 
         # Our Live params
         hwclock=utc|hwclock=local|xorg|xorg=*|noearlyvid|earlyvid) ;;
@@ -137,7 +150,27 @@ for param in $(cat /proc/cmdline); do
         udpi=*|sdpi=*) ;;
         fontsize=*) ;;
         norepo|norepo=*) ;;
+        conwidth=*);;
+        noautomount) ;;
+        vga=ask+save) ;;
 
+        skylakeflicker)  ;;
+        i915powersave) ;;
+
+        aufs|overlayfs) ;;
+        wicd|nowicd) ;;
+
+        nomicrocode) ;;
+        live_swap=off)  ;;
+        live_swap=force)  ;;
+        live_swap=all-off)  ;;
+        mk_swap_file=*)     ;;
+
+        # Added by Grub
+        BOOT_IMAGE=*) ;;
+
+        # Sometimes added with grub loop mounts
+            *root=*) ;;
         *) printf "$param "
     esac
 done
