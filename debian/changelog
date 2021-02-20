@@ -1,3 +1,9 @@
+mx-iso-template (21.02.02) mx; urgency=medium
+
+  * change efi submenu
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 20 Feb 2021 14:37:37 -0500
+
 mx-iso-template (21.02.01) mx; urgency=medium
 
   * change efi boot menu text
