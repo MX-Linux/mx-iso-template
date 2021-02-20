@@ -1,3 +1,9 @@
+mx-iso-template (21.02.03) mx; urgency=medium
+
+  * adjust indents spacing in grub.cfg 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 20 Feb 2021 15:48:04 -0500
+
 mx-iso-template (21.02.02) mx; urgency=medium
 
   * change efi submenu
