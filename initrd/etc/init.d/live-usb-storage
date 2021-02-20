@@ -8,11 +8,11 @@
 # Default-Start:     3 4 5
 # Default-Stop:      0 1 6
 # Short-Description:
-# Description:       Create symlink to storage space directly on LiveUSB
+# Description:       Create symlink to storage space directly on live-usb
 ### END INIT INFO
 
-STORAGE_BIND=LiveUSB-Storage
- STORAGE_DIR=LiveUSB-Storage
+STORAGE_BIND=Live-usb-storage
+ STORAGE_DIR=Live-usb-storage
 
 export PATH=/sbin:/usr/sbin:/bin:/usr/bin:/usr/local/bin
 
@@ -35,59 +35,51 @@ do_start() {
 
     . $INITRD_OUT
 
+    CRIPPLED_FS=
+    case $BOOT_FSTYPE in
+        vfat|ntfs*) CRIPPLED_FS=true ;;
+    esac
+
     local bdir root_dir
     for bdir in $SQFILE_DIR $TORAM_MP; do
         [ -d $bdir ] || continue
         root_dir=$bdir
         break
     done
-    [ "$root_dir" ] || exit 0
+    [ "$root_dir" ] || DISABLE=true
 
     read_cmdline
 
-    [ -e $root_dir/state/nostore -a -z "$DISABLE" ] && return
+    test -e $root_dir/state/nostore && DISABLE=true
+    [ -n "$DID_TORAM" -a -z "$TORAM_STORE" ] && DISABLE=true
 
-    echo_script "$_Configure_LiveUSB_Storage_" $0
+    echo_script "$_Configure_Live_usb_storage_" $0
 
-    DEF_USER=$(find_def_user)
-
-    eval "USER_HOME=~$DEF_USER"
-
-    if [ -z "$DEF_USER" -o -z "${USER_HOME##~*}" ]; then
-        echo_live "$_No_default_user_X_found_on_the_system_" "$(pquote $DEF_USER)"
-        USER_HOME=
-    fi
+    mountpoint -q "$BOOT_MP" || DISABLE=true
 
     if [ "$DISABLE" ]; then
-        echo_live "$_Disabling_LiveUSB_storage_"
-        rmdir /root/$STORAGE_BIND $USER_HOME/$STORAGE_BIND 2>/dev/null
+        echo_live "$_Disabling_live_usb_storage_"
+        rmdir /root/$STORAGE_BIND /home/*/$STORAGE_BIND 2>/dev/null
         return
     fi
 
-    local store_dir=$BOOT_MP/$STORAGE_DIR
-    create_storage "$DEF_USER" "$USER_HOME"  $store_dir
-    create_storage root        /root         $store_dir
+    local STORE_DIR=$BOOT_MP/$STORAGE_DIR
+    local user
+    for user in root $(get_home_users); do
+        create_user_storage "$user"
+    done
 }
 
 do_stop() {
 
     test -e /live/config/remasterable || exit 0
 
-    echo_script "$_Disable_LiveUSB_Storage_" $0
+    echo_script "$_Disabling_live_usb_storage_" $0
 
     read_cmdline
 
-    DEF_USER=$(find_def_user)
-
-    eval "USER_HOME=~$DEF_USER"
-
-    if [ -z "$DEF_USER" -o -z "${USER_HOME##~*}" ]; then
-        echo_live "$_No_default_user_X_found_on_the_system_" "$(pquote $DEF_USER)"
-        USER_HOME=
-    fi
-
     local dir bind_dir
-    for dir in /root $USER_HOME; do
+    for dir in /root $(get_home_users 6); do
         bind_dir=$dir/$STORAGE_BIND
         test -d "$bind_dir" || continue
         mountpoint -q $bind_dir && umount $bind_dir
@@ -95,16 +87,21 @@ do_stop() {
     done
 }
 
-create_storage() {
-    local user=$1  home=$2  store_dir=$3/$1  from_dir=$2/$STORAGE_BIND
+create_user_storage() {
+    local user=$1
+
+    ent=$(getent passwd $user)
+    local home=$(echo $ent | cut -d: -f6)
+    local  uid=$(echo $ent | cut -d: -f3)
+    local  gid=$(echo $ent | cut -d: -f4)
+
+    local from_dir="$home/$STORAGE_BIND"
+    local store_dir="$STORE_DIR/$user"
 
     if ! test -d "$home"; then
         echo_live "$_Home_directory_for_user_X_not_found_" "$(pquote $user)"
         return
     fi
-
-    local uid=$(getent passwd $user | cut -d: -f3)
-    local gid=$(getent passwd $user | cut -d: -f4)
 
     if [ ${#uid} -le 0 -o ${#gid} -le 0 ]; then
         echo_live "$_Could_not_find_UID_or_GUID_for_user_X_" "$(pquote $user)"
@@ -116,12 +113,10 @@ create_storage() {
         return
     fi
 
-    if [ "$BOOT_FSTYPE" = vfat -a $uid -ne 0 -a $uid -ne $USER_UID ]; then
-        echo_live "$_Can_only_use_X_storage_with_UID_of_Y_" "$(pquote vfat LiveUSB)" "$(pquote $USER_UID)"
+    if [ -n "$CRIPPLED_FS" -a $uid -ne 0 -a $uid -ne $USER_UID ]; then
+        echo_live "$_Can_only_use_X_storage_with_UID_of_Y_" "$(pquote vfat live-usb)" "$(pquote $USER_UID)"
         return
     fi
-
-    mountpoint -q "$BOOT_MP" || DISABLE=true
 
     test -e $from_dir || mkdir -p $from_dir
 
@@ -133,22 +128,32 @@ create_storage() {
     chown $uid:$gid $from_dir
 
     mkdir -p $store_dir
-    [ "$BOOT_FSTYPE" != vfat ] && chown $uid:$gid $store_dir
+    [  -z "$CRIPPLED_FS" ] && chown $uid:$gid $store_dir
 
     if mountpoint -q $from_dir; then
         echo_live "$_Directory_X_is_already_a_mountpoint_" "$(pquote $from_dir)"
         return
     fi
-    echo_live "$_Enable_LiveUSB_storage_at_X_" "$(pquote $from_dir)"
+    echo_live "$_Enable_live_usb_storage_at_X_" "$(pquote $from_dir)"
     mount --bind $store_dir $from_dir
 }
 
-find_def_user() {
-    local user=$(sed -r -n 's/^\s*default_user\s+//p' /etc/slim.conf 2>/dev/null | tail -n1)
-    : ${user:=$(sed -r -n 's/^\s*autologin-user=//p' /etc/lightdm/lightdm.conf 2>/dev/null | tail -n1)}
-    : ${user:=$(getent passwd 1000 | cut -d: -f1)}
-    : ${user:=demo}
-    echo ${user%% *}
+#------------------------------------------------------------------------------
+# Return a list of user names with a shell like /bin/*sh with a home directory
+# under /home/ and with a UID of 1000 or over.
+#------------------------------------------------------------------------------
+get_home_users() {
+    local field=${1:-1}
+    local ent uid
+    while read ent; do
+        [ -z "$ent" ]    && continue
+        uid=$(echo $ent | cut -d: -f3)
+        [ -z "$uid" ]     && continue
+        [ $uid -lt 1000 ] && continue
+        echo $ent | cut -d: -f$field
+    done<<Home_Ents
+$(grep  ":/home/.*:*/bin/.*sh$" /etc/passwd)
+Home_Ents
 }
 
 read_cmdline() {

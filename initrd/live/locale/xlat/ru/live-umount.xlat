@@ -7,7 +7,6 @@ _Kill_any_remaining_processes_="Принудительно завершить в
 _Killing_remaining_processes_="Принудительное завершение оставшихся процессов"
 _Please_remove_the_disc_close_the_tray_="Пожалуйста, извлеките диск, закройте лоток"
 _Ready_to_X_="Готово на %s"
-_Unable_to_kill_X_="Невозможно завершить: %s"
 _Unmount_most_filesystems_="Отмонтировать большинство файловых систем"
 _X_Waiting_for_termination_Y_="%s Ожидание завершения %s"
 _and_press_ENTER_to_continue_="и нажмите ENTER для продолжения"

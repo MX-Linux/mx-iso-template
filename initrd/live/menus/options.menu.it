@@ -1,15 +1,16 @@
-   1)  Default
+   1)  Predefinito
    2)  checkmd5        Controlla l'integrità dell'unità live
-   3)  checkfs         Controlla il filesystems ext2/3/4 della LiveUSB e della persistenza
+   3)  checkfs         Controlla il filesystems ext2/3/4 della USB-Live e della persistenza
    4)  toram           Copia il file system compresso sulla RAM
-   5)  from=usb        Completa il boot da una Live USB
-   6)  from=hd         Completa il boot da un Hard Drive
-   7)  nousb2          Disabilita tutti i dispositivi usb-2 durante il boot
-   8)  hwclock=ask     Disporre di aiuto dal sistema nell'impostazione dell'orologio
-   9)  hwclock=utc     L'orologio Hardware usa UTC (su sistemi esclusivamente Linux)
-  10)  hwclock=local   L'orologio Hardware usa l'ora locale (su sistemi Windows)
-  11)  password        Cambiare le passwords prima di avviare il boot
-  12)  nostore         Disabilita la funzione LiveUSB con capacità di memorizzare dati (solo per LiveUSB)
-  13)  dostore         Abilita la funzione LiveUSB con capacità di memorizzare dati (solo per LiveUSB)
-  14)  savestate       Salvare le modifiche di alcuni file anche dopo il reboot (solo per LiveUSB)
-  15)  nosavestate     Non salvare le modifiche di alcuni file anche dopo il reboot (solo per LiveUSB)
+   5)  i915_invert     Invert video on some Intel graphics systems
+   6)  no_i915_invert  Disable Intel graphics invert
+   7)  from=usb        Completa il boot da una USB-Live
+   8)  from=hd         Completa il boot da un Hard Drive
+   9)  hwclock=ask     Disporre di aiuto dal sistema nell'impostazione dell'orologio
+  10)  hwclock=utc     L'orologio Hardware usa UTC (su sistemi esclusivamente Linux)
+  11)  hwclock=local   L'orologio Hardware usa l'ora locale (su sistemi Windows)
+  12)  password        Cambiare le passwords prima di avviare il boot
+  13)  nostore         Disabilita la funzione USB-Live con capacità di memorizzare dati (solo per USB-Live)
+  14)  dostore         Abilita la funzione USB-Live con capacità di memorizzare dati (solo per USB-Live)
+  15)  savestate       Salvare le modifiche di alcuni file mediante il reboot (solo per USB-Live)
+  16)  nosavestate     Non salvare le modifiche di alcuni file mediante il reboot (solo per USB-Live)

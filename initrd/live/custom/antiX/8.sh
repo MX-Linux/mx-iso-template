@@ -3,6 +3,10 @@ antix_specific_code() {
     local dir=$1
 
     # -jbb
+    # this requires a chown and chmod so we now do it in live-init
+    #mkdir -p $dir/var/cache/apt/archives/partial
+
+    # -jbb
     mv -f $dir/var/log/bootchart.tgz $dir/var/log/bootchart.tgz.old 2>/dev/null
 
     # -jbb
@@ -20,7 +24,7 @@ antix_specific_code() {
     # Must exist for samba to work
     [ -d $dir/var/lib/samba ] && echo -n > $dir/var/lib/samba/unexpected.tdb
     
-    [ ! -e $dir/etc/localtime ] && cp_rm_dest $SQFS_MP/etc/localtime $dir/etc/localtime
+    #[ ! -e $dir/etc/localtime ] && cp_rm_dest $SQFS_MP/etc/localtime $dir/etc/localtime
 
     rm -f $dir/etc/console/boottime.old.kmap.gz
     cp $SQFS_MP/etc/console/* $dir/etc/console/ &>/dev/null

@@ -1,4 +1,4 @@
-#!/live/bin/sh
+#!/live/bin/bash
 
 OLD_GFX_CONFIG_FILE="/live/config/gfxsave.conf"
          GFX_SUFFIX=".def"
@@ -15,7 +15,7 @@ main() {
     local GFX_MESSAGE_FILE
     local GFX_OUTPUT_DIRS
 
-    [ -n "$CMDLINE" ] || CMDLINE="$(cat /proc/cmdline)"
+    : ${CMDLINE:=$(cat /proc/cmdline)}
 
     case $VERBOSE in
         [0-9]|[0-9][0-9]) ;;
@@ -98,6 +98,11 @@ Expected$cheat_co menus custom both$err_co or$cheat_co reset"
         esac
 
         case $gfx_cmd in
+            reset) remove_custom_entry $XXX_LINUX_CFG ;;
+        esac
+
+
+        case $gfx_cmd in
             menus|both) update_gfxmenus $MENU_DIR;;
         esac
 
@@ -117,7 +122,7 @@ unpack_cpio() {
     rm -rf $dir
     mkdir -p $dir || return 1
     msg " Unpack CPIO file:$cheat_co $file"
-    (cd $dir && cpio -idum < $file)
+    (cd $dir && cpio -idum --quiet < $file)
     return 0
 }
 
@@ -125,7 +130,7 @@ repack_cpio() {
     local file=$1  dir=$2
     test -r $file || return 1
     msg " Repack CPIO file:$cheat_co $file"
-    (cd $dir && find . | cpio -o) > $file
+    (cd $dir && find . | cpio -o --quiet) > $file
     return 0
 }
 
@@ -246,7 +251,6 @@ reset_one_dir() {
 
     [ -n "$dir" ] || return
 
-    bold
     bold "Reset bootloader menu defaults"
 
     local fcnt=0
@@ -538,6 +542,15 @@ Config_File
     DEFAULT_LABEL=custom
 }
 
+
+#------------------------------------------------------------------------------
+# Remove the custom entry (if it exists)
+#------------------------------------------------------------------------------
+remove_custom_entry() {
+    local file=$1
+    sed -i "/^LABEL custom/,/^$/d" "$file"
+}
+
 #------------------------------------------------------------------------------
 # Only echo cmdline params that *don't* match any of the names in menu_params.
 # Equal signs and values after equal signs are ignored.
@@ -546,16 +559,23 @@ extra_cmdline_params() {
     local param menu_params=$1
     for param in $CMDLINE; do
         case $param in
+                        ubp=*) continue ;;
+                         bp=*) continue ;;
             gfxsave|gfxsave=*) continue ;;
           bootsave|bootsave=*) continue ;;
                  BOOT_IMAGE=*) continue ;;
         savestate|nosavestate) continue ;;
               nostore|dostore) continue ;;
              checkmd5|checkfs) continue ;;
+                  noautomount) continue ;;
             automount|mount=*) continue ;;
+   i915_invert|no_i915_invert) continue ;;
                     hwclock=*) continue ;;
                     desktop=*) continue ;;
             nouveau.modeset=0) continue ;;
+                 mk_swap_file) continue ;;
+               mk_swap_file=*) continue ;;
+                      vcard=*) continue ;;
         esac
         case " $ALL_MENU_PARAMS " in
             *" ${param%%=*} "*) ;;

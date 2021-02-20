@@ -1,0 +1,8 @@
+COUNTRY="Español"
+WM_LANG="es"
+KEYBOARDS="es,us"
+KEYTABLE="es"
+LANG="es_CR.UTF-8"
+MIRROR="ec"
+TZ="America/Costa_Rica"
+XKBLAYOUT="es,us"

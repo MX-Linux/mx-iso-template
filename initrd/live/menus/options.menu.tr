@@ -1,15 +1,16 @@
    1)  Öntanımlı
-   2)  checkmd5        Canlı ortamın doğruluğu denetleniyor
-   3)  checkfs         Check LiveUSB and persistence ext2/3/4 file systems
-   4)  toram           Sıkıştırılmış dosya sistemi RAM'a kopyalanıyor
-   5)  from=usb        LiveUSB'den yükleme bitti
-   6)  from=hd         Finish booting from a hard drive
-   7)  nousb2          Disable all usb-2 devices while booting
-   8)  hwclock=ask     Have the system help determine the clock setting
-   9)  hwclock=utc     Hardware clock uses UTC (Linux-only systems)
-  10)  hwclock=local   Hardware clock uses local time (Windows systems)
-  11)  password        Change passwords before booting
-  12)  nostore         Disable LiveUSB-Storage feature (LiveUSB only)
-  13)  dostore         Enable LiveUSB-Storage feature (LiveUSB only)
-  14)  savestate       Save some files across reboots (LiveUSB only)
-  15)  nosavestate     Don't save files across reboots (LiveUSB only)
+   2)  checkmd5        Canlı ortamın doğruluğunu denetle
+   3)  checkfs         LiveUSB ve kalıcı ext2/3/4 dosya sistemlerini kontrol et
+   4)  toram           Sıkıştırılmış dosya sistemini RAM 'a kopyala
+   5)  i915_invert     Invert video on some Intel graphics systems
+   6)  no_i915_invert  Disable Intel graphics invert
+   7)  from=usb        Canlı-USB 'den önyüklemeyi bitir
+   8)  from=hd         Sabit sürücüden önyüklemeyi bitir
+   9)  hwclock=ask     Sistemin saat ayarını belirlemesine yardımcı olun
+  10)  hwclock=utc     Donanım saati UTC kullanıyor (Yalnızca linux sistemler)
+  11)  hwclock=local   Donanım saati yerel zamanı kullanıyor (Windows sistemler)
+  12)  password        Önyüklemeden önce parolaları değiştir
+  13)  nostore         LiveUSB Depolama özelliğini devre dışı bırak (Sadece LiveUSB)
+  14)  dostore         LiveUSB Depolama özelliğini etkinleştir (sadece LiveUSB)
+  15)  savestate       Save some files across reboots (LiveUSB only)
+  16)  nosavestate     Don't save files across reboots (LiveUSB only)

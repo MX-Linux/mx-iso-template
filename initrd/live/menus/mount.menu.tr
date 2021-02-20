@@ -1,5 +1,3 @@
    1)  Öntanımlı
-   2)  automount       Automatically mount devices when plugged in
-   3)  mount=usb       ... and mount all usb devices at boot time
-   4)  mount=all       ... and mount ALL devices at boot time
-   5)  mount=off       Disable all extra mounting and automounting
+   2)  automount       Takılı olduğunda cihazları otomatik olarak bağla
+   3)  noautomount     Tüm fazladan bağlama ve otomatik bağlamayı devre dışı bırak

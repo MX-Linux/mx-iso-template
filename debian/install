@@ -1,2 +1,3 @@
 iso-template.tar.gz 	usr/lib/iso-template
 template-initrd.gz	usr/lib/iso-template
+initrd-release      usr/share/mx-iso-template

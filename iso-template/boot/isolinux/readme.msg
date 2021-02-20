@@ -1,7 +1,4 @@
-Welcome to MX Linux!
+Welcome to MX-17-beta_x64 (11 October 2020)!
 
 To start the system, type one of the label names below and press [enter]:
 
-           live   MX Linux
-       harddisk   Boot from Hard Disk
-        memtest   Memory Test

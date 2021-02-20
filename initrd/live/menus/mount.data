@@ -1,5 +1,3 @@
 1:default
 2:automount:automount
-3:mount=usb:mount=usb
-4:mount=all:mount=all
-5:mount=off:mount=off
+3:noautomount:noautomount
