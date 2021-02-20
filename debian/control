@@ -7,7 +7,7 @@ Standards-Version: 3.9.5
 Vcs-Git: git://github.com/mx-linux/mx-iso-template
 
 Package: mx-iso-template
-Architecture: all
+Architecture: any
 Depends:
 Conflicts: iso-template (<< 16.17.1)
 Replaces: iso-template
