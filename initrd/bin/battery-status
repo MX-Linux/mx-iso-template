@@ -1,6 +1,6 @@
 #!/bin/sh
 
-for file in $(grep -l Battery /sys/class/power_supply/*/type 2>/dev/null); do
+for file in $(grep -l Battery /sys/class/power_supply/BAT*/type 2>/dev/null); do
     dir=$(dirname $file)
     read charge 2>/dev/null < $dir/charge_now
     read full   2>/dev/null < $dir/charge_full

@@ -35,6 +35,8 @@ for param in $CMDLINE; do
     esac
 done
 
+test -e /etc/localtime || MUST_RUN=true
+
 [ "$MUST_RUN" ] || exit 0
 
 # FIXME: check to see if any of these are needed
@@ -50,7 +52,7 @@ load_translation
 
 
 # Start block of code that is sent to the log file
-{
+main() {
     echo_script "$_Localizing_console_and_timezone_" $0
 
     #-jbb: for debugging
@@ -62,19 +64,41 @@ load_translation
     # CMD_TZ overrides value from LANG file above
     # Only set timezone via explicit boot parameter after the first time.
     TZ=${CMD_TZ:-$TZ}
-    if [ "$TZ" ]; then
 
-        # Only set timezone via explicit boot parameter after the first time.
-        if first_write /etc/localtime || [ "$CMD_TZ" ]; then
+    local lt_file=/etc/localtime
+    [ "$TZ" ] && if first_write $lt_file || [ "$CMD_TZ" ]; then
 
-            # Check for valid tz string
-            if [ -e /usr/share/zoneinfo/$TZ ]; then
-                echo_live "$_Setting_timezone_and_localtime_to_X_" "$(pquote $TZ)"
-                cp -f /usr/share/zoneinfo/$TZ /etc/localtime
-                echo $TZ > /etc/timezone
-            else
-                error "$_Unknown_time_zone_X_" "$(pquote $TZ)"
+        # Check for valid tz string
+        local dest=/usr/share/zoneinfo/$TZ
+        if [ -e $dest ]; then
+            echo_live "$_Setting_timezone_and_localtime_to_X_" "$(pquote $TZ)"
+            echo $TZ > /etc/timezone
+
+            # If it is a symlink or doesn't exist make a symklink ...
+            if  ! test -e "$lt_file"; then
+                ln -sf $dest $lt_file
+
+            elif test -L "$lt_file"; then
+                rm -f $lt_file
+                ln -sf $dest $lt_file
+
+            # ... otherwise copy over a real file
+            elif test -f $lt_file; then
+                cp -f $(readlink -f $dest) $lt_file
             fi
+        else
+            error "$_Unknown_time_zone_X_" "$(pquote $TZ)"
+        fi
+    fi
+
+    # If /etc/localtime doesn't exist then make it a symlink using the
+    # name in /etc/timezone
+    if ! test -e $lt_file; then
+        local tz=$(cat /etc/timezone 2>/dev/null | head -n1)
+        local dest=/usr/share/zoneinfo/$tz
+        if [ -n "$tz" -a -e $dest ]; then
+            echo_live "$_Recreate_symlink_X_" "$(pquote $lt_file)"
+            ln -sf $dest $lt_file
         fi
     fi
 
@@ -105,25 +129,28 @@ load_translation
         loadkeys -q "$KEYTABLE"
     fi
 
+    #[ -n "$CMD_FONT" ] && set_console_font "$CMD_LANG" "$CMD_FONT"
+}
 
-    CONSOLE_FONT=${CMD_FONT:-$CONSOLE_FONT}
-    if [ "$CONSOLE_FONT" ]; then
-        case $CONSOLE_FONT in
-            [0-9][0-9]x[0-9][0-9])
-                CONSOLE_FONT=Uni2-Terminus$CONSOLE_FONT ;;
-            [bB][0-9][0-9]x[0-9][0-9])
-                CONSOLE_FONT=Uni2-TerminusBold${CONSOLE_FONT#[bB]} ;;
-        esac
-        FFILE=/usr/share/consolefonts/$CONSOLE_FONT
-        if [ -e $FFILE -o -e $FFILE.gz -o -e $FFILE.psf.gz -o -e $FFILE.psfu.gz \
-            -o -e $FFILE.cp.gz -o -e $FFILE.cp ]; then
-            echo_live "$_Setting_console_font_to_X_" $(pquote $CONSOLE_FONT)
-            setfont $CONSOLE_FONT
-        else
-            error "$_Unknown_console_font_X_" "confont=$(pquote $CONSOLE_FONT)"
-        fi
+add_or_replace() {
+    local where=$1  line=$2  file=$3  create=$4
+
+    if ! test -e "$file"; then
+        [ "$create" ] && echo "$line" > $file
+        return
     fi
 
-} 2>&1 | tee -a $INIT_LOG_FILE
+    if grep -iq "$where" "$file"; then
+        # Don't over-write the same string
+        grep -q "^$line" "$file" && return
+        # Edit the existing line
+        sed -i -r "/$where/I s|.*|$line|" $file
+    else
+        # Add it under the top line of the file
+         sed -i "1 a$line" $file
+    fi
+}
 
+
+main "$@" 2>&1 | tee -a $INIT_LOG_FILE
 exit 0
