@@ -1,8 +1,0 @@
-COUNTRY="Eesti"
-WM_LANG="ee"
-KEYBOARDS="us,ee"
-KEYTABLE="ee"
-LANG="et_EE.UTF-8"
-MIRROR="ee"
-TZ="Europe/Tallinn"
-XKBLAYOUT="us,ee"
