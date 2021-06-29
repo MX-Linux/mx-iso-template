@@ -1,3 +1,9 @@
+mx-iso-template (21.06.01mx21) mx; urgency=medium
+
+  * update to latest initrd and boot folders
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 28 Jun 2021 20:28:43 -0400
+
 mx-iso-template (21.04.01mx21) mx; urgency=medium
 
   * update initrd-release file 
