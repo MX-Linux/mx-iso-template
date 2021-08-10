@@ -1,3 +1,9 @@
+mx-iso-template (21.08.01mx21) mx; urgency=medium
+
+  * update lib removals
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 09 Aug 2021 22:52:19 -0400
+
 mx-iso-template (21.07.02mx21) mx; urgency=medium
 
   * update latest live boot templates 
