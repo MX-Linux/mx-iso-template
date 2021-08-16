@@ -1,3 +1,9 @@
+mx-iso-template (21.08.02mx21) mx; urgency=medium
+
+  * update initrd (nvme, mmc fixes)
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 15 Aug 2021 20:20:30 -0400
+
 mx-iso-template (21.08.01mx21) mx; urgency=medium
 
   * update lib removals
