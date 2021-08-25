@@ -1,3 +1,9 @@
+mx-iso-template (21.08.03mx21) mx; urgency=medium
+
+  * update boot templates 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Wed, 25 Aug 2021 18:35:36 -0400
+
 mx-iso-template (21.08.02mx21) mx; urgency=medium
 
   * update initrd (nvme, mmc fixes)
