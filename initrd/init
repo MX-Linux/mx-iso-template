@@ -1652,8 +1652,8 @@ is_removable() {
 get_drive() {
     local drive part=${1##*/}
     case $part in
-                  mmcblk*p[0-9]|nvme*n*p[0-9]) echo ${part%p[0-9]}      ;;
-        mmcblk*p[0-9][0-9]|nvme*n*p[0-9][0-9]) echo ${part%p[0-9][0-9]} ;;
+                  mmcblk*p[0-9]|nvme*p[0-9]) echo ${part%p[0-9]}      ;;
+        mmcblk*p[0-9][0-9]|nvme*p[0-9][0-9]) echo ${part%p[0-9][0-9]} ;;
                                           *) drive=${part%[0-9][0-9]}
                                              echo ${drive%[0-9]}      ;;
     esac
@@ -1668,7 +1668,7 @@ next_partition() {
     local root  part
     case $dev in
         mmcblk*p[1-9]) root=${dev%[1-9]}  ; part=${dev#${root}}  ;;
-          nvme*n*p[1-9]) root=${dev%[1-9]}  ; part=${dev#${root}}  ;;
+          nvme*p[1-9]) root=${dev%[1-9]}  ; part=${dev#${root}}  ;;
                     *) root=${dev%[0-9]}  ; root=${root%[0-9]}
                        part=${dev#$root}                         ;;
     esac
