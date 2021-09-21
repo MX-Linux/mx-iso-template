@@ -1,3 +1,9 @@
+mx-iso-template (21.09.02mx21) mx; urgency=medium
+
+  * update live system 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 20 Sep 2021 21:08:30 -0400
+
 mx-iso-template (21.09.01mx21) mx; urgency=medium
 
   * update boot and initrd templates 
