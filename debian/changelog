@@ -1,5 +1,11 @@
 mx-iso-template (21.09.03mx21) mx; urgency=medium
 
+  * update live help 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 26 Sep 2021 15:20:14 -0400
+
+mx-iso-template (21.09.03mx21) mx; urgency=medium
+
   * update grub boot menus
 
  -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 25 Sep 2021 18:55:49 -0400
