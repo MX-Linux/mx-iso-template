@@ -1,3 +1,9 @@
+mx-iso-template (22.03.01mx21) mx; urgency=medium
+
+  * adjust some strings (fehlix) 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 26 Mar 2022 09:36:41 -0400
+
 mx-iso-template (21.09.04mx21) mx; urgency=medium
 
   * update live help 
