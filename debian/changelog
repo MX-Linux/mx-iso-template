@@ -1,3 +1,9 @@
+mx-iso-template (22.10.mx21) mx; urgency=medium
+
+  * Generalize for shells located in /usr/bin/.*sh not only /bin/.*sh
+
+ -- Adrian <adrian@mxlinux.org>  Mon, 31 Oct 2022 22:14:58 -0400
+
 mx-iso-template (22.03.01mx21) mx; urgency=medium
 
   * adjust some strings (fehlix) 
