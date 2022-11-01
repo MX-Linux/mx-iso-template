@@ -1,3 +1,10 @@
+mx-iso-template (21.02.05) mx; urgency=medium
+
+  [adrian]
+  * Generalize for shells located in /usr/bin/.*sh not only /bin/.*sh 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 31 Oct 2022 22:47:18 -0400
+
 mx-iso-template (21.02.04) mx; urgency=medium
 
   * bug fix on dirty-bytes in init 
