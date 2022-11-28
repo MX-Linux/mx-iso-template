@@ -1,3 +1,9 @@
+mx-iso-template (22.11.mx21) mx; urgency=medium
+
+  * Add compressed kernel-modules handling
+
+ -- Adrian <adrian@mxlinux.org>  Mon, 28 Nov 2022 18:28:27 -0500
+
 mx-iso-template (22.10.mx21) mx; urgency=medium
 
   * Generalize for shells located in /usr/bin/.*sh not only /bin/.*sh

@@ -1,0 +1,46 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Mon, 28 Nov 2022 18:28:27 -0500
+Source: mx-iso-template
+Binary: mx-iso-template
+Architecture: source amd64
+Version: 22.11.mx21
+Distribution: mx
+Urgency: medium
+Maintainer: Adrian <adrian@mxlinux.org>
+Changed-By: Adrian <adrian@mxlinux.org>
+Description:
+ mx-iso-template - MX ISO template
+Changes:
+ mx-iso-template (22.11.mx21) mx; urgency=medium
+ .
+   * Add compressed kernel-modules handling
+Checksums-Sha1:
+ de2bb3a83cd070ca185e9ed184138d74bb3f829d 1191 mx-iso-template_22.11.mx21.dsc
+ 133baa1f1c10ecafa34492212313cf7cc1d109d9 5214204 mx-iso-template_22.11.mx21.tar.xz
+ a0253f1a3a6ca1a5ec073ad9d00216fd625b9a77 5650 mx-iso-template_22.11.mx21_amd64.buildinfo
+ 65e914efc94cc4ffe591f104ee25ba2c5d2b937c 9406500 mx-iso-template_22.11.mx21_amd64.deb
+Checksums-Sha256:
+ 603401d64af74576f320170c51e14760129692add1ce8b81d72218a472a9e614 1191 mx-iso-template_22.11.mx21.dsc
+ 99d28087c2fee9f8502147e066b1348bfa517c788f66a30297f48eb3d83181a1 5214204 mx-iso-template_22.11.mx21.tar.xz
+ c212520008fa7f11dbd5ad215fd1b12e6c21ed5b258999104f203bcb81234b05 5650 mx-iso-template_22.11.mx21_amd64.buildinfo
+ b36b44a267c0479e483e8f7d93ff6c8ae49e62990824ac83ed31be1efe66af91 9406500 mx-iso-template_22.11.mx21_amd64.deb
+Files:
+ 5f2e7c7ad4fad554ae75d041a3e1b7c1 1191 admin optional mx-iso-template_22.11.mx21.dsc
+ 9ec3fdd6529332e20cae9921080da2f5 5214204 admin optional mx-iso-template_22.11.mx21.tar.xz
+ 00be793622fe3804943d7e5793a5c85c 5650 admin optional mx-iso-template_22.11.mx21_amd64.buildinfo
+ 5dcd3c59daa2f830c9a1d1e52178aeba 9406500 admin optional mx-iso-template_22.11.mx21_amd64.deb
+
+-----BEGIN PGP SIGNATURE-----
+
+iQFHBAEBCgAxFiEE8ndToY6S45N+YzXncJOMeAZ57pgFAmOFSt4THGFkcmlhbkBt
+eGxpbnV4Lm9yZwAKCRBwk4x4BnnumFlMB/wLNDR67/6OWOTDLgWxiL8YvlRLPp6N
+Nz+s05Dqh09dt7Y9EqZna1OzzXrvB3ZivjKVo3oKT8KrFY0QKthWq86U8gEQ8Z8p
+kmK/nZfMxy9czM2GW+ssZc2nHwrBmSNPOPEnQFGIyu5XBArsR6IwpTovuEQgtA0k
+RMc49WXv59uA+i4BVzOmuEc4lqlFZ/MWgPnKYMCk4PqWdM5PgF1fbLAFxqiRZ6Q0
+TA/dHGVkbrN7Uu7WeikWkIgCcZK9npac3/+wtC6oYwxrcs3pgHm1gIU+XZcS0Ub1
+nuzbJ8q66FxNcg34ucqD+//S3UI2pHWBTLlPUr/UXEU+K/uiS7dW7tOv
+=IuHv
+-----END PGP SIGNATURE-----
