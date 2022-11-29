@@ -1,3 +1,9 @@
+mx-iso-template (22.12.01mx21) mx; urgency=medium
+
+  * rebuild 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Tue, 29 Nov 2022 06:46:44 -0500
+
 mx-iso-template (22.11.mx21) mx; urgency=medium
 
   * Add compressed kernel-modules handling
