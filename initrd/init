@@ -2413,6 +2413,7 @@ find_linuxfs_file() {
             || linuxfs_error  "$_File_X_not_found_on_device_Y_" "$SQFILE_FULL" "$FOUND_DEV"
 
         SQFILE_MP=$ISO_FILE_MP
+        BOOT_MP=$SQFILE_MP
         SQFILE_DEV=$FOUND_DEV   # Used for toram-eject
         SQFILE_PATH=${SQFILE_FILE%/*}
 
@@ -2470,7 +2471,7 @@ find_crypt_or_linuxfs() {
 
     # If user specifies a boot device then don't assume we are doing a "normal"
     # encrypted boot
-    [ -n "$BOOT_ID" ] && ENCRYPT_MODE=$ENCRYPT_DiSABLE
+    [ -n "$BOOT_ID" ] && ENCRYPT_MODE=$ENCRYPT_DISABLE
 
     validate_encryption_mode
 
@@ -5285,6 +5286,7 @@ copy_to_ram() {
 
         log_cmd umount $SQFS_MP
         mount_linuxfs "$SQFS_MP" "$SQFILE_FULL"
+        [ "$DID_ISO" ] && log_cmd umount $ISO_FILE_MP
 
     else
         mountpoint -q $toram_mp && log_cmd umount $toram_mp
@@ -6277,6 +6279,11 @@ copy_xtra() {
 
     # Use tar because cp stumbles on some symlinks in target directory
     (cd "$xtra_dir" && tar cf - *) | tar x -C "$NEW_ROOT"
+    
+    # To avoid conflict when live-init script creates home directory.
+    # Would be cooler if Busybox's tar supported the --transform option,
+    # in which case the below line would be not necessary
+    [ -d "$NEW_ROOT/home" ] && mv "$NEW_ROOT/home" "$NEW_ROOT/home.xtra"
 
      # Create a symlink to the /antiX/xtra directory if it exists
     local r_dir="$NEW_ROOT/root"
@@ -6490,7 +6497,7 @@ SQFS_VID_FILE="$SQFS_VID_FILE"
 STATIC_ROOT="$STATIC_ROOT"
 TORAM_MP="$TORAM_MP"
 TORAM_STORE="$TORAM_STORE"
-TOORAM_ALL="$TOORAM_ALL"
+TORAM_ALL="$TORAM_ALL"
 USER_GID="$USER_GID"
 USER_UID="$USER_UID"
 VID_ERROR="$VID_ERROR"
