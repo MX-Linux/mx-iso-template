@@ -1173,14 +1173,6 @@ create_home() {
     mkdir -p $home
     cp -a /etc/skel/* /etc/skel/.[!.]* $home 2>/dev/null # Avoid error msgs for ".../* not found"
     
-    # Check for home.xtra (from init script)
-	local upper_home="/home" home_xtra="/home.xtra"
-	if [ -d "$home_xtra" ]; then
-	echo_live "$_Copy_home_xtra_file_s_"
-	(cd "$home_xtra" && tar cf - *) | tar x -C "$upper_home"
-	rm -r "$home_xtra"
-fi
-
     local uid_gid=$(getent passwd $user | cut -d: -f3,4)
     chown -R $uid_gid $home
 }
