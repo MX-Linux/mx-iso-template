@@ -1,3 +1,16 @@
+mx-iso-template (22.12.02mx21) mx; urgency=medium
+
+  * bug fixes and typo fixes from antiX forum member
+  * see gitlab commit for link to forum post
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 18 Dec 2022 11:18:59 -0500
+
+mx-iso-template (22.12.01mx21+1) mx; urgency=medium
+
+  * testing changes
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 17 Dec 2022 15:09:37 -0500
+
 mx-iso-template (22.12.01mx21) mx; urgency=medium
 
   * rebuild 
