@@ -6280,12 +6280,7 @@ copy_xtra() {
     # Use tar because cp stumbles on some symlinks in target directory
     (cd "$xtra_dir" && tar cf - *) | tar x -C "$NEW_ROOT"
     
-    # To avoid conflict when live-init script creates home directory.
-    # Would be cooler if Busybox's tar supported the --transform option,
-    # in which case the below line would be not necessary
-    [ -d "$NEW_ROOT/home" ] && mv "$NEW_ROOT/home" "$NEW_ROOT/home.xtra"
-
-     # Create a symlink to the /antiX/xtra directory if it exists
+    # Create a symlink to the /antiX/xtra directory if it exists
     local r_dir="$NEW_ROOT/root"
     local x_dir="$DEFAULT_DIR/xtra"
 
