@@ -1,3 +1,9 @@
+mx-iso-template (22.12.03mx21) mx; urgency=medium
+
+  * fix keyboard options, update initrd 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 19 Dec 2022 23:32:39 -0500
+
 mx-iso-template (22.12.02mx21) mx; urgency=medium
 
   * bug fixes and typo fixes from antiX forum member
