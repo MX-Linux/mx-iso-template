@@ -1,3 +1,22 @@
+mx-iso-template (23.01.01mx21) mx; urgency=medium
+  
+  [fehlix]
+  * additional kernel boot parameter checking, filter tokens
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Tue, 03 Jan 2023 22:36:41 -0500
+
+mx-iso-template (22.12.04mx21) mx; urgency=medium
+
+  [fehlix]
+  * update latest upstream live-initrd
+  * gfxsave and non-live-paramters (not to save) built-in kernel paramters
+  * also added for a fs-label, when live-creating rootfs/homefs 
+  * live-grub with latest 2.06 for bullseye
+  * live-grub scripts with script adjustments
+  * latest live-grub translations from transifex
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Tue, 27 Dec 2022 21:07:34 -0500
+
 mx-iso-template (22.12.03mx21) mx; urgency=medium
 
   * fix keyboard options, update initrd 
