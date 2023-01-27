@@ -7,6 +7,7 @@ override_dh_auto_clean:
 	rm -f iso-template*.xz
 
 override_dh_auto_install:
+    cp -R patches/ initrd/live/custom
 	tar -cvzf iso-template.tar.gz iso-template
 	(cd initrd && find . | cpio -o -H newc --owner root:root | gzip -9) > template-initrd.gz
 
