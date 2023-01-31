@@ -1,3 +1,10 @@
+mx-iso-template (23.01.04mx21) mx; urgency=medium
+
+  * remove avlinux custom live scripts
+  * enable base determination for execution of custom live scripts [fehlix] 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 30 Jan 2023 23:26:42 -0500
+
 mx-iso-template (23.01.03mx21) mx; urgency=medium
 
   * add avlinux custom live scripts
