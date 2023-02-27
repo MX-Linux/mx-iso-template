@@ -153,7 +153,7 @@ do_start() {
     local initrd_release=/etc/initrd_release
     [ -r $initrd_release ] || initrd_release=/etc/initrd-release
     if [ ${#DISTRO} = 0 -a -r $initrd_release ]; then
-        DISTRO=$(sed -n '/^NAME=/{s///; s/["]//g; s/[[:space:]]*$//; p;q}' $initrd_release)
+        DISTRO=$(sed -n "/^NAME=/{s///; s/[\x22']//g; s/[[:space:]]*$//; p;q}" $initrd_release)
     fi
 
     if [ -z "$DISTRO_BASE" ] && [ -n "$DISTRO" ] ; then
