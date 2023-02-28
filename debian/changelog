@@ -1,3 +1,9 @@
+mx-iso-template (23.02.01mx21) mx; urgency=medium
+
+  * update iso template to read initrd_release
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 27 Feb 2023 21:34:02 -0500
+
 mx-iso-template (23.01.04mx21) mx; urgency=medium
 
   * remove avlinux custom live scripts
