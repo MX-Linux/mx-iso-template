@@ -1,3 +1,9 @@
+mx-iso-template (23.03.01mx23) mx; urgency=medium
+
+  * adjust permissions of created home folder to adduser.conf config
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 27 Mar 2023 22:47:56 -0400
+
 mx-iso-template (23.02.01mx21) mx; urgency=medium
 
   * update iso template to read initrd_release
