@@ -1,3 +1,11 @@
+mx-iso-template (23.03.02mx23) mx; urgency=medium
+
+  * update iso template grub and syslinux configs
+  * add checkmd5 boot entries
+  * update live grub version
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Thu, 06 Apr 2023 17:14:52 -0400
+
 mx-iso-template (23.03.01) mx; urgency=medium
 
   * adjust permissions of created home folder to adduser.conf config 
