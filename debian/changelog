@@ -1,3 +1,11 @@
+mx-iso-template (23.04.01mx23) mx; urgency=medium
+
+  * update iso template (fehlix)
+  * translations for custom boot entry in progress
+  * syslinux "Check integrity" language pulled from grub strings. 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Thu, 20 Apr 2023 18:49:10 -0400
+
 mx-iso-template (23.03.02mx23) mx; urgency=medium
 
   * update iso template grub and syslinux configs
