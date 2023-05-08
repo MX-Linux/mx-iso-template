@@ -1,3 +1,10 @@
+mx-iso-template (23.05.01mx23) mx; urgency=medium
+
+  * update iso template
+  * check media translations 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 07 May 2023 22:07:26 -0400
+
 mx-iso-template (23.04.01mx23) mx; urgency=medium
 
   * update iso template (fehlix)
