@@ -1,3 +1,9 @@
+mx-iso-template (23.05.02mx23) mx; urgency=medium
+
+  * update grub
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Fri, 26 May 2023 18:11:44 -0400
+
 mx-iso-template (23.05.01mx23) mx; urgency=medium
 
   * update iso template
