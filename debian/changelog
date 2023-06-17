@@ -1,3 +1,9 @@
+mx-iso-template (23.06.01mx23) mx; urgency=medium
+
+  * fix catalan tsplash xlat
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Fri, 16 Jun 2023 22:00:16 -0400
+
 mx-iso-template (23.05.02mx23) mx; urgency=medium
 
   * update grub
