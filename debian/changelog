@@ -1,3 +1,9 @@
+mx-iso-template (23.07.01mx23) mx; urgency=medium
+
+  *  language selection fixes
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Wed, 12 Jul 2023 23:33:33 -0400
+
 mx-iso-template (23.06.01mx23) mx; urgency=medium
 
   * fix catalan tsplash xlat
