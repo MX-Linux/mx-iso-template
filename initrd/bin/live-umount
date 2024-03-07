@@ -59,7 +59,7 @@ SWAP_FILE="/boot-dev/swap-file"
 
 me=${0##*/}
 
-     NEW_ROOT=/run/initramfs
+     NEW_ROOT=/live
      OLD_ROOT=/aufs
   BUSYBOX_BIN=$NEW_ROOT/bin
    LOCALE_DIR=/locale
