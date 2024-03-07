@@ -6,13 +6,12 @@ Build-Depends: debhelper (>=7.0.50~), cpio, tar, gzip
 Standards-Version: 3.9.5
 Vcs-Git: git://github.com/mx-linux/mx-iso-template
 
-Package: mx-iso-template
+Package: mx-iso-template-experimental
 Architecture: any
 Depends:
 Conflicts: iso-template (<< 16.17.1)
 Replaces: iso-template
 Provides: iso-template (= 16.17.1)
-Description:  MX ISO template
-  MX ISO Template is used by MX Snapshot to create a live ISO disk image from
-  the running system.
+Description:  MX ISO template experimental
+  MX ISO Template with modified initrd to mount on /run/initramfs
   
