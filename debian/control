@@ -9,8 +9,8 @@ Vcs-Git: git://github.com/mx-linux/mx-iso-template
 Package: mx-iso-template-experimental
 Architecture: any
 Depends:
-Conflicts: iso-template (<< 16.17.1)
-Replaces: iso-template
+Conflicts: iso-template (<< 16.17.1), mx-iso-template
+Replaces: iso-template, mx-iso-template
 Provides: iso-template (= 16.17.1)
 Description:  MX ISO template experimental
   MX ISO Template with modified initrd to mount on /run/initramfs
