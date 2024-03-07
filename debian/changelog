@@ -1,4 +1,4 @@
-mx-iso-template-experimentals (24.03.02mx23) mx; urgency=medium
+mx-iso-template (24.03.02mx23) mx; urgency=medium
 
   * experimental init script
   * mounts to /run/initramfs instead of /live
