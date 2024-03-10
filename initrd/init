@@ -296,7 +296,7 @@ main_wrapper() {
     #remove leftover /live directory
     test -d "$NEW_ROOT/live" && rm -R $NEW_ROOT/live
     #symlink /live to FINAL_DIR location after switch_root
-    ln -s /run/initramfs $NEW_ROOT/live
+    ln -s $FINAL_DIR $NEW_ROOT/live
 
     # I hope this is no longer needed
     # remove_from_runlevel lightdm 3
@@ -7084,7 +7084,7 @@ prepare_switch_root() {
 
     local f
     for f in README LICENSE; do
-        local from=/live/$f  to=$new_root/run/initramfs/$f
+        local from=/live/$f  to=$new_root$FINAL_DIR/$f
         test -e $from || continue
         test -e $to   && continue
         cp $from $to
