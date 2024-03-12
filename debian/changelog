@@ -1,3 +1,13 @@
+mx-iso-template (24.03.03,x23) mx; urgency=medium
+
+  [ fehlix ]
+  * update experimental init script
+  * adjustment to make sure etc/live exists
+  * cleanup some FINAL_DIR tests
+  * use new_root rather than building path for config and bin copy
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Tue, 12 Mar 2024 19:16:17 -0400
+
 mx-iso-template (24.03.02mx23) mx; urgency=medium
 
   * experimental init script

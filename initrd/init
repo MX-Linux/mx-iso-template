@@ -292,11 +292,12 @@ main_wrapper() {
     breakpoint b8     "Bash shell before running live init.d scripts"
 
     #ensure symlink exists before running init.d scripts
-
-    #remove leftover /live directory
-    test -d "$NEW_ROOT/live" && rm -R $NEW_ROOT/live
-    #symlink /live to FINAL_DIR location after switch_root
-    ln -s $FINAL_DIR $NEW_ROOT/live
+    if [ "/${FINAL_DIR#/}" != "/live" ]; then
+        #remove leftover /live directory
+        test -d "$NEW_ROOT/live" && rm -R $NEW_ROOT/live
+        #symlink relative /live to FINAL_DIR location after switch_root
+        ln -s ${FINAL_DIR#/} $NEW_ROOT/live
+    fi
 
     # I hope this is no longer needed
     # remove_from_runlevel lightdm 3
@@ -340,9 +341,9 @@ main_wrapper() {
 
             local dir new_dir
             for dir in config bin; do
-                local new_dir=$NEW_ROOT/etc$FINAL_DIR/$dir
+                local new_dir=$NEW_ROOT/etc/live/$dir
                 mkdir -p $new_dir
-                mount --bind /live/aufs$FINAL_DIR/$dir $new_dir
+                mount --bind /live/aufs/live/$dir $new_dir
             done
 
             # Leave ext2/3/4 as read-write
@@ -6533,7 +6534,7 @@ TORAM_ALL="$TORAM_ALL"
 USER_GID="$USER_GID"
 USER_UID="$USER_UID"
 VID_ERROR="$VID_ERROR"
-VID_FILE="${VID_FILE/"$pattern1"/"$pattern2"}"
+VID_FILE="${VID_FILE}"
 Initrd_Out
 
     echo "$SQFILE_DEV" > $dir/boot-device
@@ -7084,7 +7085,7 @@ prepare_switch_root() {
 
     local f
     for f in README LICENSE; do
-        local from=/live/$f  to=$new_root$FINAL_DIR/$f
+        local from=/live/$f  to=$new_live/$f
         test -e $from || continue
         test -e $to   && continue
         cp $from $to
