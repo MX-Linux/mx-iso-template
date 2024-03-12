@@ -1,4 +1,4 @@
-mx-iso-template (24.03.03,x23) mx; urgency=medium
+mx-iso-template (24.03.03mx23) mx; urgency=medium
 
   [ fehlix ]
   * update experimental init script
