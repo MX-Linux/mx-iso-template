@@ -414,6 +414,7 @@ main_wrapper() {
         : ${INIT_COMMAND:=${INIT_PROG:=/sbin/init}}
         breakpoint i "befor switch root"
         vmsg 6  "Start %s process" $(pq $INIT_COMMAND)
+
         # Note that "nomodeset" is yet again unreliable!
         # [ "$NO_CLEAR" ] || [ "$NO_MODESET" ] || clear
         [ "$NO_CLEAR" ] || clear
