@@ -13,25 +13,25 @@ Build-Depends: debhelper (>= 7.0.50~), cpio, tar, gzip
 Package-List:
  mx-iso-template-experimental deb admin optional arch=any
 Checksums-Sha1:
- 360bd5060d81e642a36502a22c8a7798e9035817 7278568 mx-iso-template_24.08.01mx23.tar.xz
+ 81b2a620c7af51184edc1c9ceb5da738bc67c872 7279176 mx-iso-template_24.08.01mx23.tar.xz
 Checksums-Sha256:
- 974f776acc38910d0bc859110040d8d6faa24ea20388e4af182c61fbc21dd2e1 7278568 mx-iso-template_24.08.01mx23.tar.xz
+ 8bc7b8cc3814224deb33011e3ec707f6ac0e7f81ee1917bd54a15cc0d58cf4da 7279176 mx-iso-template_24.08.01mx23.tar.xz
 Files:
- 1d9af1b461ba7f26d9278eed467da876 7278568 mx-iso-template_24.08.01mx23.tar.xz
+ 10530e24febe952cd8c594205a95192c 7279176 mx-iso-template_24.08.01mx23.tar.xz
 
 -----BEGIN PGP SIGNATURE-----
 
-iQIzBAEBCgAdFiEE9i7eqjrnCpyZ2sQYm2ih6Lm2N1wFAmbNOXcACgkQm2ih6Lm2
-N1w7GQ/+LJcQRYeXonJX574HM/GYkLBKe1Rez7oMAITOgbll2Y48cSP4R5V9t45H
-OhMyI6bhVWu6VWNB6N00kdbNoilN+qlubxohpdoRlJ6c2gMwvjvbCzRpXYw0Bn+h
-2+MyRUmL4qRENFT1szwAhfv8aJ5fSDSLE8dt5OL7PX95MO7qcvNDuPdAtdaYXGQQ
-2ZTPWWakip+8rZjomeovo4u68NhkmDNVux5esJqTgoLpKli45v0UG8Aq9wLEDT9q
-UVd064k+mk0FaScDDvf8lB64qmJuh8B/2bu315haWtXlr0yXj0Z3wCbZG3j6Cgtm
-D6psDW+CZUBYFNQXix3zH98tldPfwbEZJGvQ6YdXb0yUtpSJKZaauw6EqMZtzxNR
-JVhB2l7DR94geQPcW4t+Yjrj1tc/8NlHOfnMSGfsu0lQQa3jarbfuSzAiruwhfbW
-HTlJCzvNZWFTr3ezW4jOhDktUVJq+4XyQ/hoROYZJpuQkEC81bpp2uUIzufvDAG8
-pNd8nncIGmUTtHFIYYrvLF8Zxdj1QTeQa5ZAcEleOPk9Fxexq2wmm5Mq5MPjjWIL
-RKU01erHfRvEsgi2e0peoMeCvjNGDFRW3eO2k7MgmTAqBjiuaEvP2kuLX7MgN7ZQ
-lLCfrEiSk87N+umME23IWSNul3dtU/PC1sXjuWrBJdWh8yX3KM8=
-=UQAz
+iQIzBAEBCgAdFiEE9i7eqjrnCpyZ2sQYm2ih6Lm2N1wFAmbNQr4ACgkQm2ih6Lm2
+N1zxKhAAxA9aGx0wExpCBpZUSmAW4/fiD2JKNRyz7tDsoVi7GiZjkXg9OS625vJX
+vI0uR4GO507tE19Kb5nNd8skmdNmWZEIE2cdQTdowFGyydnv+MkgCFv2yLF+MIpN
+E2ngTF/42eewstvSfjpteL01WPG1EBWYalmpUmoI3Ytr5qq+tLeQcnOynIY1tWV2
+wCYuEQxEMmGYZSTrXdm6wpbqO+7Pn2voG0/PH3Y8FduKn4TQx35tQRLZhcN851EC
+/17grwthLzLlQnbUF+oIlwHLzowooyy/4v6xgOb1INEWo9FnaptmHOD4Fj4NECWf
+h3SYL1HoVg4yMAbjgKBVLgdWVnfjzTNXrVSdFToig5aaEvw4+aLzKU6Ro6tNSfPX
+d+NyLVoc4wfysB+VvD3zLOibLLgC/Z+29lGjMmewV6/+F7jhHUFvOlMKpBFl52HD
+LGHBIx/33KCYG4PInLTAGiJcttPZ/GTI5FEuaFVlPok7fGqMqkL6FWobzVSyHDIj
+H0oI+CeqH0RhbA/hiq8SVx3Wp+FSaPzYVd94QeLAL3upwtzC+F0ofS1dltPyDZ2D
+OWxNCgPZWsBVT5nmBcuM9Xvukmx/cY95Gsnnz93AF9Eh790oTiX1iMKZvMrZtZUa
+mVO551wX5MdLDlMqIftH0j/UDuHLMeNYD6UZCYatW7ABH5r5uPQ=
+=5B2d
 -----END PGP SIGNATURE-----
