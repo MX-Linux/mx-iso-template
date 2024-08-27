@@ -1,3 +1,9 @@
+mx-iso-template (24.08.01mx23) mx; urgency=medium
+
+  * move resolv.conf handling to custom files and out of init
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 26 Aug 2024 22:25:09 -0400
+
 mx-iso-template (24.03.03mx23) mx; urgency=medium
 
   [ fehlix ]

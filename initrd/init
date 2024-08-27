@@ -43,7 +43,7 @@
             PRINTK=0
 
           LIVE_DIR="/live"
-         FINAL_DIR="/run/initramfs"
+         FINAL_DIR="/live"
           LIVE_BIN="/bin"
 
           AUFS_DIR="aufs"
@@ -7081,8 +7081,9 @@ prepare_switch_root() {
 
     mkdir -p -m 777 $new_root/run/lock
 
-    rm -f $new_root/etc/resolv.conf
-    ln -s ../run/resolvconf/resolv.conf $new_root/etc/resolv.conf
+    ##Move this to custom 8.sh files
+    #rm -f $new_root/etc/resolv.conf
+    #ln -s ../run/resolvconf/resolv.conf $new_root/etc/resolv.conf
 
     [ -z "$NO_TMP_TMP" ] && $LIVE_BIN/mount -t tmpfs -o noatime tmpfs $new_root/tmp
 
