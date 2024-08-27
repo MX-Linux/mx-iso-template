@@ -1,0 +1,51 @@
+-----BEGIN PGP SIGNED MESSAGE-----
+Hash: SHA512
+
+Format: 1.8
+Date: Mon, 26 Aug 2024 22:25:09 -0400
+Source: mx-iso-template
+Binary: mx-iso-template-experimental
+Architecture: source amd64
+Version: 24.08.01mx23
+Distribution: mx
+Urgency: medium
+Maintainer: Adrian <adrian@mxlinux.org>
+Changed-By: Dolphin Oracle <dolphinoracle@gmail.com>
+Description:
+ mx-iso-template-experimental - MX ISO template experimental
+Changes:
+ mx-iso-template (24.08.01mx23) mx; urgency=medium
+ .
+   * move resolv.conf handling to custom files and out of init
+Checksums-Sha1:
+ 6f42ae737fa2d8490fda64a684cc2c0eba89f09e 1563 mx-iso-template_24.08.01mx23.dsc
+ 360bd5060d81e642a36502a22c8a7798e9035817 7278568 mx-iso-template_24.08.01mx23.tar.xz
+ ce6080d562eb6c8c1056b6c35ff4dbde6ccb678d 15755280 mx-iso-template-experimental_24.08.01mx23_amd64.deb
+ e5bd672ba0edf8a4d7082f82dd902cd88d51f849 6348 mx-iso-template_24.08.01mx23_amd64.buildinfo
+Checksums-Sha256:
+ 0fbab748a1424d4d6cf4481e0dab614acb24b8136851231ebd21a419e2de1f99 1563 mx-iso-template_24.08.01mx23.dsc
+ 974f776acc38910d0bc859110040d8d6faa24ea20388e4af182c61fbc21dd2e1 7278568 mx-iso-template_24.08.01mx23.tar.xz
+ e286ca6f6b7ec479738020010ce02777b1b78eabd5ac2ff423aff4542790c965 15755280 mx-iso-template-experimental_24.08.01mx23_amd64.deb
+ 689a17d9b186d15b02c7f6b478dd91b0b1477c38bc2b5c6537076b03667ae9ea 6348 mx-iso-template_24.08.01mx23_amd64.buildinfo
+Files:
+ d9bc570afe055ef358785a9ef741c525 1563 admin optional mx-iso-template_24.08.01mx23.dsc
+ 1d9af1b461ba7f26d9278eed467da876 7278568 admin optional mx-iso-template_24.08.01mx23.tar.xz
+ e7d004ae5b3bcb3386887d6f3f1de0c0 15755280 admin optional mx-iso-template-experimental_24.08.01mx23_amd64.deb
+ 9a59e858a7a4838f4b2fd0ea8aac8a7d 6348 admin optional mx-iso-template_24.08.01mx23_amd64.buildinfo
+
+-----BEGIN PGP SIGNATURE-----
+
+iQIzBAEBCgAdFiEE9i7eqjrnCpyZ2sQYm2ih6Lm2N1wFAmbNOXwACgkQm2ih6Lm2
+N1wygBAAq4T2Fm4erlt9rnBgh8iDSMi/1CpCDNZX6VFaZO7O8bPuRs5aNiMO5IzB
+tPCtVyLnw39eYciFM4UkljJ+TfzH0d0EOCv/y1fRFO/4iwXHbgTbuq5QLmOcL928
+WdIr1Vq9VAaFm+3HtaxUSpIcjH1aeSWwqNxI6Ejc2h7x9UdTAoh+INh2cMV3gwEo
+awM6b1uPtZ/Slm9f9dSrHaKS1mJeaP/BbDBcZfOVPaCX3p1L11kZgmEyiZH2Y/0u
+mU3AMhdSquQnj+I8xSF5uMp/fVuy1U/mrF7GZN/cM1Dq08XEOgMFLwNQ9hkPvsZr
+RaZxcb2IG0Y68oansCQEzTA7V5lnM1VWF2zeRHjdjRTKXn1dbZ/z9/w5msUA0W0P
+25gMh7LwkM6qQZuyKo3x54BKiP7MtCMKRrCUBHikZSaI0feoEr4iBIneDe96VUDl
+Wees6aoOPDlQ978gai+Q1X7e8kQSNPeLLzuXi0SpCuH+dJSXVGnd8aYh1tCnAnyf
+CpzkUngakKI8WFBgfRCYW2rzxgkwVZ2l6KMsWNzgemv+LRnzEjDtlsrm/Twd/qx0
+u7PVTaTvmAp73BlMHFPLeRo32EBTx4zFBe8J+R7AiRv49DV9wJg3FGfrB5K65RdX
+muAVmWwdLW+KoIcFs+Xq+NP9OKaSbI/7W9z9q4xRRTpiX1jsQYk=
+=+r19
+-----END PGP SIGNATURE-----
