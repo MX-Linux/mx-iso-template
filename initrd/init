@@ -43,7 +43,7 @@
             PRINTK=0
 
           LIVE_DIR="/live"
-         FINAL_DIR="/live"
+         FINAL_DIR="/run/initramfs"
           LIVE_BIN="/bin"
 
           AUFS_DIR="aufs"
