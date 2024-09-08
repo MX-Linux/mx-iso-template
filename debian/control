@@ -9,10 +9,17 @@ Vcs-Git: git://github.com/mx-linux/mx-iso-template
 Package: mx-iso-template
 Architecture: any
 Depends:
-Conflicts: iso-template (<< 16.17.1)
-Replaces: iso-template
-Provides: iso-template (= 16.17.1)
+Conflicts: iso-template-generic
+Replaces: iso-template-generic
 Description:  MX ISO template
   MX ISO Template is used by MX Snapshot to create a live ISO disk image from
   the running system.
   
+Package: iso-template-generic
+Architecture: any
+Depends:
+Conflicts: mx-iso-template
+Replaces: mx-iso-template
+Provides: mx-iso-template
+Description:  iso-template-generic
+  iso-template package for use with mx-snapshot that removes mx branding

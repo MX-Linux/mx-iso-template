@@ -1,3 +1,9 @@
+mx-iso-template (24.09.01mx23) mx; urgency=medium
+
+  * add iso-template-generic (no mx branding)
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 08 Sep 2024 19:29:52 -0400
+
 mx-iso-template (24.03.01mx23) mx; urgency=medium
 
   * init= boot options
