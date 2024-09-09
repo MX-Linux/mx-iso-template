@@ -8,8 +8,12 @@ override_dh_auto_clean:
 	#cp -R patches/* initrd/live/custom/
 
 override_dh_auto_install:
-	tar -cvzf mx-iso-template.tar.gz mx-iso-template
-	tar -cvzf iso-template-generic.tar.gz iso-template-generic
+	mv mx-iso-template iso-template
+	tar -cvzf mx-iso-template.tar.gz iso-template
+	mv iso-template mx-iso-template
+	mv iso-template-generic iso-template
+	tar -cvzf iso-template-generic.tar.gz iso-template
+	mv iso-template iso-template-generic
 	mkdir MX generic
 	mv mx-iso-template.tar.gz MX/iso-template.tar.gz
 	mv iso-template-generic.tar.gz generic/iso-template.tar.gz
