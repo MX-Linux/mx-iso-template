@@ -5,6 +5,7 @@ override_dh_auto_clean:
 	rm -f template-initrd.gz
 	rm -f build-template.sh
 	rm -f iso-template*.gz
+	rm -rf MX generic
 	#cp -R patches/* initrd/live/custom/
 
 override_dh_auto_install:
