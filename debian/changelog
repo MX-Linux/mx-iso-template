@@ -1,3 +1,9 @@
+mx-iso-template (24.12.01mx23) mx; urgency=medium
+
+  * extra read only warning when persistence enabled
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Tue, 24 Dec 2024 16:41:40 -0500
+
 mx-iso-template (24.08.01mx23) mx; urgency=medium
 
   * move resolv.conf handling to custom files and out of init
