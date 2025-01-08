@@ -1,3 +1,10 @@
+mx-iso-template (25.91.01mx23) mx; urgency=medium
+
+  * add amd_pstate to message handling
+  * adjust virtualbox detection
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Tue, 07 Jan 2025 19:07:47 -0500
+
 mx-iso-template (24.12.01mx23) mx; urgency=medium
 
   * extra read-only warning on splash 
