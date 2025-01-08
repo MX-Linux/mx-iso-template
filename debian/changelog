@@ -1,4 +1,4 @@
-mx-iso-template (25.91.01mx23) mx; urgency=medium
+mx-iso-template (25.1.01mx23) mx; urgency=medium
 
   * add amd_pstate to message handling
   * adjust virtualbox detection
