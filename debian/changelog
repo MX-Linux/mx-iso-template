@@ -1,3 +1,9 @@
+mx-iso-template (25.6.01mx25) mx; urgency=medium
+
+  * move away from usr/local
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Wed, 04 Jun 2025 22:41:41 -0400
+
 mx-iso-template (25.5.02mx25) mx; urgency=medium
 
   * mx25 build with iso-template-generic included
