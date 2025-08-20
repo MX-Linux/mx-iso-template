@@ -1,3 +1,9 @@
+mx-iso-template (25.8.01mx25) mx; urgency=medium
+
+  * new live background images
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Tue, 19 Aug 2025 21:53:10 -0400
+
 mx-iso-template (25.6.01mx25) mx; urgency=medium
 
   * move away from usr/local
