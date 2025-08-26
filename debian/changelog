@@ -1,6 +1,7 @@
 mx-iso-template (25.8.02mx25) mx; urgency=medium
 
   * update grub 2.12-9
+  * update memtest86+
 
  -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 25 Aug 2025 20:48:29 -0400
 
