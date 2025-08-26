@@ -1,3 +1,9 @@
+mx-iso-template (25.8.02mx25) mx; urgency=medium
+
+  * update grub 2.12-9
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 25 Aug 2025 20:48:29 -0400
+
 mx-iso-template (25.8.01mx25) mx; urgency=medium
 
   * new live background images
