@@ -1,3 +1,12 @@
+mx-iso-template (25.9.01mx25) mx; urgency=medium
+
+  * update more grub 2.12-9 stuff
+  * core.img
+  * efi.img
+  * clean up stub files
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 06 Sep 2025 20:27:24 -0400
+
 mx-iso-template (25.8.02mx25) mx; urgency=medium
 
   * update grub 2.12-9
