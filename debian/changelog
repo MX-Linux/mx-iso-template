@@ -1,3 +1,10 @@
+mx-iso-template (25.9.02mx25) mx; urgency=medium
+
+  * echo a space to get consoles working on live grub.cfg 
+  * workaround for black screens on some older intel hardware
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 28 Sep 2025 09:34:57 -0400
+
 mx-iso-template (25.9.01mx25) mx; urgency=medium
 
   * update more grub 2.12-9 stuff
