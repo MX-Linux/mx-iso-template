@@ -10,10 +10,10 @@ override_dh_auto_clean:
 
 override_dh_auto_install:
 	mv mx-iso-template iso-template
-	tar -cvzf mx-iso-template.tar.gz iso-template
+	tar --owner=0 --group=0 -cvzf mx-iso-template.tar.gz iso-template
 	mv iso-template mx-iso-template
 	mv iso-template-generic iso-template
-	tar -cvzf iso-template-generic.tar.gz iso-template
+	tar --owner=0 --group=0 -cvzf iso-template-generic.tar.gz iso-template
 	mv iso-template iso-template-generic
 	mkdir MX generic
 	mv mx-iso-template.tar.gz MX/iso-template.tar.gz
