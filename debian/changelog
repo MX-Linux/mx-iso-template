@@ -1,3 +1,9 @@
+mx-iso-template (25.10.01mx25) mx; urgency=medium
+
+  * update rules file to force ownership to 0:0
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 13 Oct 2025 16:38:04 -0400
+
 mx-iso-template (25.9.02mx25) mx; urgency=medium
 
   * echo a space to get consoles working on live grub.cfg 
