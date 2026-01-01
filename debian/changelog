@@ -1,3 +1,9 @@
+mx-iso-template (25.01.01mx25) ; urgency=medium
+
+  * fallback for make-xorg-conf file
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Thu, 01 Jan 2026 18:32:26 -0500
+
 mx-iso-template (25.10.01mx25) mx; urgency=medium
 
   * update rules file to force ownership to 0:0
