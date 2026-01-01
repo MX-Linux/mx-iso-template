@@ -1,4 +1,4 @@
-mx-iso-template (25.01.01mx25) mx; urgency=medium
+mx-iso-template (26.01.01mx25) mx; urgency=medium
 
   * fallback for make-xorg-conf file
 
