@@ -15,8 +15,12 @@ override_dh_auto_install:
 	mv iso-template-generic iso-template
 	tar --owner=0 --group=0 -cvzf iso-template-generic.tar.gz iso-template
 	mv iso-template iso-template-generic
+	mv mx-iso-template-multi iso-template
+	tar --owner=0 --group=0 -cvzf mx-iso-template-multi.tar.gz iso-template
+	mv iso-template mx-iso-template-multi
 	mkdir MX generic
 	mv mx-iso-template.tar.gz MX/iso-template.tar.gz
+	mv mx-iso-template-multi.tar.gz MX/iso-template-multi.tar.gz
 	mv iso-template-generic.tar.gz generic/iso-template.tar.gz
 	(cd initrd && find . | cpio -o -H newc --owner root:root | gzip -9) > template-initrd.gz
 

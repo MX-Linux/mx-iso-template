@@ -1,3 +1,9 @@
+mx-iso-template (26.03.01mx25) mx; urgency=medium
+
+  * add dual-init iso template
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 15 Mar 2026 12:09:40 -0400
+
 mx-iso-template (26.01.01mx25) mx; urgency=medium
 
   * fallback for make-xorg-conf file
