@@ -2,7 +2,7 @@
 title-text:     ""
 title-font:     "DejaVu Sans Bold 18"
 title-color:    "#ffffff"
-desktop-image:  "background.jpg"
+#desktop-image:  "background.jpg"
 desktop-color:  "#000000"
 message-font:   "DejaVu Sans Bold 12"
 
