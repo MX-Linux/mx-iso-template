@@ -1,3 +1,9 @@
+mx-iso-template (26.03.04mx25) mx; urgency=medium
+
+  * restore option passing to checkmedia multi-init entries
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Thu, 26 Mar 2026 21:44:42 -0400
+
 mx-iso-template (26.03.03mx25) mx; urgency=medium
 
   * make sure /run/cryptsetup exists in live initrd environment
