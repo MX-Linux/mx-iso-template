@@ -1,3 +1,9 @@
+mx-iso-template (26.03.03mx25) mx; urgency=medium
+
+  * make sure /run/cryptsetup exists in live initrd environment
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Thu, 26 Mar 2026 20:30:15 -0400
+
 mx-iso-template (26.03.02mx25) mx; urgency=medium
 
   * add generic multi init 
