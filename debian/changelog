@@ -1,10 +1,10 @@
-mx-iso-template (26.03.05mx25) mx; urgency=medium
+mx-iso-template (26.03.06mx25) mx; urgency=medium
 
   * restore option passing to checkmedia multi-init entries
   * remove multi-init menu entries from single init template
   * restore missing .disk folder in multi-init templates
 
- -- Dolphin Oracle <dolphinoracle@gmail.com>  Thu, 26 Mar 2026 21:44:42 -0400
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Fri, 27 Mar 2026 20:07:51 -0400
 
 mx-iso-template (26.03.03mx25) mx; urgency=medium
 
