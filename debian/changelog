@@ -1,3 +1,9 @@
+mx-iso-template (26.04.1mx25) mx; urgency=medium
+
+  * add legacy bios grub boot support (eltorito.img)
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sun, 05 Apr 2026 16:19:30 -0400
+
 mx-iso-template (26.03.06mx25) mx; urgency=medium
 
   * restore option passing to checkmedia multi-init entries
