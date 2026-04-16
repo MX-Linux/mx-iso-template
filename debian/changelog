@@ -1,3 +1,10 @@
+mx-iso-template (26.04.2mx25) mx; urgency=medium
+
+  * ensure resolv.conf gets created if missing
+  * make symlink if resolvconf package detected, empty file otherwise
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Wed, 15 Apr 2026 20:04:33 -0400
+
 mx-iso-template (26.04.1mx25) mx; urgency=medium
 
   * add legacy bios grub boot support (eltorito.img)
