@@ -2,8 +2,8 @@ Source: mx-iso-template
 Section: admin
 Priority: optional
 Maintainer: Adrian <adrian@mxlinux.org>
-Build-Depends: debhelper (>=7.0.50~), cpio, tar, gzip
-Standards-Version: 3.9.5
+Build-Depends: debhelper-compat (= 12), cpio, tar, gzip
+Standards-Version: 4.5.1
 Vcs-Git: git://github.com/mx-linux/mx-iso-template
 
 Package: mx-iso-template
