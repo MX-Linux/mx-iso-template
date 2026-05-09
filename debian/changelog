@@ -1,3 +1,9 @@
+mx-iso-template (26.05.1mx25) mx; urgency=medium
+
+  * do not force uxa accleration
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Sat, 09 May 2026 08:23:42 -0400
+
 mx-iso-template (26.04.2mx25) mx; urgency=medium
 
   * ensure resolv.conf gets created if missing
