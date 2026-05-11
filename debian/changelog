@@ -1,3 +1,9 @@
+mx-iso-template (26.05.2mx25) mx; urgency=medium
+
+  * Add kernel parameter filter for kernel 5.x / 6.x (security mitigations, new subsystems, new drivers)
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 11 May 2026 19:26:17 -0400
+
 mx-iso-template (26.05.1mx25) mx; urgency=medium
 
   * do not force uxa accleration
