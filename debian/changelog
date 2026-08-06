@@ -1,3 +1,9 @@
+mx-iso-template (26.08.1mx25) mx; urgency=medium
+
+  * Restore invalid language diagnostics
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Wed, 05 Aug 2026 21:28:27 -0400
+
 mx-iso-template (26.05.3mx25) mx; urgency=medium
 
   * additional boot param filters
