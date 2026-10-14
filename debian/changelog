@@ -1,3 +1,10 @@
+mx-iso-template (26.10.1mx25) mx; urgency=medium
+
+  * create machine-id file earlier in boot
+  * prevents systemd from starting too many services on first bootup
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Wed, 14 Oct 2026 19:56:31 -0400
+
 mx-iso-template (26.08.1mx25) mx; urgency=medium
 
   * Restore invalid language diagnostics
