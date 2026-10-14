@@ -220,4 +220,3 @@ first_write() {
 
     return 1
 }
-
