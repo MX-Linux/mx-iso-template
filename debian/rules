@@ -1,11 +1,21 @@
 #!/usr/bin/make -f
 
+# BusyBox for the live-initrd comes from the live-busybox package
+# (Build-Depends). It is no longer kept in the source under initrd/bin/.
+# For a test build without the package installed, point LIVE_BUSYBOX to an
+# unpacked live-busybox .deb, e.g.:
+#   LIVE_BUSYBOX=/path/to/unpacked/usr/lib/live-busybox dpkg-buildpackage -d ...
+LIVE_BUSYBOX ?= /usr/lib/live-busybox
+# initrd/ is copied here and populated with busybox + applet symlinks
+INITRD_STAGE = debian/initrd-stage
+
 override_dh_auto_clean:
 	dh_auto_clean
 	rm -f template-initrd.gz
 	rm -f build-template.sh
 	rm -f iso-template*.gz
 	rm -rf MX generic
+	rm -rf $(INITRD_STAGE)
 	#cp -R patches/* initrd/live/custom/
 
 override_dh_auto_install:
@@ -26,7 +36,30 @@ override_dh_auto_install:
 	mv mx-iso-template-multi.tar.gz MX/iso-template-multi.tar.gz
 	mv iso-template-generic.tar.gz generic/iso-template.tar.gz
 	mv iso-template-generic-multi.tar.gz generic/iso-template-multi.tar.gz
-	(cd initrd && find . | cpio -o -H newc --owner root:root | gzip -9) > template-initrd.gz
+	$(MAKE) -f debian/rules populate-initrd
+	(cd $(INITRD_STAGE) && find . | cpio -o -H newc --owner root:root | gzip -9) > template-initrd.gz
+
+# Copy initrd/ to $(INITRD_STAGE), add the static busybox from live-busybox
+# and create one symlink in bin/ per applet (sbin -> bin, usr -> . in the
+# initrd, so all applets live in bin/). Existing files are never replaced.
+populate-initrd:
+	@set -e; \
+	bb=$(LIVE_BUSYBOX)/bin/busybox; links=$(LIVE_BUSYBOX)/busybox.links; \
+	test -x "$$bb"    || { echo "ERROR: $$bb not found (install live-busybox)" >&2; exit 1; }; \
+	test -r "$$links" || { echo "ERROR: $$links not found" >&2; exit 1; }; \
+	if readelf -l "$$bb" | grep -q 'Requesting program interpreter'; then \
+	    echo "ERROR: $$bb is not statically linked" >&2; exit 1; fi; \
+	rm -rf $(INITRD_STAGE); \
+	cp -a initrd $(INITRD_STAGE); \
+	install -m 0755 "$$bb" $(INITRD_STAGE)/bin/busybox; \
+	n=0; for a in $$(sed 's|.*/||' "$$links"); do \
+	    if [ -e $(INITRD_STAGE)/bin/$$a ] || [ -L $(INITRD_STAGE)/bin/$$a ]; then \
+	        echo "populate-initrd: keep existing bin/$$a (not linked to busybox)"; \
+	    else ln -s busybox $(INITRD_STAGE)/bin/$$a; n=$$((n+1)); fi; \
+	done; \
+	echo "populate-initrd: $$($(INITRD_STAGE)/bin/busybox | head -n1)"; \
+	echo "populate-initrd: $$n applet symlinks created"
+.PHONY: populate-initrd
 
 %:
 	dh $@ --parallel 
