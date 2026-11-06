@@ -1,3 +1,22 @@
+mx-iso-template (26.10.2mx25) mx; urgency=medium
+
+  * busybox from the new live-busybox package (BusyBox 1.38.0, static
+    musl, amd64/i386), copied into the initrd at build time; replaces the
+    old prebuilt BusyBox 1.31.1 (static i386) kept in initrd/bin
+  * init: no error message for remount,rw on read-only media (busybox
+    >= 1.33 no longer falls back to read-only)
+  * gfxsave, grub2-save: sed fixes, also work with busybox sed
+  * fix black VT10 after "pw" with first-time persistence (no tsplash)
+  * periodic fsck: really check (-f), reset mount count only on success;
+    new persistence files: check every 60 mounts or monthly
+  * offer swap file only when the boot device is writable
+  * pass a runlevel given before init= on to sysvinit (the kernel drops
+    bare words before init=)
+  * init: no busy-wait in device search, no divide by zero on serial
+    console
+
+ -- fehlix <fehlix@mxlinux.org>  Fri, 06 Nov 2026 06:23:23 -0500
+
 mx-iso-template (26.10.1mx25) mx; urgency=medium
 
   * create machine-id file earlier in boot
