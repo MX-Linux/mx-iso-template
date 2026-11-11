@@ -1,3 +1,9 @@
+mx-iso-template (26.11.1mx23) mx; urgency=medium
+
+  * pick up fd major number for linuxfs search 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Tue, 10 Nov 2026 19:31:19 -0500
+
 mx-iso-template (26.10.1mx23) mx; urgency=medium
 
   * create machine-id file earlier in boot
