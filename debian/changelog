@@ -1,3 +1,9 @@
+mx-iso-template (26.11.1mx25) mx; urgency=medium
+
+  * pickup fd (virtio-blk) major number for linuxfs search
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Tue, 10 Nov 2026 19:28:44 -0500
+
 mx-iso-template (26.10.2mx25) mx; urgency=medium
 
   * busybox from the new live-busybox package (BusyBox 1.38.0, static
