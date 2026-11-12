@@ -1,3 +1,13 @@
+mx-iso-template (26.11.2mx25) mx; urgency=medium
+
+  * new live-busybox build
+  * with 11 runit applets are enabled
+  * runit service supervision applets: runsvdir, runsv, sv, svc, svok, svlogd (+ runsvdir log), and the helpers chpst, setuidgid, envuidgid, envdir, softlimit
+  * default service directory /etc/service
+  * size +24 KB (amd64 640792 bytes), 160 applet links instead of 149; all other applets and the config are unchanged 
+
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Wed, 11 Nov 2026 20:12:12 -0500
+
 mx-iso-template (26.11.1mx25) mx; urgency=medium
 
   * pickup fd (virtio-blk) major number for linuxfs search
