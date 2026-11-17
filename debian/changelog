@@ -1,4 +1,4 @@
-mx-iso-template (26.11.2mx25) mx; urgency=medium
+mx-iso-template (26.11.2mx25+1) mx; urgency=medium
 
   * new live-busybox build
   * with 11 runit applets are enabled
