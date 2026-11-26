@@ -1,0 +1,8 @@
+# Keep every file of the source tree in the source package.
+# "3.0 (native)" drops *.o *.a *.so *.la ... by default (dpkg-source -I);
+# that removed boot/grub/i386-pc/efiemu32.o + efiemu64.o (GRUB set) from the
+# package, so "sha256sum -c boot/grub/boot-files/SHA256SUMS" failed.
+# Listing tar-ignore here replaces the default list: only VCS files stay out.
+tar-ignore = .git
+tar-ignore = .gitignore
+tar-ignore = .gitattributes
