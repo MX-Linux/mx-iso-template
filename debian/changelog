@@ -1,8 +1,11 @@
 mx-iso-template (26.11.3mx25) mx; urgency=medium
 
-  *  defaults.cfg: fix the regex that moves an old efi=... out of "extra"
+  [fehlix]
+  *  Boot files from GRUB 2.12-9+deb13u4 and shim 16.1
+  *  32 bit UEFI improvements
+  *  efi=runtime/noruntime boot parameter support
 
- -- Dolphin Oracle <dolphinoracle@gmail.com>  Mon, 23 Nov 2026 20:49:50 -0500
+ -- Dolphin Oracle <dolphinoracle@gmail.com>  Wed, 25 Nov 2026 20:36:26 -0500
 
 mx-iso-template (26.11.2mx25+1) mx; urgency=medium
 
